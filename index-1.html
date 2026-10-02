@@ -313,6 +313,46 @@ a.btn { text-decoration: none; }
 .rank { width: 32px; height: 32px; border-radius: 50%; display: inline-grid; place-items: center; background: var(--surface-2); font-weight: 700; font-size: 15px; }
 .rank.first { background: var(--accent); color: var(--accent-ink); }
 
+/* ===== شاشة العرض (تلفزيون/لابتوب): خط كبير يُقرأ من بعيد، وعمودان على الشاشات العريضة ===== */
+body.display-mode .page { max-width: min(1600px, 96vw); }
+body.display-mode #stage { font-size: clamp(18px, 1.8vw, 36px); padding-bottom: 24px; }
+body.display-mode #stage .h1 { font-size: clamp(30px, 3.4vw, 68px); }
+body.display-mode #stage .h2 { font-size: clamp(22px, 2.1vw, 42px); }
+body.display-mode .topbar .title { font-size: clamp(22px, 1.8vw, 34px); }
+.disp-badge { font-size: 14px; vertical-align: middle; font-family: var(--font-body); }
+.display-hint { border: 1.5px dashed var(--line); }
+
+.disp-lobby { display: grid; grid-template-columns: minmax(300px, 1fr) 1.5fr; gap: 28px; align-items: start; }
+.disp-join { text-align: center; }
+.disp-join .qr { width: min(36vh, 340px); }
+.disp-cover { height: 16vh; min-height: 90px; border-radius: var(--r-lg); overflow: hidden; margin-bottom: 8px; }
+.disp-cover svg { width: 100%; height: 100%; }
+.disp-gname { margin: 6px 0; }
+.disp-pgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(clamp(140px, 13.5vw, 260px), 1fr)); gap: 14px; }
+.disp-p { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 12px 8px; border-radius: var(--r-lg); background: var(--surface); text-align: center; border: 1.5px solid var(--line); }
+.disp-p b { font-size: 1.12em; line-height: 1.25; word-break: break-word; }
+.disp-p.off, .disp-p.dead { opacity: .45; }
+.disp-p.dead b { text-decoration: line-through; }
+.disp-p.active { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent); }
+.disp-p .sub { font-size: .85em; color: var(--ink-soft); }
+.disp-p .avatar.lg { width: clamp(56px, 5.4vw, 110px); height: clamp(56px, 5.4vw, 110px); font-size: clamp(32px, 3.3vw, 64px); }
+
+.disp-cols { display: grid; grid-template-columns: 1.6fr 1fr; gap: 24px; align-items: start; }
+.disp-head { text-align: center; margin: 2px 0 16px; }
+.disp-head .h1 { margin: 0; }
+.disp-head .soft { margin: 6px 0 0; }
+.disp-big { font-size: clamp(36px, 5vw, 110px); font-family: var(--font-display); line-height: 1.1; text-align: center; margin: 8px 0; }
+.disp #stage .timer, body.display-mode .timer { font-size: clamp(34px, 4vw, 80px); }
+@media (max-aspect-ratio: 1/1) {
+  .disp-lobby, .disp-cols { grid-template-columns: 1fr; }
+}
+
+body.display-mode .topbar .icon-btn { width: 52px; height: 52px; }
+body.display-mode .dawn-card .who { font-size: 1.5em; }
+/* تكبير مكونات لعبة كما هي على الشاشة الكبيرة */
+body.display-mode .disp-zoom { zoom: 1.5; }
+@media (max-width: 900px) { body.display-mode .disp-zoom { zoom: 1; } }
+
 /* ===== بطاقة لعب حقيقية: وجه + ظهر + قلب ثلاثي الأبعاد ===== */
 .card {
   --w: min(300px, 78vw);
@@ -8566,6 +8606,8 @@ var qrcode = function() {
   }
 
   // js/net/host-session.js
+  var DISPLAY_ID = "#display";
+  var MAX_DISPLAYS = 3;
   var DBG = typeof location !== "undefined" && /[?&]debug/.test(location.search);
   var dbg = (...a) => {
     if (DBG) console.log("[samra]", ...a);
@@ -8584,6 +8626,7 @@ var qrcode = function() {
       this.now = now;
       this.onSave = onSave;
       this.conns = /* @__PURE__ */ new Map();
+      this.displays = /* @__PURE__ */ new Map();
       this.listeners = /* @__PURE__ */ new Set();
       if (restored) {
         this.room = restored;
@@ -8625,10 +8668,18 @@ var qrcode = function() {
         if (!msg || typeof msg.t !== "string") return;
         conn._seen = this.now();
         if (msg.t === "hello") {
+          if (msg.role === "display") {
+            playerId = this._helloDisplay(conn, msg, playerId);
+            return;
+          }
           playerId = this._hello(conn, msg, playerId);
           return;
         }
         if (!playerId) return;
+        if (this.displays.get(playerId) === conn) {
+          if (msg.t === "ping") conn.send({ t: "pong", c: msg.c, now: this.now() });
+          return;
+        }
         if (this.conns.get(playerId) !== conn && !this._readopt(playerId, conn)) return;
         if (msg.t === "ping") {
           conn.send({ t: "pong", c: msg.c, now: this.now() });
@@ -8637,6 +8688,11 @@ var qrcode = function() {
         this._handle(playerId, conn, msg);
       });
       conn.onClose(() => {
+        if (playerId && this.displays.get(playerId) === conn) {
+          this.displays.delete(playerId);
+          this._changed();
+          return;
+        }
         dbg("host: conn closed", playerId, this.conns.get(playerId) === conn ? "current" : "stale");
         if (playerId && this.conns.get(playerId) === conn) {
           this.conns.delete(playerId);
@@ -8668,6 +8724,7 @@ var qrcode = function() {
       this._lastLive = now;
       if (gap > everyMs * 3) {
         for (const c of this.conns.values()) c._seen = now;
+        for (const c of this.displays.values()) c._seen = now;
         return;
       }
       for (const [pid, c] of [...this.conns]) {
@@ -8685,6 +8742,15 @@ var qrcode = function() {
         }
         this._changed();
       }
+      for (const [id, c] of [...this.displays]) {
+        if (!c._seen || now - c._seen <= maxSilentMs) continue;
+        this.displays.delete(id);
+        try {
+          c.close();
+        } catch {
+        }
+        this._changed();
+      }
     }
     startLiveness(everyMs = 3e3, maxSilentMs = 2e4) {
       this.stopLiveness();
@@ -8695,6 +8761,29 @@ var qrcode = function() {
     stopLiveness() {
       if (this.liveTimer) clearInterval(this.liveTimer);
       this.liveTimer = null;
+    }
+    _helloDisplay(conn, msg, current3) {
+      if (msg.v !== PROTOCOL_VERSION) {
+        conn.send({ t: "reject", reason: "version" });
+        return current3;
+      }
+      if (this.closed) {
+        conn.send({ t: "closed", reason: "ended" });
+        closeSoon(conn);
+        return current3;
+      }
+      if (current3 && this.displays.get(current3) === conn) return current3;
+      if (this.displays.size >= MAX_DISPLAYS) {
+        conn.send({ t: "reject", reason: "displays-full" });
+        closeSoon(conn);
+        return current3;
+      }
+      this.displayNo = (this.displayNo || 0) + 1;
+      const id = "d" + this.displayNo;
+      this.displays.set(id, conn);
+      conn.send({ t: "welcome", id, token: null, lastSeq: 0, code: this.room.code, display: true });
+      this._changed();
+      return id;
     }
     _hello(conn, msg, current3) {
       if (msg.v !== PROTOCOL_VERSION) {
@@ -8848,6 +8937,12 @@ var qrcode = function() {
             } catch {
             }
           }
+          for (const [, c] of this.displays) {
+            try {
+              c.send({ t: "closed", reason: "ended" });
+            } catch {
+            }
+          }
           this.closed = true;
           this.stopTimer();
           return { ok: true };
@@ -8932,6 +9027,7 @@ var qrcode = function() {
         matchNo: r.matchNo,
         players: r.players.map((p) => ({ id: p.id, name: p.name, emoji: p.emoji, ready: p.ready, connected: p.connected, isHost: p.isHost })),
         roomFx: this.lastRoomFx || null,
+        displays: this.displays ? this.displays.size : 0,
         canStart: r.status === "lobby" ? this.startCheck() : null
       };
     }
@@ -8954,6 +9050,15 @@ var qrcode = function() {
         } catch {
         }
       }
+      if (this.displays.size) {
+        const dv = this.viewFor(DISPLAY_ID);
+        for (const [, c] of this.displays) {
+          try {
+            c.send(dv);
+          } catch {
+          }
+        }
+      }
       for (const fn of this.listeners) fn(this.room);
       if (this.onSave) this.onSave(this.room);
     }
@@ -8972,15 +9077,16 @@ var qrcode = function() {
   var RETRY_STEPS = [800, 1500, 2500, 4e3, 6e3, 8e3];
   var GIVE_UP_MS = 9e4;
   var ClientSession = class {
-    constructor({ transport, code, store: store2, profile: profile2, asHost = false, now = () => Date.now(), welcomeTimeoutMs = 8e3 }) {
+    constructor({ transport, code, store: store2, profile: profile2, asHost = false, role: role2 = "player", now = () => Date.now(), welcomeTimeoutMs = 8e3 }) {
       this.transport = transport;
+      this.role = role2 === "display" ? "display" : "player";
       this.welcomeTimeoutMs = welcomeTimeoutMs;
       this.code = code;
       this.store = store2;
       this.profile = profile2;
       this.asHost = asHost;
       this.now = now;
-      this.key = "samra.session." + code;
+      this.key = (this.role === "display" ? "samra.display." : "samra.session.") + code;
       const saved = store2.get(this.key) || {};
       this.token = saved.token || null;
       this.seq = saved.seq || 0;
@@ -9115,7 +9221,8 @@ var qrcode = function() {
         this.conn = null;
         if (!this.closedByUser) this._lost(welcomed ? "dropped" : "no-welcome");
       });
-      conn.send({ t: "hello", v: PROTOCOL_VERSION, token: this.token, cid: this.cid, name: this.profile.name, emoji: this.profile.emoji, asHost: this.asHost });
+      if (this.role === "display") conn.send({ t: "hello", v: PROTOCOL_VERSION, role: "display" });
+      else conn.send({ t: "hello", v: PROTOCOL_VERSION, token: this.token, cid: this.cid, name: this.profile.name, emoji: this.profile.emoji, asHost: this.asHost });
     }
     _lost(reason) {
       if (this.closedByUser) return;
@@ -9543,11 +9650,87 @@ var qrcode = function() {
     onFx: () => onFx,
     onUi: () => onUi,
     render: () => render,
+    renderDisplay: () => renderDisplay,
     roleCard: () => roleCard,
     roleName: () => roleName,
     screenKey: () => screenKey,
     theme: () => theme
   });
+
+  // js/ui/kit.js
+  var nm = (ctx2, id) => esc(ctx2.player(id)?.name || "؟");
+  var who = (ctx2, id, size2 = "sm") => `${avatar(ctx2.player(id), size2)} <b>${nm(ctx2, id)}</b>`;
+  var chip = (ctx2, id, extra = "", cls = "") => `<span class="badge ${cls}">${esc(ctx2.player(id)?.emoji || "")} ${nm(ctx2, id)}${extra}</span>`;
+  var act16 = (a) => `data-act='${JSON.stringify(a).replace(/'/g, "&#39;")}'`;
+  var btn = (label, a, cls = "", extra = "") => `<button class="btn ${cls}" ${act16(a)} ${extra}>${label}</button>`;
+  var wait = (t) => `<p class="center soft" style="margin:12px 0">${t}<span class="waiting-dots"></span></p>`;
+  var panel = (html, cls = "", style = "") => `<div class="panel ${cls}" style="${style}">${html}</div>`;
+  function targets(ctx2, ids, { action, field = "target", extra = {}, disabled = () => false, mark = () => "", selected = null, ui = null } = {}) {
+    return `<div class="target-list">${ids.map((id) => {
+      const d = disabled(id), m = mark(id);
+      const attr = ui ? `data-ui="${ui}" data-id="${id}"` : act16({ type: action, [field]: id, ...extra });
+      const sel = Array.isArray(selected) ? selected.includes(id) : selected === id;
+      return `<button class="target" ${d ? "disabled" : ""} aria-pressed="${sel}" ${attr}>${avatar(ctx2.player(id), "sm")}<span class="t-name">${nm(ctx2, id)}${id === ctx2.me ? " (أنت)" : ""}${m ? `<br><span class="t-mark">${esc(m)}</span>` : ""}</span></button>`;
+    }).join("")}</div>`;
+  }
+  function teamsBlock(ctx2, teams, labels = { A: "الفريق الأول", B: "الفريق الثاني" }, score3 = null) {
+    return `<div class="teams">${["A", "B"].map((t) => `<div class="team team-${t}"><div class="row spread"><b>${labels[t]}</b>${score3 ? `<span class="team-score">${ar(score3[t])}</span>` : ""}</div>
+    <div class="row wrap" style="gap:6px;margin-top:6px">${teams[t].map((id) => chip(ctx2, id, id === ctx2.me ? " (أنت)" : "")).join("")}</div></div>`).join("")}</div>`;
+  }
+  function card({ cls = "", back: back8 = "", front: front2 = "", flipped = false, attrs = "", hint = "" }) {
+    return `<div class="card ${cls} ${flipped ? "is-flipped" : ""}" ${attrs}><div class="card-inner">
+    <div class="card-face card-back">${back8}${hint ? `<div class="tap-hint">${hint}</div>` : ""}</div>
+    <div class="card-face card-front">${front2}</div></div></div>`;
+  }
+  function roleFront({ type = "", name, desc, art: art4 = "", tone: tone2 = "" }) {
+    return `<div class="cf role-front ${tone2}"><div class="cf-head"><span class="cf-type">${type}</span></div>
+    <div class="cf-art">${art4}</div><div><h3 class="cf-name">${name}</h3><p class="cf-desc">${desc}</p></div></div>`;
+  }
+  function revealStep(ctx2, { cardHtml, readyCount, total, ready, after: after7 = "" }) {
+    if (ready) return `<div class="big-status"><p class="h2">بانتظار البقية<span class="waiting-dots"></span></p><p class="soft">${ar(readyCount)} من ${ar(total)} جاهزون</p></div>`;
+    let h = `<p class="center soft" style="margin:4px 0 14px">اكشف بطاقتك بعيدًا عن أعين الآخرين.</p>${cardHtml}`;
+    if (ctx2.ui.revealed) h += `<p class="private-note">هذه المعلومة خاصة بك — لا تعرضها لأحد.</p>${after7}<div style="margin-top:16px">${btn("حفظت دوري — جاهز", { type: "ready" }, "block")}</div>`;
+    return h;
+  }
+  function flipReveal(name, el, ctx2, rerender, sound = "flip") {
+    if (name === "reveal" && !ctx2.ui.revealed) {
+      ctx2.ui.revealed = true;
+      el.classList.add("is-flipped");
+      ctx2.sfx(sound);
+      setTimeout(rerender, 760);
+      return true;
+    }
+    return false;
+  }
+  function toggleSel(ctx2, key, value, max = Infinity) {
+    var _a;
+    const arr = (_a = ctx2.ui)[key] || (_a[key] = []);
+    const k = arr.indexOf(value);
+    if (k >= 0) arr.splice(k, 1);
+    else if (arr.length < max) arr.push(value);
+  }
+  function voteRow(ctx2, players, flag = "voted") {
+    return `<div class="row wrap" style="justify-content:center;margin-top:12px;gap:6px">${players.map((p) => chip(ctx2, p.id, p[flag] ? " ✓" : " …", p[flag] ? "ok" : "")).join("")}</div>`;
+  }
+  function timerHtml(deadline) {
+    return deadline ? `<div class="timer" data-deadline="${deadline}">--:--</div>` : "";
+  }
+  function winnerBanner(title, sub = "", color = "var(--accent)") {
+    return `<div class="center pop-in" style="padding:8px 0 14px"><p class="h1" style="color:${color}">${title}</p>${sub ? `<p class="soft" style="margin:0">${sub}</p>` : ""}</div>`;
+  }
+  function logBlock(lines) {
+    if (!lines || !lines.length) return "";
+    return `<details class="panel" style="margin-top:12px"><summary class="soft" style="cursor:pointer">سجل الأحداث</summary>${lines.slice().reverse().map((l) => `<div style="font-size:14px;padding:2px 0">${esc(l)}</div>`).join("")}</details>`;
+  }
+  var dispHead = (title, sub = "") => `<div class="disp-head"><p class="h1">${title}</p>${sub ? `<p class="soft h2">${sub}</p>` : ""}</div>`;
+  function dispPlayers(ctx2, list) {
+    return `<div class="disp-pgrid">${list.map((x) => {
+      const p = ctx2.player(x.id) || {};
+      return `<div class="disp-p ${x.cls || ""}">${avatar(p, "lg")}<b>${esc(p.name || "؟")}</b>${x.sub ? `<span class="sub">${x.sub}</span>` : ""}</div>`;
+    }).join("")}</div>`;
+  }
+
+  // js/ui/games/mafia-ui.js
   var theme = "mafia";
   var kit = "noir";
   var ambient = () => mafiaAmbient() + '<div class="rain ambient"></div>';
@@ -9573,8 +9756,8 @@ var qrcode = function() {
       <div class="card-face card-front">${role2 ? cardFront(role2) : ""}</div>
     </div></div>`;
   }
-  var nm = (ctx2, id) => esc(ctx2.player(id)?.name || "؟");
-  var who = (ctx2, id) => `${avatar(ctx2.player(id), "sm")} <b>${nm(ctx2, id)}</b>`;
+  var nm2 = (ctx2, id) => esc(ctx2.player(id)?.name || "؟");
+  var who2 = (ctx2, id) => `${avatar(ctx2.player(id), "sm")} <b>${nm2(ctx2, id)}</b>`;
   function headerExtra(ctx2) {
     const v = ctx2.view;
     if (!v.me || v.phase === "over") return "";
@@ -9609,7 +9792,7 @@ var qrcode = function() {
       html += lastVoteBlock(ctx2);
       if (!me.alive) return html + deadNote();
       if (me.done && me.role !== "detective" && me.role !== "mafia") {
-        return html + `<div class="panel center phase-in"><p class="h2">نم بسلام</p><p class="soft">${me.role === "doctor" && me.protected ? "تحمي الليلة: " + who(ctx2, me.protected) : "انتظر حتى يطلع الصبح"}</p></div>`;
+        return html + `<div class="panel center phase-in"><p class="h2">نم بسلام</p><p class="soft">${me.role === "doctor" && me.protected ? "تحمي الليلة: " + who2(ctx2, me.protected) : "انتظر حتى يطلع الصبح"}</p></div>`;
       }
       if (me.role === "mafia") {
         if (!v.options.killTonight) {
@@ -9618,19 +9801,19 @@ var qrcode = function() {
           return html;
         }
         if (me.locked) {
-          return html + `<div class="panel center pop-in"><p class="soft">اتفقتم على الضحية</p><p class="h2">${who(ctx2, me.locked)}</p></div>`;
+          return html + `<div class="panel center pop-in"><p class="soft">اتفقتم على الضحية</p><p class="h2">${who2(ctx2, me.locked)}</p></div>`;
         }
         html += `<p class="center" style="margin:0 0 10px"><b>اختر الضحية.</b> <span class="soft">يجب أن تتفق كل المافيا على نفس الشخص.</span></p>`;
-        html += targets(ctx2, alive5.filter((p) => !me.team.some((t) => t.id === p.id)).map((p) => p.id), {
+        html += targets2(ctx2, alive5.filter((p) => !me.team.some((t) => t.id === p.id)).map((p) => p.id), {
           action: "mafiaPick",
           selected: me.picks?.[ctx2.me],
-          mark: (id) => Object.entries(me.picks || {}).filter(([k, t]) => t === id && k !== ctx2.me).map(([k]) => "🗡 " + nm(ctx2, k)).join("، ")
+          mark: (id) => Object.entries(me.picks || {}).filter(([k, t]) => t === id && k !== ctx2.me).map(([k]) => "🗡 " + nm2(ctx2, k)).join("، ")
         });
         return html + teamBlock(ctx2, me.team);
       }
       if (me.role === "doctor") {
         html += `<p class="center" style="margin:0 0 10px"><b>من تحمي الليلة؟</b></p>`;
-        html += targets(ctx2, alive5.map((p) => p.id), {
+        html += targets2(ctx2, alive5.map((p) => p.id), {
           action: "protect",
           disabled: (id) => id === ctx2.me && !v.options.doctorSelf || id === me.lastProtected && !v.options.doctorRepeat,
           mark: (id) => id === me.lastProtected && !v.options.doctorRepeat ? "حميته الليلة الماضية" : ""
@@ -9641,17 +9824,17 @@ var qrcode = function() {
         const last = me.investigations[me.investigations.length - 1];
         if (me.done && last && last.night === v.night) {
           html += `<div class="panel center pop-in"><p class="soft">نتيجة التحقيق السري</p>
-          <p class="h2" style="margin:8px 0">${who(ctx2, last.target)}</p>
+          <p class="h2" style="margin:8px 0">${who2(ctx2, last.target)}</p>
           <p class="h2" style="color:${last.isMafia ? "var(--accent)" : "var(--ok)"}">${last.isMafia ? "⚠ من المافيا" : "✓ ليس من المافيا"}</p>
           <p class="private-note">هذه المعلومة خاصة بك — لا تعرضها للاعبين الآخرين.</p></div>`;
         } else {
           html += `<p class="center" style="margin:0 0 10px"><b>من تريد التحقيق معه؟</b></p>`;
-          html += targets(ctx2, alive5.filter((p) => p.id !== ctx2.me).map((p) => p.id), { action: "investigate" });
+          html += targets2(ctx2, alive5.filter((p) => p.id !== ctx2.me).map((p) => p.id), { action: "investigate" });
         }
         return html + investigationsBlock(ctx2, me.investigations.filter((x) => x.night !== v.night || !me.done));
       }
       html += `<p class="center" style="margin:0 0 10px"><b>من تشك فيه؟</b> <span class="soft">(للتمويه فقط — لا يؤثر على اللعبة)</span></p>`;
-      html += targets(ctx2, alive5.filter((p) => p.id !== ctx2.me).map((p) => p.id), { action: "sleep" });
+      html += targets2(ctx2, alive5.filter((p) => p.id !== ctx2.me).map((p) => p.id), { action: "sleep" });
       return html;
     }
     if (v.phase === "day" || v.phase === "vote") {
@@ -9661,7 +9844,7 @@ var qrcode = function() {
           const p = v.players.find((x) => x.id === ln.killed);
           html += `<div class="dawn-card death phase-in"><p class="soft">أشرقت الشمس… ووجدت المدينة</p>
           <div class="row" style="justify-content:center">${avatar(ctx2.player(ln.killed), "lg")}</div>
-          <p class="who">${nm(ctx2, ln.killed)}</p><p class="soft">${ln.killed === ctx2.me ? "لقد قُتلت هذه الليلة." : "قُتل هذه الليلة."}${p.role ? " كان: <b>" + roleName(p.role) + "</b>" : ""}</p></div>`;
+          <p class="who">${nm2(ctx2, ln.killed)}</p><p class="soft">${ln.killed === ctx2.me ? "لقد قُتلت هذه الليلة." : "قُتل هذه الليلة."}${p.role ? " كان: <b>" + roleName(p.role) + "</b>" : ""}</p></div>`;
         } else {
           html += `<div class="dawn-card phase-in"><p class="who">لم يمت أحد الليلة</p><p class="soft">نجت المدينة… هذه المرة.</p></div>`;
         }
@@ -9678,12 +9861,12 @@ var qrcode = function() {
       <p class="center soft">صوّت ${ar(votedN)} من ${ar(alive5.length)}</p>`;
       if (!me.alive) html += deadNote();
       else if (me.vote == null) {
-        html += targets(ctx2, alive5.filter((p) => p.id !== ctx2.me).map((p) => p.id), { action: "vote" });
+        html += targets2(ctx2, alive5.filter((p) => p.id !== ctx2.me).map((p) => p.id), { action: "vote" });
         html += `<button class="btn ghost block" style="margin-top:10px" data-act='{"type":"vote","target":"skip"}'>لا أحد (تخطٍّ)</button>`;
       } else {
-        html += `<div class="panel center pop-in"><p>صوّتّ: <b>${me.vote === "skip" ? "لا أحد" : nm(ctx2, me.vote)}</b></p><p class="soft">بانتظار البقية<span class="waiting-dots"></span></p></div>`;
+        html += `<div class="panel center pop-in"><p>صوّتّ: <b>${me.vote === "skip" ? "لا أحد" : nm2(ctx2, me.vote)}</b></p><p class="soft">بانتظار البقية<span class="waiting-dots"></span></p></div>`;
       }
-      html += `<div class="row wrap" style="justify-content:center;margin-top:12px">${alive5.map((p) => `<span class="badge ${p.voted ? "ok" : ""}">${esc(ctx2.player(p.id)?.emoji || "")} ${nm(ctx2, p.id)} ${p.voted ? "✓" : "…"}</span>`).join("")}</div>`;
+      html += `<div class="row wrap" style="justify-content:center;margin-top:12px">${alive5.map((p) => `<span class="badge ${p.voted ? "ok" : ""}">${esc(ctx2.player(p.id)?.emoji || "")} ${nm2(ctx2, p.id)} ${p.voted ? "✓" : "…"}</span>`).join("")}</div>`;
       if (ctx2.isHost) html += `<button class="btn soft block" style="margin-top:14px" data-act='{"type":"closeVote"}'>أغلق التصويت الآن</button>`;
       return html;
     }
@@ -9695,19 +9878,19 @@ var qrcode = function() {
       html += lastVoteBlock(ctx2);
       html += `<div class="reveal-grid" style="margin-top:16px">${v.players.map((p, k) => `<div>
       ${roleCard(p.role, { size: "sm", hint: "", attrs: `data-stagger="${k}"` })}
-      <div class="who">${avatar(ctx2.player(p.id), "sm")} ${nm(ctx2, p.id)}${p.alive ? "" : ' <span class="muted">(خارج)</span>'}</div></div>`).join("")}</div>`;
+      <div class="who">${avatar(ctx2.player(p.id), "sm")} ${nm2(ctx2, p.id)}${p.alive ? "" : ' <span class="muted">(خارج)</span>'}</div></div>`).join("")}</div>`;
       return html;
     }
     return html;
   }
   function teamBlock(ctx2, team) {
     return `<div class="panel" style="margin-top:14px"><p style="margin:0 0 8px"><b>أفراد المافيا:</b></p>
-    <div class="row wrap">${team.map((t) => `<span class="badge ${t.alive ? "" : "off"}">${esc(ctx2.player(t.id)?.emoji || "")} ${nm(ctx2, t.id)}${t.id === ctx2.me ? " (أنت)" : ""}</span>`).join("")}</div></div>`;
+    <div class="row wrap">${team.map((t) => `<span class="badge ${t.alive ? "" : "off"}">${esc(ctx2.player(t.id)?.emoji || "")} ${nm2(ctx2, t.id)}${t.id === ctx2.me ? " (أنت)" : ""}</span>`).join("")}</div></div>`;
   }
   function investigationsBlock(ctx2, list) {
     if (!list.length) return "";
     return `<div class="panel" style="margin-top:14px"><p style="margin:0 0 6px"><b>تحقيقاتك السابقة</b> <span class="muted">(سرية)</span></p>
-    ${list.map((x) => `<div class="row spread" style="padding:4px 0"><span>${nm(ctx2, x.target)}</span><span class="badge ${x.isMafia ? "off" : "ok"}">${x.isMafia ? "مافيا" : "بريء"}</span></div>`).join("")}</div>`;
+    ${list.map((x) => `<div class="row spread" style="padding:4px 0"><span>${nm2(ctx2, x.target)}</span><span class="badge ${x.isMafia ? "off" : "ok"}">${x.isMafia ? "مافيا" : "بريء"}</span></div>`).join("")}</div>`;
   }
   function lastVoteBlock(ctx2) {
     const lv = ctx2.view.lastVote;
@@ -9715,25 +9898,25 @@ var qrcode = function() {
     const p = lv.eliminated ? ctx2.view.players.find((x) => x.id === lv.eliminated) : null;
     return `<div class="dawn-card ${lv.eliminated ? "death" : ""}" style="margin-bottom:14px">
     <p class="soft" style="margin:0">نتيجة تصويت اليوم ${ar(lv.day)}</p>
-    <p class="who" style="font-size:26px">${lv.eliminated ? "أُقصي: " + nm(ctx2, lv.eliminated) : "لم يُقصَ أحد"}</p>
+    <p class="who" style="font-size:26px">${lv.eliminated ? "أُقصي: " + nm2(ctx2, lv.eliminated) : "لم يُقصَ أحد"}</p>
     ${p && p.role ? `<p class="soft" style="margin:0">كان: <b>${roleName(p.role)}</b></p>` : ""}
     <details style="margin-top:8px"><summary class="soft" style="cursor:pointer">تفاصيل الأصوات</summary>
-      ${lv.votes.filter((x) => x.to).map((x) => `<div class="row spread" style="padding:3px 0;font-size:15px"><span>${nm(ctx2, x.from)}</span><span class="muted">← ${x.to === "skip" ? "لا أحد" : nm(ctx2, x.to)}</span></div>`).join("")}
+      ${lv.votes.filter((x) => x.to).map((x) => `<div class="row spread" style="padding:3px 0;font-size:15px"><span>${nm2(ctx2, x.from)}</span><span class="muted">← ${x.to === "skip" ? "لا أحد" : nm2(ctx2, x.to)}</span></div>`).join("")}
     </details></div>`;
   }
   function aliveList(ctx2) {
-    return `<div style="margin-top:14px">${ctx2.view.players.map((p) => `<div class="player-row">${avatar(ctx2.player(p.id))}<span class="name">${nm(ctx2, p.id)}${p.id === ctx2.me ? " (أنت)" : ""}</span>
+    return `<div style="margin-top:14px">${ctx2.view.players.map((p) => `<div class="player-row">${avatar(ctx2.player(p.id))}<span class="name">${nm2(ctx2, p.id)}${p.id === ctx2.me ? " (أنت)" : ""}</span>
     ${p.alive ? '<span class="badge ok">حي</span>' : `<span class="badge off">خارج${p.role ? " — " + roleName(p.role) : ""}</span>`}</div>`).join("")}</div>`;
   }
   function deadNote() {
     return `<div class="panel center"><p class="h2">أنت خارج اللعبة</p><p class="soft">راقب بصمت، ولا تكشف أي معلومة حتى نهاية اللعبة.</p></div>`;
   }
-  function targets(ctx2, ids, { action, selected = null, disabled = () => false, mark = () => "" }) {
+  function targets2(ctx2, ids, { action, selected = null, disabled = () => false, mark = () => "" }) {
     return `<div class="target-list">${ids.map((id) => {
       const d = disabled(id);
       const m = mark(id);
       return `<button class="target" ${d ? "disabled" : ""} aria-pressed="${selected === id}" data-act='${JSON.stringify({ type: action, target: id })}'>
-      ${avatar(ctx2.player(id), "sm")}<span class="t-name">${nm(ctx2, id)}${id === ctx2.me ? " (أنت)" : ""}${m ? `<br><span class="t-mark">${esc(m)}</span>` : ""}</span></button>`;
+      ${avatar(ctx2.player(id), "sm")}<span class="t-name">${nm2(ctx2, id)}${id === ctx2.me ? " (أنت)" : ""}${m ? `<br><span class="t-mark">${esc(m)}</span>` : ""}</span></button>`;
     }).join("")}</div>`;
   }
   function screenKey(v) {
@@ -9804,6 +9987,36 @@ var qrcode = function() {
       }
     }
   }
+  function renderDisplay(ctx2) {
+    const v = ctx2.view;
+    document.body.classList.toggle("is-night", v.phase === "night");
+    const aliveN = v.players.filter((p) => p.alive).length;
+    const tiles2 = dispPlayers(ctx2, v.players.map((p) => ({
+      id: p.id,
+      cls: !p.alive ? "dead" : v.phase === "vote" && p.voted || v.phase === "roles" && p.ready ? "active" : "",
+      sub: v.phase === "over" ? roleName(p.role) : !p.alive ? "خارج" + (p.role ? " — " + roleName(p.role) : "") : v.phase === "roles" ? p.ready ? "✓ جاهز" : "يكشف دوره…" : v.phase === "vote" ? p.voted ? "✓ صوّت" : "…" : "حي"
+    })));
+    let head = "", side = "";
+    if (v.phase === "roles") head = dispHead("توزيع الأدوار", "كل لاعب يكشف دوره على جواله بعيدًا عن الأعين");
+    else if (v.phase === "night") {
+      head = dispHead(`الليلة ${ar(v.night)} 🌙`, "المدينة نائمة… أغمضوا أعينكم");
+      side = `<p class="disp-big">${ar(v.nightDone)} / ${ar(v.nightTotal)}</p><p class="center soft">أنهوا تحركاتهم الليلية</p>`;
+    } else if (v.phase === "day" || v.phase === "vote") {
+      head = dispHead(v.phase === "day" ? `اليوم ${ar(v.day)} ☀️ — النقاش` : `التصويت — اليوم ${ar(v.day)}`, `${ar(aliveN)} أحياء • في اللعبة ${ar(v.counts.mafia)} من المافيا`);
+      const ln = v.lastNight;
+      if (ln && ln.night === v.night) {
+        const p = ln.killed ? v.players.find((x) => x.id === ln.killed) : null;
+        side += ln.killed ? `<div class="dawn-card death"><p class="soft">قُتل الليلة</p><div class="row" style="justify-content:center">${avatar(ctx2.player(ln.killed), "lg")}</div><p class="who">${nm2(ctx2, ln.killed)}</p>${p?.role ? `<p class="soft">كان: <b>${roleName(p.role)}</b></p>` : ""}</div>` : `<div class="dawn-card"><p class="who">لم يمت أحد الليلة</p></div>`;
+      }
+      if (v.phase === "day" && v.deadline) side += `<div class="center" style="margin-top:12px"><div class="timer" data-deadline="${v.deadline}">--:--</div></div>`;
+      if (v.phase === "vote") side += `<p class="disp-big">${ar(v.players.filter((p) => p.voted).length)} / ${ar(aliveN)}</p><p class="center soft">صوّتوا</p>`;
+    } else if (v.phase === "over") {
+      head = `<div class="disp-head"><p class="h1" style="color:${v.winner === "mafia" ? "var(--accent)" : "var(--accent-2)"}">${v.winner === "mafia" ? "انتصرت المافيا" : "انتصرت المدينة"}</p><p class="soft h2">الأدوار الحقيقية</p></div>`;
+    }
+    const lv = v.lastVote;
+    if (lv && v.phase === "night" && lv.day === v.day) side += `<div class="dawn-card ${lv.eliminated ? "death" : ""}" style="margin-top:12px"><p class="soft" style="margin:0">تصويت اليوم ${ar(lv.day)}</p><p class="who">${lv.eliminated ? "أُقصي: " + nm2(ctx2, lv.eliminated) : "لم يُقصَ أحد"}</p></div>`;
+    return head + (side ? `<div class="disp-cols"><div>${tiles2}</div><div>${side}</div></div>` : tiles2);
+  }
 
   // js/ui/games/skull-ui.js
   var skull_ui_exports = {};
@@ -9816,6 +10029,7 @@ var qrcode = function() {
     onFx: () => onFx2,
     onUi: () => onUi2,
     render: () => render2,
+    renderDisplay: () => renderDisplay2,
     screenKey: () => screenKey2,
     theme: () => theme2
   });
@@ -9827,7 +10041,7 @@ var qrcode = function() {
     return `<button class="disc ${size2} ${flipped ? "is-flipped" : ""}" ${attrs} aria-label="${esc(label || DISC_NAME[kind] || "قرص مقلوب")}">
     <span class="disc-inner"><span class="disc-face disc-back">${discArt("back")}</span><span class="disc-face disc-front">${kind ? discArt(kind) : ""}</span></span></button>`;
   }
-  var nm2 = (ctx2, id) => esc(ctx2.player(id)?.name || "؟");
+  var nm3 = (ctx2, id) => esc(ctx2.player(id)?.name || "؟");
   function headerExtra2() {
     return "";
   }
@@ -9850,10 +10064,10 @@ var qrcode = function() {
       const revealed = p.revealed.map((k, j) => disc(k, { size: "sm", flipped: j < seen, attrs: j >= seen ? 'data-newflip tabindex="-1"' : 'tabindex="-1"' })).join("");
       ctx2.ui.revealSeen[seenKey] = p.revealed.length;
       return `<div class="mat ${v.turn === p.id && v.phase !== "roundEnd" ? "is-turn" : ""} ${p.wins > 0 ? "won" : ""} ${p.alive ? "" : "out"} ${flippable ? "can-flip" : ""}"
-      ${flippable ? `role="button" tabindex="0" data-act='${JSON.stringify({ type: "flip", target: p.id })}' aria-label="اكشف القرص العلوي من كومة ${nm2(ctx2, p.id)}"` : ""}>
+      ${flippable ? `role="button" tabindex="0" data-act='${JSON.stringify({ type: "flip", target: p.id })}' aria-label="اكشف القرص العلوي من كومة ${nm3(ctx2, p.id)}"` : ""}>
       ${v.turn === p.id && v.phase !== "roundEnd" && v.phase !== "over" ? '<span class="turn-tag">الدور</span>' : ""}
       ${avatar(ctx2.player(p.id), "sm")}
-      <div class="mname">${nm2(ctx2, p.id)}${isMe ? " (أنت)" : ""}</div>
+      <div class="mname">${nm3(ctx2, p.id)}${isMe ? " (أنت)" : ""}</div>
       <div class="meta">${p.alive ? `${ar(p.discs)} أقراص · ${p.wins ? "⭐ نقطة" : "بلا نقاط"}` : "خرج من اللعبة"}${p.passed ? " · مرّر" : ""}</div>
       <div class="row" style="justify-content:center;gap:6px;min-height:42px">
         ${hidden > 0 ? `<div class="pile" title="${ar(hidden)} مخفية">${Array.from({ length: Math.min(hidden, 4) }, (_, k) => `<span class="disc sm" style="top:${12 - k * 4}px"><span class="disc-inner"><span class="disc-face disc-back">${discArt("back")}</span></span></span>`).join("")}</div><span class="meta">×${ar(hidden)}</span>` : ""}
@@ -9901,7 +10115,7 @@ var qrcode = function() {
     }
     if (v.phase === "roundEnd") {
       const canNext = v.starter === ctx2.me || ctx2.isHost;
-      html += `<div style="margin-top:12px">${canNext ? `<button class="btn block" data-act='{"type":"next"}'>ابدأ الجولة التالية</button>` : `<p class="center muted">${nm2(ctx2, v.starter)} يبدأ الجولة التالية</p>`}</div>`;
+      html += `<div style="margin-top:12px">${canNext ? `<button class="btn block" data-act='{"type":"next"}'>ابدأ الجولة التالية</button>` : `<p class="center muted">${nm3(ctx2, v.starter)} يبدأ الجولة التالية</p>`}</div>`;
     }
     return html;
   }
@@ -9912,22 +10126,22 @@ var qrcode = function() {
       case "setup":
         return me && me.stack.length === 0 && v.players.find((p) => p.id === ctx2.me)?.alive ? '<p class="h2" style="margin:0">ضع قرصك الأول مقلوبًا</p>' : `<p style="margin:0">بانتظار وضع الأقراص الأولى<span class="waiting-dots"></span></p>`;
       case "turn":
-        return myTurn ? '<p class="h2" style="margin:0">دورك</p><p class="soft" style="margin:0">أضف قرصًا لكومتك أو ابدأ التحدي</p>' : `<p style="margin:0">دور <b>${nm2(ctx2, v.turn)}</b></p>`;
+        return myTurn ? '<p class="h2" style="margin:0">دورك</p><p class="soft" style="margin:0">أضف قرصًا لكومتك أو ابدأ التحدي</p>' : `<p style="margin:0">دور <b>${nm3(ctx2, v.turn)}</b></p>`;
       case "bidding":
-        return `<div class="bid-display">التحدي: <b>${ar(v.bid.amount)}</b> ورود</div><p class="soft" style="margin:0">من ${nm2(ctx2, v.bid.by)} · ${myTurn ? "دورك: ارفع أو مرّر" : "الدور لـ " + nm2(ctx2, v.turn)}</p>`;
+        return `<div class="bid-display">التحدي: <b>${ar(v.bid.amount)}</b> ورود</div><p class="soft" style="margin:0">من ${nm3(ctx2, v.bid.by)} · ${myTurn ? "دورك: ارفع أو مرّر" : "الدور لـ " + nm3(ctx2, v.turn)}</p>`;
       case "reveal":
-        return `<div class="bid-display">${ar(v.rosesFound)} / <b>${ar(v.bid.amount)}</b></div><p class="soft" style="margin:0">${v.challenger === ctx2.me ? v.ownDone ? "اختر كومة لاعب لتكشف قرصها العلوي" : "ابدأ بكشف أقراصك" : nm2(ctx2, v.challenger) + " يكشف الأقراص…"}</p>`;
+        return `<div class="bid-display">${ar(v.rosesFound)} / <b>${ar(v.bid.amount)}</b></div><p class="soft" style="margin:0">${v.challenger === ctx2.me ? v.ownDone ? "اختر كومة لاعب لتكشف قرصها العلوي" : "ابدأ بكشف أقراصك" : nm3(ctx2, v.challenger) + " يكشف الأقراص…"}</p>`;
       case "discard":
-        return `<p style="margin:0">${nm2(ctx2, v.challenger)} كشف جمجمته… يختار قرصًا ليخسره</p>`;
+        return `<p style="margin:0">${nm3(ctx2, v.challenger)} كشف جمجمته… يختار قرصًا ليخسره</p>`;
       case "roundEnd": {
         const r = v.result;
-        if (r.type === "success") return `<p class="h2" style="margin:0">نجح ${nm2(ctx2, r.challenger)}!</p><p class="soft" style="margin:0">كشف ${ar(r.amount)} ورود وحصل على نقطة</p>`;
-        let s = `<p class="h2" style="margin:0">جمجمة ${r.skullOwner === r.challenger ? "المتحدي نفسه" : nm2(ctx2, r.skullOwner)}!</p><p class="soft" style="margin:0">${nm2(ctx2, r.challenger)} خسر قرصًا${r.eliminated ? " وخرج من اللعبة" : ""}</p>`;
+        if (r.type === "success") return `<p class="h2" style="margin:0">نجح ${nm3(ctx2, r.challenger)}!</p><p class="soft" style="margin:0">كشف ${ar(r.amount)} ورود وحصل على نقطة</p>`;
+        let s = `<p class="h2" style="margin:0">جمجمة ${r.skullOwner === r.challenger ? "المتحدي نفسه" : nm3(ctx2, r.skullOwner)}!</p><p class="soft" style="margin:0">${nm3(ctx2, r.challenger)} خسر قرصًا${r.eliminated ? " وخرج من اللعبة" : ""}</p>`;
         if (me && me.lost) s += `<p class="private-note">خسرت: <b>${DISC_NAME[me.lost]}</b> — لا يعرف ذلك غيرك</p>`;
         return s;
       }
       case "over":
-        return `<p class="h1" style="margin:0">🏆 ${nm2(ctx2, v.winner)}</p><p class="soft" style="margin:0">${v.winner === ctx2.me ? "فزت باللعبة!" : "فاز باللعبة"}</p>`;
+        return `<p class="h1" style="margin:0">🏆 ${nm3(ctx2, v.winner)}</p><p class="soft" style="margin:0">${v.winner === ctx2.me ? "فزت باللعبة!" : "فاز باللعبة"}</p>`;
     }
     return "";
   }
@@ -10006,6 +10220,10 @@ var qrcode = function() {
         break;
     }
   }
+  function renderDisplay2(ctx2) {
+    const v = ctx2.view;
+    return dispHead("💀 الجمجمة") + `<div class="disp-zoom">${render2(ctx2)}</div>`;
+  }
 
   // js/ui/games/bara-ui.js
   var bara_ui_exports = {};
@@ -10017,13 +10235,14 @@ var qrcode = function() {
     onFx: () => onFx3,
     onUi: () => onUi3,
     render: () => render3,
+    renderDisplay: () => renderDisplay3,
     screenKey: () => screenKey3,
     theme: () => theme3
   });
   var theme3 = "bara";
   var kit3 = "pop";
   var ambient3 = () => "";
-  var nm3 = (ctx2, id) => esc(ctx2.player(id)?.name || "؟");
+  var nm4 = (ctx2, id) => esc(ctx2.player(id)?.name || "؟");
   function front(v) {
     const me = v.me;
     if (me.role === "outsider") {
@@ -10035,7 +10254,7 @@ var qrcode = function() {
     <div class="cf-art"><span class="big-icon">${esc(v.category.icon)}</span></div>
     <div><p class="cf-desc" style="margin-bottom:2px">الكلمة السرية</p><h3 class="cf-name" style="font-size:36px">${esc(me.word)}</h3><p class="cf-desc">واحد منكم برا السالفة… لا تفضح الكلمة!</p></div></div>`;
   }
-  function card(v, { flipped, attrs = "", hint = "اضغط لكشف بطاقتك", size: size2 = "" }) {
+  function card2(v, { flipped, attrs = "", hint = "اضغط لكشف بطاقتك", size: size2 = "" }) {
     return `<div class="card bara-card ${size2} ${v.me.role === "outsider" ? "outsider" : ""} ${flipped ? "is-flipped" : ""}" ${attrs}>
     <div class="card-inner"><div class="card-face card-back">${baraBackArt()}${hint ? `<div class="tap-hint" style="color:#fff">${hint}</div>` : ""}</div>
     <div class="card-face card-front">${front(v)}</div></div></div>`;
@@ -10051,7 +10270,7 @@ var qrcode = function() {
     if (v.phase === "reveal") {
       const seenN = v.players.filter((p) => p.seen).length;
       if (!me.seen) {
-        html += card(v, { flipped: !!ctx2.ui.revealed, attrs: 'data-ui="reveal" role="button" tabindex="0" aria-label="اكشف بطاقتك"' });
+        html += card2(v, { flipped: !!ctx2.ui.revealed, attrs: 'data-ui="reveal" role="button" tabindex="0" aria-label="اكشف بطاقتك"' });
         if (ctx2.ui.revealed) html += `<p class="private-note">لا تعرض بطاقتك لأحد.</p><button class="btn block" style="margin-top:14px" data-act='{"type":"seen"}'>شفت بطاقتي</button>`;
       } else {
         html += `<div class="big-status"><p class="h2">بانتظار البقية<span class="waiting-dots"></span></p><p class="soft">${ar(seenN)} من ${ar(v.players.length)} شافوا بطاقاتهم</p></div>`;
@@ -10064,9 +10283,9 @@ var qrcode = function() {
       const amAsker = pr.asker === ctx2.me;
       html += `<p class="center muted" style="margin:0 0 8px">سؤال ${ar(pr.index + 1)} من ${ar(pr.total)}</p>
       <div class="pair-card phase-in" data-key="${pr.index}">
-        <div class="side">${avatar(ctx2.player(pr.asker), "lg")}<span class="name">${nm3(ctx2, pr.asker)}</span><span class="badge host">يسأل</span></div>
+        <div class="side">${avatar(ctx2.player(pr.asker), "lg")}<span class="name">${nm4(ctx2, pr.asker)}</span><span class="badge host">يسأل</span></div>
         <span class="arrow" aria-hidden="true">←</span>
-        <div class="side">${avatar(ctx2.player(pr.answerer), "lg")}<span class="name">${nm3(ctx2, pr.answerer)}</span><span class="badge ok">يجاوب</span></div>
+        <div class="side">${avatar(ctx2.player(pr.answerer), "lg")}<span class="name">${nm4(ctx2, pr.answerer)}</span><span class="badge ok">يجاوب</span></div>
       </div>
       <p class="center soft" style="margin:12px 0">${amAsker ? "اسأل سؤالًا عن الكلمة دون أن تفضحها." : pr.answerer === ctx2.me ? "جاوب بذكاء…" : "ركّز في الأجوبة!"}</p>`;
       if (amAsker || ctx2.isHost) html += `<button class="btn block" data-act='${JSON.stringify({ type: "doneAsking", pairIndex: pr.index })}'>${amAsker ? "انتهيت من سؤالي" : "السؤال التالي"}</button>`;
@@ -10077,11 +10296,11 @@ var qrcode = function() {
       const votedN = v.players.filter((p) => p.voted).length;
       html += `<h2 class="h2 center" style="margin:6px 0">من برا السالفة؟</h2><p class="center soft">صوّت ${ar(votedN)} من ${ar(v.players.length)}</p>`;
       if (me.vote == null) {
-        html += `<div class="target-list">${v.players.filter((p) => p.id !== ctx2.me).map((p) => `<button class="target" data-act='${JSON.stringify({ type: "vote", target: p.id })}'>${avatar(ctx2.player(p.id), "sm")}<span class="t-name">${nm3(ctx2, p.id)}</span></button>`).join("")}</div>`;
+        html += `<div class="target-list">${v.players.filter((p) => p.id !== ctx2.me).map((p) => `<button class="target" data-act='${JSON.stringify({ type: "vote", target: p.id })}'>${avatar(ctx2.player(p.id), "sm")}<span class="t-name">${nm4(ctx2, p.id)}</span></button>`).join("")}</div>`;
       } else {
-        html += `<div class="panel center pop-in"><p>صوّتّ على: <b>${nm3(ctx2, me.vote)}</b></p><p class="soft">بانتظار البقية<span class="waiting-dots"></span></p></div>`;
+        html += `<div class="panel center pop-in"><p>صوّتّ على: <b>${nm4(ctx2, me.vote)}</b></p><p class="soft">بانتظار البقية<span class="waiting-dots"></span></p></div>`;
       }
-      html += `<div class="row wrap" style="justify-content:center;margin-top:12px">${v.players.map((p) => `<span class="badge ${p.voted ? "ok" : ""}">${esc(ctx2.player(p.id)?.emoji || "")} ${nm3(ctx2, p.id)} ${p.voted ? "✓" : "…"}</span>`).join("")}</div>`;
+      html += `<div class="row wrap" style="justify-content:center;margin-top:12px">${v.players.map((p) => `<span class="badge ${p.voted ? "ok" : ""}">${esc(ctx2.player(p.id)?.emoji || "")} ${nm4(ctx2, p.id)} ${p.voted ? "✓" : "…"}</span>`).join("")}</div>`;
       if (ctx2.isHost) html += `<button class="btn ghost block" style="margin-top:14px" data-act='{"type":"advance"}'>أنهِ التصويت الآن</button>`;
       return html;
     }
@@ -10089,13 +10308,13 @@ var qrcode = function() {
       const top = Math.max(...v.players.map((p) => p.score));
       const winners = v.players.filter((p) => p.score === top);
       html = `<div class="center pop-in" style="padding:6px 0 14px"><p class="soft" style="margin:0">انتهت اللعبة</p>
-      <p class="h1" style="color:var(--accent)">🏆 ${winners.map((p) => nm3(ctx2, p.id)).join(" و ")}</p>
+      <p class="h1" style="color:var(--accent)">🏆 ${winners.map((p) => nm4(ctx2, p.id)).join(" و ")}</p>
       <p class="soft" style="margin:0">${winners.some((p) => p.id === ctx2.me) ? "مبروك! أنت الفائز" : "الفائز بأعلى النقاط"} — ${ar(top)} نقاط</p></div>` + html;
     }
     if (v.phase === "guess" || v.phase === "result" || v.phase === "over") {
       html += `<div class="panel center pop-in"><p class="soft" style="margin:0">برا السالفة كان</p>
       <div class="row" style="justify-content:center;margin:6px 0">${avatar(ctx2.player(v.outsider), "lg")}</div>
-      <p class="h2" style="margin:0">${nm3(ctx2, v.outsider)}${v.outsider === ctx2.me ? " (أنت)" : ""}</p>
+      <p class="h2" style="margin:0">${nm4(ctx2, v.outsider)}${v.outsider === ctx2.me ? " (أنت)" : ""}</p>
       <p class="badge ${v.caught ? "ok" : "off"}" style="display:inline-block;margin-top:8px">${v.caught ? "انمسك!" : "ما انمسك — أفلت من التصويت"}</p></div>`;
       html += votesBlock(ctx2);
     }
@@ -10103,7 +10322,7 @@ var qrcode = function() {
       if (v.options) {
         html += `<h2 class="h2 center" style="margin:16px 0 8px">خمّن الكلمة!</h2><div class="word-grid">${v.options.map((w) => `<button class="word-option" data-act='${JSON.stringify({ type: "guess", word: w })}'>${esc(w)}</button>`).join("")}</div>`;
       } else {
-        html += `<p class="center soft" style="margin-top:16px">${nm3(ctx2, v.outsider)} يحاول تخمين الكلمة<span class="waiting-dots"></span></p>`;
+        html += `<p class="center soft" style="margin-top:16px">${nm4(ctx2, v.outsider)} يحاول تخمين الكلمة<span class="waiting-dots"></span></p>`;
       }
       return html;
     }
@@ -10128,14 +10347,14 @@ var qrcode = function() {
     });
     const rows = Object.entries(counts).sort((a, b) => b[1] - a[1]);
     return `<details class="panel" style="margin-top:10px"><summary style="cursor:pointer"><b>نتيجة التصويت</b></summary>
-    ${rows.map(([id, c]) => `<div class="row spread" style="padding:4px 0"><span>${nm3(ctx2, id)}</span><span class="badge">${ar(c)} ${c === 1 ? "صوت" : "أصوات"}</span></div>`).join("")}
-    <div class="divider"></div>${v.votes.filter((x) => x.to).map((x) => `<div class="row spread" style="font-size:14px"><span>${nm3(ctx2, x.from)}</span><span class="muted">← ${nm3(ctx2, x.to)}</span></div>`).join("")}</details>`;
+    ${rows.map(([id, c]) => `<div class="row spread" style="padding:4px 0"><span>${nm4(ctx2, id)}</span><span class="badge">${ar(c)} ${c === 1 ? "صوت" : "أصوات"}</span></div>`).join("")}
+    <div class="divider"></div>${v.votes.filter((x) => x.to).map((x) => `<div class="row spread" style="font-size:14px"><span>${nm4(ctx2, x.from)}</span><span class="muted">← ${nm4(ctx2, x.to)}</span></div>`).join("")}</details>`;
   }
   function scoreBlock(ctx2) {
     const v = ctx2.view;
     const sorted = v.players.slice().sort((a, b) => b.score - a.score);
     return `<div class="panel" style="margin-top:12px"><b>النقاط</b><table class="score-table"><tbody>${sorted.map((p, k) => `<tr>
-    <td style="width:40px"><span class="rank ${k === 0 ? "first" : ""}">${ar(k + 1)}</span></td><td>${esc(ctx2.player(p.id)?.emoji || "")} ${nm3(ctx2, p.id)}</td>
+    <td style="width:40px"><span class="rank ${k === 0 ? "first" : ""}">${ar(k + 1)}</span></td><td>${esc(ctx2.player(p.id)?.emoji || "")} ${nm4(ctx2, p.id)}</td>
     <td class="num">${v.roundScores && v.roundScores[p.id] ? `<span class="badge ok">+${ar(v.roundScores[p.id])}</span> ` : ""}${ar(p.score)}</td></tr>`).join("")}</tbody></table></div>`;
   }
   function screenKey3(v) {
@@ -10150,7 +10369,7 @@ var qrcode = function() {
       setTimeout(rerender, 760);
     }
     if (name === "peek") {
-      openSheet(`<h2>بطاقتي</h2>${card(ctx2.view, { flipped: true, hint: "" })}<button class="btn soft block" style="margin-top:14px" data-sheet-close>إخفاء</button>`, { label: "بطاقتي" });
+      openSheet(`<h2>بطاقتي</h2>${card2(ctx2.view, { flipped: true, hint: "" })}<button class="btn soft block" style="margin-top:14px" data-sheet-close>إخفاء</button>`, { label: "بطاقتي" });
     }
   }
   function onAct3(a, ctx2) {
@@ -10190,6 +10409,32 @@ var qrcode = function() {
         break;
     }
   }
+  function renderDisplay3(ctx2) {
+    const v = ctx2.view;
+    const cat2 = `${v.category.icon} ${esc(v.category.name)}`;
+    let head = dispHead(cat2, `الجولة ${ar(v.round)} من ${ar(v.rounds)}`), side = "";
+    const tiles2 = (sub, cls = () => "") => dispPlayers(ctx2, v.players.map((p) => ({ id: p.id, sub: sub(p), cls: cls(p) })));
+    let main;
+    if (v.phase === "reveal") {
+      main = tiles2((p) => p.seen ? "✓ شاف بطاقته" : "يكشف بطاقته…", (p) => p.seen ? "active" : "");
+      side = `<p class="disp-big">🤫</p><p class="center h2">كل واحد يشوف بطاقته على جواله</p><p class="center soft">واحد منكم «برا السالفة» وما يعرف الكلمة</p>`;
+    } else if (v.phase === "questions" && v.pair) {
+      main = tiles2((p) => ar(p.score) + " نقطة", (p) => p.id === v.pair.asker || p.id === v.pair.answerer ? "active" : "");
+      side = `<p class="center soft">سؤال ${ar(v.pair.index + 1)} من ${ar(v.pair.total)}</p><div class="dawn-card"><p class="who">${nm4(ctx2, v.pair.asker)}</p><p class="h2">يسأل ⬇️</p><p class="who">${nm4(ctx2, v.pair.answerer)}</p></div>`;
+    } else if (v.phase === "vote") {
+      main = tiles2((p) => p.voted ? "✓ صوّت" : "…", (p) => p.voted ? "active" : "");
+      side = `<p class="disp-big">${ar(v.players.filter((p) => p.voted).length)} / ${ar(v.players.length)}</p><p class="center h2">مين برا السالفة؟ صوّتوا من جوالاتكم</p>`;
+    } else if (v.phase === "guess") {
+      main = tiles2((p) => ar(p.score) + " نقطة", (p) => p.id === v.outsider ? "active" : "");
+      side = `<div class="dawn-card"><p class="soft">برا السالفة كان</p><div class="row" style="justify-content:center">${avatar(ctx2.player(v.outsider), "lg")}</div><p class="who">${nm4(ctx2, v.outsider)}</p><p class="h2">${v.caught ? "انكشف! 🎯" : "أفلت! 🥷"}</p><p class="soft">يحاول الحين يخمّن الكلمة…</p></div>` + votesBlock(ctx2).replace("<details", "<details open");
+    } else {
+      main = scoreBlock(ctx2);
+      side = `<div class="dawn-card"><p class="soft">الكلمة كانت</p><p class="who" style="font-size:2em">${esc(v.word || "")}</p>
+      <p class="soft">برا السالفة: <b>${nm4(ctx2, v.outsider)}</b> — ${v.caught ? "انكشف" : "أفلت"}${v.guess ? ` • تخمينه: «${esc(v.guess)}» ${v.guess === v.word ? "✓" : "✕"}` : ""}</p></div>` + votesBlock(ctx2).replace("<details", "<details open");
+      if (v.phase === "over") head = dispHead("انتهت اللعبة 🏆", cat2);
+    }
+    return head + `<div class="disp-cols"><div>${main}</div><div>${side}</div></div>`;
+  }
 
   // js/ui/games/avalon-ui.js
   var avalon_ui_exports = {};
@@ -10205,74 +10450,6 @@ var qrcode = function() {
     screenKey: () => screenKey4,
     theme: () => theme4
   });
-
-  // js/ui/kit.js
-  var nm4 = (ctx2, id) => esc(ctx2.player(id)?.name || "؟");
-  var who2 = (ctx2, id, size2 = "sm") => `${avatar(ctx2.player(id), size2)} <b>${nm4(ctx2, id)}</b>`;
-  var chip = (ctx2, id, extra = "", cls = "") => `<span class="badge ${cls}">${esc(ctx2.player(id)?.emoji || "")} ${nm4(ctx2, id)}${extra}</span>`;
-  var act16 = (a) => `data-act='${JSON.stringify(a).replace(/'/g, "&#39;")}'`;
-  var btn = (label, a, cls = "", extra = "") => `<button class="btn ${cls}" ${act16(a)} ${extra}>${label}</button>`;
-  var wait = (t) => `<p class="center soft" style="margin:12px 0">${t}<span class="waiting-dots"></span></p>`;
-  var panel = (html, cls = "", style = "") => `<div class="panel ${cls}" style="${style}">${html}</div>`;
-  function targets2(ctx2, ids, { action, field = "target", extra = {}, disabled = () => false, mark = () => "", selected = null, ui = null } = {}) {
-    return `<div class="target-list">${ids.map((id) => {
-      const d = disabled(id), m = mark(id);
-      const attr = ui ? `data-ui="${ui}" data-id="${id}"` : act16({ type: action, [field]: id, ...extra });
-      const sel = Array.isArray(selected) ? selected.includes(id) : selected === id;
-      return `<button class="target" ${d ? "disabled" : ""} aria-pressed="${sel}" ${attr}>${avatar(ctx2.player(id), "sm")}<span class="t-name">${nm4(ctx2, id)}${id === ctx2.me ? " (أنت)" : ""}${m ? `<br><span class="t-mark">${esc(m)}</span>` : ""}</span></button>`;
-    }).join("")}</div>`;
-  }
-  function teamsBlock(ctx2, teams, labels = { A: "الفريق الأول", B: "الفريق الثاني" }, score3 = null) {
-    return `<div class="teams">${["A", "B"].map((t) => `<div class="team team-${t}"><div class="row spread"><b>${labels[t]}</b>${score3 ? `<span class="team-score">${ar(score3[t])}</span>` : ""}</div>
-    <div class="row wrap" style="gap:6px;margin-top:6px">${teams[t].map((id) => chip(ctx2, id, id === ctx2.me ? " (أنت)" : "")).join("")}</div></div>`).join("")}</div>`;
-  }
-  function card2({ cls = "", back: back8 = "", front: front2 = "", flipped = false, attrs = "", hint = "" }) {
-    return `<div class="card ${cls} ${flipped ? "is-flipped" : ""}" ${attrs}><div class="card-inner">
-    <div class="card-face card-back">${back8}${hint ? `<div class="tap-hint">${hint}</div>` : ""}</div>
-    <div class="card-face card-front">${front2}</div></div></div>`;
-  }
-  function roleFront({ type = "", name, desc, art: art4 = "", tone: tone2 = "" }) {
-    return `<div class="cf role-front ${tone2}"><div class="cf-head"><span class="cf-type">${type}</span></div>
-    <div class="cf-art">${art4}</div><div><h3 class="cf-name">${name}</h3><p class="cf-desc">${desc}</p></div></div>`;
-  }
-  function revealStep(ctx2, { cardHtml, readyCount, total, ready, after: after7 = "" }) {
-    if (ready) return `<div class="big-status"><p class="h2">بانتظار البقية<span class="waiting-dots"></span></p><p class="soft">${ar(readyCount)} من ${ar(total)} جاهزون</p></div>`;
-    let h = `<p class="center soft" style="margin:4px 0 14px">اكشف بطاقتك بعيدًا عن أعين الآخرين.</p>${cardHtml}`;
-    if (ctx2.ui.revealed) h += `<p class="private-note">هذه المعلومة خاصة بك — لا تعرضها لأحد.</p>${after7}<div style="margin-top:16px">${btn("حفظت دوري — جاهز", { type: "ready" }, "block")}</div>`;
-    return h;
-  }
-  function flipReveal(name, el, ctx2, rerender, sound = "flip") {
-    if (name === "reveal" && !ctx2.ui.revealed) {
-      ctx2.ui.revealed = true;
-      el.classList.add("is-flipped");
-      ctx2.sfx(sound);
-      setTimeout(rerender, 760);
-      return true;
-    }
-    return false;
-  }
-  function toggleSel(ctx2, key, value, max = Infinity) {
-    var _a;
-    const arr = (_a = ctx2.ui)[key] || (_a[key] = []);
-    const k = arr.indexOf(value);
-    if (k >= 0) arr.splice(k, 1);
-    else if (arr.length < max) arr.push(value);
-  }
-  function voteRow(ctx2, players, flag = "voted") {
-    return `<div class="row wrap" style="justify-content:center;margin-top:12px;gap:6px">${players.map((p) => chip(ctx2, p.id, p[flag] ? " ✓" : " …", p[flag] ? "ok" : "")).join("")}</div>`;
-  }
-  function timerHtml(deadline) {
-    return deadline ? `<div class="timer" data-deadline="${deadline}">--:--</div>` : "";
-  }
-  function winnerBanner(title, sub = "", color = "var(--accent)") {
-    return `<div class="center pop-in" style="padding:8px 0 14px"><p class="h1" style="color:${color}">${title}</p>${sub ? `<p class="soft" style="margin:0">${sub}</p>` : ""}</div>`;
-  }
-  function logBlock(lines) {
-    if (!lines || !lines.length) return "";
-    return `<details class="panel" style="margin-top:12px"><summary class="soft" style="cursor:pointer">سجل الأحداث</summary>${lines.slice().reverse().map((l) => `<div style="font-size:14px;padding:2px 0">${esc(l)}</div>`).join("")}</details>`;
-  }
-
-  // js/ui/games/avalon-ui.js
   var theme4 = "avalon";
   var kit4 = "luxe";
   var ambient4 = () => "";
@@ -10294,7 +10471,7 @@ var qrcode = function() {
   var back = () => `<svg viewBox="0 0 200 280" aria-hidden="true"><rect width="200" height="280" fill="#2b1a4a"/><rect x="12" y="12" width="176" height="256" rx="10" fill="none" stroke="#d6b25e" stroke-width="3"/><path d="M100 70 L140 88 Q140 160 100 196 Q60 160 60 88 Z" fill="#3c2a63" stroke="#d6b25e" stroke-width="4"/><circle cx="100" cy="130" r="14" fill="#d6b25e"/></svg>`;
   function roleCard2(role2, flipped, attrs = "", size2 = "") {
     const [n, team, d] = ROLE2[role2];
-    return card2({ cls: `avalon-card ${size2} ${isEvil2(role2) ? "evil" : "good"}`, back: back(), front: roleFront({ type: team, name: n, desc: d, art: emblem(isEvil2(role2)) }), flipped, attrs, hint: flipped ? "" : "اضغط لكشف دورك" });
+    return card({ cls: `avalon-card ${size2} ${isEvil2(role2) ? "evil" : "good"}`, back: back(), front: roleFront({ type: team, name: n, desc: d, art: emblem(isEvil2(role2)) }), flipped, attrs, hint: flipped ? "" : "اضغط لكشف دورك" });
   }
   function knowsBlock(ctx2, k) {
     if (!k || !k.ids.length) return "";
@@ -10322,20 +10499,20 @@ var qrcode = function() {
     }
     if (v.lastVote && v.phase === "propose") {
       const lv = v.lastVote;
-      h += `<details class="panel" style="margin-top:10px"><summary>آخر تصويت: <b>${lv.approved ? "اعتُمد" : "رُفض"}</b></summary>${lv.votes.map((x) => `<div class="row spread"><span>${nm4(ctx2, x.id)}</span><span class="badge ${x.v === "yes" ? "ok" : "off"}">${x.v === "yes" ? "موافق" : "رافض"}</span></div>`).join("")}</details>`;
+      h += `<details class="panel" style="margin-top:10px"><summary>آخر تصويت: <b>${lv.approved ? "اعتُمد" : "رُفض"}</b></summary>${lv.votes.map((x) => `<div class="row spread"><span>${nm(ctx2, x.id)}</span><span class="badge ${x.v === "yes" ? "ok" : "off"}">${x.v === "yes" ? "موافق" : "رافض"}</span></div>`).join("")}</details>`;
     }
     if (v.phase === "propose") {
       const leader = v.leader === ctx2.me;
-      h += `<p class="center" style="margin:14px 0 8px">القائد: ${who2(ctx2, v.leader)} — يختار <b>${ar(v.size)}</b> لاعبين للمهمة ${ar(v.mission + 1)}</p>`;
+      h += `<p class="center" style="margin:14px 0 8px">القائد: ${who(ctx2, v.leader)} — يختار <b>${ar(v.size)}</b> لاعبين للمهمة ${ar(v.mission + 1)}</p>`;
       if (leader) {
         const sel = ctx2.ui.team || [];
-        h += targets2(ctx2, v.players.map((p) => p.id), { ui: "pick", selected: sel });
+        h += targets(ctx2, v.players.map((p) => p.id), { ui: "pick", selected: sel });
         h += `<div style="margin-top:12px">${btn(`أرسل الفريق (${ar(sel.length)}/${ar(v.size)})`, { type: "propose", team: sel }, "block", sel.length === v.size ? "" : "disabled")}</div>`;
       } else h += wait("القائد يختار الفريق");
       return h;
     }
     if (v.phase === "vote") {
-      h += panel(`<p style="margin:0 0 6px">الفريق المقترح من ${nm4(ctx2, v.leader)}:</p><div class="row wrap" style="gap:6px">${v.team.map((id) => chip(ctx2, id)).join("")}</div>`, "", "margin-top:12px");
+      h += panel(`<p style="margin:0 0 6px">الفريق المقترح من ${nm(ctx2, v.leader)}:</p><div class="row wrap" style="gap:6px">${v.team.map((id) => chip(ctx2, id)).join("")}</div>`, "", "margin-top:12px");
       if (!me.vote) h += `<div class="row" style="margin-top:12px">${btn("موافق ✓", { type: "vote", value: "yes" }, "grow-btn")}${btn("أرفض ✕", { type: "vote", value: "no" }, "soft grow-btn")}</div>`;
       else h += wait(`صوّتّ: ${me.vote === "yes" ? "موافق" : "رافض"} — بانتظار البقية`);
       return h + voteRow(ctx2, v.players);
@@ -10352,13 +10529,13 @@ var qrcode = function() {
       h += `<p class="h2 center" style="margin:16px 0 6px">نجحت ثلاث مهمات!</p>`;
       const evilIds = me.evil ? me.knows?.ids || [] : [];
       if (me.evil) h += knowsBlock(ctx2, me.knows);
-      if (me.role === "assassin") h += `<p class="center">اختر من تظنه ميرلين (من أهل الخير):</p>` + targets2(ctx2, v.players.filter((p) => p.id !== ctx2.me && !evilIds.includes(p.id)).map((p) => p.id), { action: "assassinate" });
+      if (me.role === "assassin") h += `<p class="center">اختر من تظنه ميرلين (من أهل الخير):</p>` + targets(ctx2, v.players.filter((p) => p.id !== ctx2.me && !evilIds.includes(p.id)).map((p) => p.id), { action: "assassinate" });
       else h += wait(me.evil ? "تشاوروا — القاتل يختار ميرلين" : "القاتل يبحث عن ميرلين");
       return h;
     }
     if (v.phase === "over") {
       h = winnerBanner(v.winner === "good" ? "انتصر أهل الخير" : "انتصر الأشرار", v.reason, v.winner === "good" ? "#7fb2ff" : "#ff7a7a") + h;
-      h += `<div class="reveal-grid" style="margin-top:16px">${v.players.map((p, k) => `<div>${roleCard2(p.role, false, `data-stagger="${k}"`, "sm")}<div class="who">${nm4(ctx2, p.id)}</div></div>`).join("")}</div>`;
+      h += `<div class="reveal-grid" style="margin-top:16px">${v.players.map((p, k) => `<div>${roleCard2(p.role, false, `data-stagger="${k}"`, "sm")}<div class="who">${nm(ctx2, p.id)}</div></div>`).join("")}</div>`;
     }
     return h;
   }
@@ -10403,6 +10580,7 @@ var qrcode = function() {
     onFx: () => onFx5,
     onUi: () => onUi5,
     render: () => render5,
+    renderDisplay: () => renderDisplay4,
     screenKey: () => screenKey5,
     theme: () => theme5
   });
@@ -10424,7 +10602,7 @@ var qrcode = function() {
   var back2 = () => `<svg viewBox="0 0 200 280"><rect width="200" height="280" fill="#0e1b29"/><circle cx="100" cy="110" r="46" fill="#cfd8de"/><circle cx="118" cy="98" r="40" fill="#0e1b29"/><path d="M0 280 L0 220 L30 180 L50 220 L80 170 L110 222 L140 176 L170 220 L200 190 L200 280Z" fill="#050b12"/></svg>`;
   var roleCard3 = (role2, flipped, attrs = "", size2 = "") => {
     const [n, t, d] = ROLE3[role2];
-    return card2({ cls: `ww-card ${size2} ${role2 === "wolf" ? "evil" : ""}`, back: back2(), front: roleFront({ type: t, name: n, desc: d, art: art(role2) }), flipped, attrs, hint: flipped ? "" : "اضغط لكشف دورك" });
+    return card({ cls: `ww-card ${size2} ${role2 === "wolf" ? "evil" : ""}`, back: back2(), front: roleFront({ type: t, name: n, desc: d, art: art(role2) }), flipped, attrs, hint: flipped ? "" : "اضغط لكشف دورك" });
   };
   var alive4 = (v) => v.players.filter((p) => p.alive);
   var causes = { wolves: "افترسته الذئاب", poison: "مات مسمومًا", hunter: "أصابته رصاصة الصياد", vote: "أُقصي بالتصويت" };
@@ -10434,7 +10612,7 @@ var qrcode = function() {
   var screenKey5 = (v) => [v.phase, v.night, v.day].join(":");
   function deathsBlock(ctx2, list) {
     if (!list || !list.length) return panel('<p class="center" style="margin:0">مرّت الليلة بسلام… لم يمت أحد.</p>');
-    return panel(list.map((d) => `<p style="margin:4px 0">${who2(ctx2, d.id)} — ${causes[d.cause] || ""}${ctx2.view.players.find((p) => p.id === d.id)?.role ? ` <span class="badge">${ROLE3[ctx2.view.players.find((p) => p.id === d.id).role][0]}</span>` : ""}</p>`).join(""));
+    return panel(list.map((d) => `<p style="margin:4px 0">${who(ctx2, d.id)} — ${causes[d.cause] || ""}${ctx2.view.players.find((p) => p.id === d.id)?.role ? ` <span class="badge">${ROLE3[ctx2.view.players.find((p) => p.id === d.id).role][0]}</span>` : ""}</p>`).join(""));
   }
   function render5(ctx2) {
     const v = ctx2.view, me = v.me;
@@ -10447,26 +10625,26 @@ var qrcode = function() {
       if (!me.alive) return h + wait("أنت ميت — راقب بصمت");
       const others = alive4(v).filter((p) => p.id !== ctx2.me).map((p) => p.id);
       if (me.role === "wolf") {
-        if (me.locked) return h + panel(`اتفق القطيع على: ${who2(ctx2, me.locked)}`, "center");
+        if (me.locked) return h + panel(`اتفق القطيع على: ${who(ctx2, me.locked)}`, "center");
         const picks = me.picks || {};
         h += `<p class="center">اختر الضحية مع قطيعك (يجب أن تتفقوا):</p>`;
-        h += targets2(ctx2, alive4(v).map((p) => p.id).filter((id) => !me.pack.some((w) => w.id === id)), { action: "wolfPick", selected: picks[ctx2.me], mark: (id) => Object.entries(picks).filter(([, t]) => t === id).map(([w]) => ctx2.player(w)?.name).join("، ") });
+        h += targets(ctx2, alive4(v).map((p) => p.id).filter((id) => !me.pack.some((w) => w.id === id)), { action: "wolfPick", selected: picks[ctx2.me], mark: (id) => Object.entries(picks).filter(([, t]) => t === id).map(([w]) => ctx2.player(w)?.name).join("، ") });
         return h;
       }
       if (me.role === "seer") {
         if (me.done) {
           const last = me.seen[me.seen.length - 1];
-          return h + panel(`${who2(ctx2, last.target)} ${last.wolf ? '<b style="color:var(--danger)">ذئب!</b>' : '<b style="color:var(--ok)">ليس ذئبًا</b>'}`, "center");
+          return h + panel(`${who(ctx2, last.target)} ${last.wolf ? '<b style="color:var(--danger)">ذئب!</b>' : '<b style="color:var(--ok)">ليس ذئبًا</b>'}`, "center");
         }
-        return h + `<p class="center">اختر لاعبًا لتكشفه:</p>` + targets2(ctx2, others, { action: "see" });
+        return h + `<p class="center">اختر لاعبًا لتكشفه:</p>` + targets(ctx2, others, { action: "see" });
       }
       if (me.role === "witch") {
         if (me.done) return h + wait("أنهيت دورك");
         if (!me.victim) return h + wait("انتظري حتى تختار الذئاب");
         const ui = ctx2.ui;
-        h += panel(`ضحية الذئاب الليلة: ${who2(ctx2, me.victim)}`, "center");
+        h += panel(`ضحية الذئاب الليلة: ${who(ctx2, me.victim)}`, "center");
         if (me.potions.heal) h += `<label class="switch-row panel" style="margin-top:10px"><span>استخدم جرعة الشفاء</span><input type="checkbox" data-ui="heal" ${ui.heal ? "checked" : ""}></label>`;
-        if (me.potions.poison) h += `<p style="margin:12px 0 6px">جرعة السم (اختياري):</p>` + targets2(ctx2, others, { ui: "poison", selected: ui.poison || null });
+        if (me.potions.poison) h += `<p style="margin:12px 0 6px">جرعة السم (اختياري):</p>` + targets(ctx2, others, { ui: "poison", selected: ui.poison || null });
         h += `<div style="margin-top:12px">${btn("تأكيد", { type: "witch", heal: !!ui.heal, poison: ui.poison || null }, "block")}</div>`;
         return h;
       }
@@ -10474,12 +10652,12 @@ var qrcode = function() {
     }
     if (v.phase === "hunter") {
       let h = deathsBlock(ctx2, v.dawn?.deaths);
-      if (v.hunter === ctx2.me) return h + `<p class="h2 center">أنت الصياد! أطلق رصاصتك الأخيرة:</p>` + targets2(ctx2, alive4(v).map((p) => p.id), { action: "shoot" }) + `<div style="margin-top:10px">${btn("لا أطلق", { type: "shoot", target: "none" }, "soft block")}</div>`;
-      return h + wait(`${nm4(ctx2, v.hunter)} الصياد يصوّب`);
+      if (v.hunter === ctx2.me) return h + `<p class="h2 center">أنت الصياد! أطلق رصاصتك الأخيرة:</p>` + targets(ctx2, alive4(v).map((p) => p.id), { action: "shoot" }) + `<div style="margin-top:10px">${btn("لا أطلق", { type: "shoot", target: "none" }, "soft block")}</div>`;
+      return h + wait(`${nm(ctx2, v.hunter)} الصياد يصوّب`);
     }
     if (v.phase === "day") {
       let h = `<p class="h2 center">صباح اليوم ${ar(v.day)}</p>` + deathsBlock(ctx2, v.dawn?.deaths);
-      if (v.lastShot?.target) h += panel(`رصاصة الصياد أصابت ${who2(ctx2, v.lastShot.target)}`, "center", "margin-top:8px");
+      if (v.lastShot?.target) h += panel(`رصاصة الصياد أصابت ${who(ctx2, v.lastShot.target)}`, "center", "margin-top:8px");
       h += timerHtml(v.deadline);
       h += `<p class="center soft">ناقشوا: من الذئب بينكم؟</p>`;
       if (ctx2.isHost) h += btn("ابدأ التصويت الآن", { type: "startVote" }, "block");
@@ -10488,15 +10666,15 @@ var qrcode = function() {
     if (v.phase === "vote") {
       let h = `<p class="h2 center">التصويت</p>`;
       if (!me.alive) h += wait("الأموات لا يصوّتون");
-      else if (me.vote) h += wait(`صوّتّ ضد ${me.vote === "skip" ? "لا أحد" : nm4(ctx2, me.vote)}`);
-      else h += targets2(ctx2, alive4(v).filter((p) => p.id !== ctx2.me).map((p) => p.id), { action: "vote" }) + `<div style="margin-top:10px">${btn("لا أحد", { type: "vote", target: "skip" }, "soft block")}</div>`;
+      else if (me.vote) h += wait(`صوّتّ ضد ${me.vote === "skip" ? "لا أحد" : nm(ctx2, me.vote)}`);
+      else h += targets(ctx2, alive4(v).filter((p) => p.id !== ctx2.me).map((p) => p.id), { action: "vote" }) + `<div style="margin-top:10px">${btn("لا أحد", { type: "vote", target: "skip" }, "soft block")}</div>`;
       h += voteRow(ctx2, alive4(v));
       if (ctx2.isHost) h += `<div style="margin-top:10px">${btn("أغلق التصويت", { type: "closeVote" }, "soft block")}</div>`;
       return h;
     }
     if (v.phase === "over") {
       let h = winnerBanner(v.winner === "village" ? "انتصرت القرية" : "انتصرت الذئاب", "", v.winner === "village" ? "#9fd1ff" : "#ff6b6b");
-      h += `<div class="reveal-grid">${v.players.map((p, k) => `<div>${roleCard3(p.role, false, `data-stagger="${k}"`, "sm")}<div class="who">${nm4(ctx2, p.id)}${p.alive ? "" : " ✝"}</div></div>`).join("")}</div>`;
+      h += `<div class="reveal-grid">${v.players.map((p, k) => `<div>${roleCard3(p.role, false, `data-stagger="${k}"`, "sm")}<div class="who">${nm(ctx2, p.id)}${p.alive ? "" : " ✝"}</div></div>`).join("")}</div>`;
       return h;
     }
     return "";
@@ -10539,6 +10717,32 @@ var qrcode = function() {
       } else ctx2.sfx("lose");
     }
   }
+  function renderDisplay4(ctx2) {
+    const v = ctx2.view;
+    const aliveN = alive4(v).length;
+    const tiles2 = dispPlayers(ctx2, v.players.map((p) => ({
+      id: p.id,
+      cls: !p.alive ? "dead" : v.phase === "vote" && p.voted || v.phase === "roles" && p.ready || v.hunter === p.id ? "active" : "",
+      sub: v.phase === "over" ? ROLE3[p.role]?.[0] : !p.alive ? "ميت" + (p.role ? " — " + ROLE3[p.role][0] : "") : v.phase === "roles" ? p.ready ? "✓ جاهز" : "يكشف دوره…" : v.phase === "vote" ? p.voted ? "✓ صوّت" : "…" : "حي"
+    })));
+    let head = "", side = "";
+    if (v.phase === "roles") head = dispHead("توزيع الأدوار", "كل لاعب يكشف دوره على جواله سرًّا");
+    else if (v.phase === "night") {
+      head = dispHead(`الليلة ${ar(v.night)} 🌕`, "القرية نائمة… والذئاب تتحرك");
+      side = `<p class="disp-big">${ar(v.nightDone)} / ${ar(v.nightTotal)}</p><p class="center soft">أنهوا تحركاتهم</p>`;
+    } else if (v.phase === "hunter") {
+      head = dispHead("رصاصة الصياد الأخيرة 🎯", `${nm(ctx2, v.hunter)} يختار هدفه`);
+    } else if (v.phase === "over") {
+      head = winnerBanner(v.winner === "village" ? "انتصرت القرية" : "انتصرت الذئاب", "الأدوار الحقيقية", v.winner === "village" ? "#9fd1ff" : "#ff6b6b");
+    } else {
+      head = dispHead(v.phase === "vote" ? `التصويت — اليوم ${ar(v.day)}` : `صباح اليوم ${ar(v.day)} ☀️`, `${ar(aliveN)} أحياء`);
+      side = deathsBlock(ctx2, v.dawn?.deaths);
+      if (v.lastShot?.target) side += panel(`رصاصة الصياد أصابت ${who(ctx2, v.lastShot.target)}`, "center", "margin-top:8px");
+      if (v.deadline) side += `<div class="center" style="margin-top:12px">${timerHtml(v.deadline)}</div>`;
+      if (v.phase === "vote") side += `<p class="disp-big">${ar(v.players.filter((p) => p.voted).length)} / ${ar(aliveN)}</p><p class="center soft">صوّتوا</p>`;
+    }
+    return head + (side ? `<div class="disp-cols"><div>${tiles2}</div><div>${side}</div></div>` : tiles2);
+  }
 
   // js/ui/games/coup-ui.js
   var coup_ui_exports = {};
@@ -10551,6 +10755,7 @@ var qrcode = function() {
     onFx: () => onFx6,
     onUi: () => onUi6,
     render: () => render6,
+    renderDisplay: () => renderDisplay5,
     screenKey: () => screenKey6,
     theme: () => theme6
   });
@@ -10571,14 +10776,14 @@ var qrcode = function() {
   }
   var back3 = () => `<svg viewBox="0 0 200 280"><rect width="200" height="280" fill="#3d0f1a"/><rect x="14" y="14" width="172" height="252" rx="12" fill="none" stroke="#e3b24f" stroke-width="3"/><path d="M100 90 L130 140 L100 190 L70 140 Z" fill="none" stroke="#e3b24f" stroke-width="4"/><circle cx="100" cy="140" r="12" fill="#e3b24f"/></svg>`;
   function infl(c, { dead = false, size: size2 = "sm", attrs = "", flipped = true } = {}) {
-    if (!c) return card2({ cls: `coup-card ${size2}`, back: back3(), front: "", flipped: false, attrs });
+    if (!c) return card({ cls: `coup-card ${size2}`, back: back3(), front: "", flipped: false, attrs });
     const [n, d, col] = CARD[c];
-    return card2({ cls: `coup-card ${size2} ${dead ? "dead" : ""}`, back: back3(), front: roleFront({ type: dead ? "مكشوفة" : "نفوذ", name: n, desc: d, art: sil(c, col) }), flipped, attrs });
+    return card({ cls: `coup-card ${size2} ${dead ? "dead" : ""}`, back: back3(), front: roleFront({ type: dead ? "مكشوفة" : "نفوذ", name: n, desc: d, art: sil(c, col) }), flipped, attrs });
   }
   var screenKey6 = (v) => [v.phase, v.turn, v.pend?.stage || ""].join(":");
   function pendLine(ctx2, p) {
-    let t = `${nm4(ctx2, p.actor)} يعلن: <b>${ACTION[p.kind]}</b>${p.target ? ` على ${nm4(ctx2, p.target)}` : ""}`;
-    if (p.blocker) t += `<br>${nm4(ctx2, p.blocker)} يصدّ مدعيًا <b>${CARD[p.blockCard][0]}</b>`;
+    let t = `${nm(ctx2, p.actor)} يعلن: <b>${ACTION[p.kind]}</b>${p.target ? ` على ${nm(ctx2, p.target)}` : ""}`;
+    if (p.blocker) t += `<br>${nm(ctx2, p.blocker)} يصدّ مدعيًا <b>${CARD[p.blockCard][0]}</b>`;
     return t;
   }
   function render6(ctx2) {
@@ -10588,7 +10793,7 @@ var qrcode = function() {
     <div class="row" style="gap:4px;margin-top:6px">${(p.id === ctx2.me ? me.cards : p.cards).map((c) => infl(c.c, { dead: c.dead, size: "xs" })).join("")}</div></div>`).join("")}</div>`;
     if (v.lastChallenge) {
       const c = v.lastChallenge;
-      h += `<p class="center muted" style="font-size:14px;margin:6px 0">آخر تحدٍّ: ${nm4(ctx2, c.challenger)} تحدّى ${nm4(ctx2, c.claimant)} (${CARD[c.card][0]}) — ${c.truthful ? "كان صادقًا" : "كان يخادع"}</p>`;
+      h += `<p class="center muted" style="font-size:14px;margin:6px 0">آخر تحدٍّ: ${nm(ctx2, c.challenger)} تحدّى ${nm(ctx2, c.claimant)} (${CARD[c.card][0]}) — ${c.truthful ? "كان صادقًا" : "كان يخادع"}</p>`;
     }
     if (v.phase === "over") return winnerBanner(`${esc(ctx2.player(v.winner)?.name)} يحكم المدينة`, "آخر من بقي بنفوذ") + h + logBlock(v.log);
     if (v.phase === "action") {
@@ -10603,8 +10808,8 @@ var qrcode = function() {
           const needT = ["coup", "assassinate", "steal"].includes(k);
           return needT ? `<button class="btn soft ${sel === k ? "on" : ""}" data-ui="choose" data-k="${k}" ${dis ? "disabled" : ""}>${l}</button>` : btn(l, { type: k }, "soft", dis ? "disabled" : "");
         }).join("")}</div>`;
-        if (sel) h += `<p class="center" style="margin:10px 0 6px">اختر الهدف لـ${ACTION[sel]}:</p>` + targets2(ctx2, others, { action: sel });
-      } else h += wait(`دور ${nm4(ctx2, v.turn)}`);
+        if (sel) h += `<p class="center" style="margin:10px 0 6px">اختر الهدف لـ${ACTION[sel]}:</p>` + targets(ctx2, others, { action: sel });
+      } else h += wait(`دور ${nm(ctx2, v.turn)}`);
       return h + logBlock(v.log);
     }
     if (v.phase === "respond") {
@@ -10615,13 +10820,13 @@ var qrcode = function() {
         if (p.stage === "chal" || p.stage === "chalBlock") opts.push(btn("أتحدّى! ⚔️", { type: "challenge" }, "danger"));
         if (p.stage === "block") (BLOCKS[p.kind] || []).forEach((c) => opts.push(btn(`أصدّ بـ${CARD[c][0]}`, { type: "block", card: c })));
         h += `<div class="action-grid" style="margin-top:10px">${opts.join("")}</div>`;
-      } else h += wait("بانتظار ردود: " + p.waiting.map((id) => nm4(ctx2, id)).join("، "));
+      } else h += wait("بانتظار ردود: " + p.waiting.map((id) => nm(ctx2, id)).join("، "));
       return h + logBlock(v.log);
     }
     if (v.phase === "lose") {
       if (v.loser === ctx2.me) {
         h += `<p class="h2 center" style="color:var(--danger)">اختر نفوذًا تكشفه وتخسره:</p><div class="row" style="justify-content:center;gap:12px">${me.cards.map((c, k) => c.dead ? "" : `<button class="card-btn" data-act='{"type":"lose","index":${k}}'>${infl(c.c, { size: "md" })}</button>`).join("")}</div>`;
-      } else h += wait(`${nm4(ctx2, v.loser)} يختار نفوذًا يخسره`);
+      } else h += wait(`${nm(ctx2, v.loser)} يختار نفوذًا يخسره`);
       return h;
     }
     if (v.phase === "exchange") {
@@ -10630,7 +10835,7 @@ var qrcode = function() {
         const sel = ctx2.ui.keep || [];
         h += `<p class="center">اختر ${ar(need)} بطاقة تحتفظ بها:</p><div class="row wrap" style="justify-content:center;gap:10px">${me.exchange.map((c, k) => `<button class="card-btn ${sel.includes(k) ? "sel" : ""}" data-ui="keep" data-k="${k}">${infl(c, { size: "md" })}</button>`).join("")}</div>`;
         h += `<div style="margin-top:12px">${btn(`احتفظ (${ar(sel.length)}/${ar(need)})`, { type: "keep", indices: sel }, "block", sel.length === need ? "" : "disabled")}</div>`;
-      } else h += wait(`${nm4(ctx2, v.pend.actor)} يبدّل بطاقاته`);
+      } else h += wait(`${nm(ctx2, v.pend.actor)} يبدّل بطاقاته`);
       return h;
     }
     return h;
@@ -10662,6 +10867,23 @@ var qrcode = function() {
       } else ctx2.sfx("lose");
     }
   }
+  function renderDisplay5(ctx2) {
+    const v = ctx2.view;
+    const table = `<div class="coup-table disp-coup">${v.players.map((p) => `<div class="coup-seat ${p.id === v.turn ? "turn" : ""} ${p.alive ? "" : "out"}">
+    <div class="row" style="gap:6px">${chip(ctx2, p.id)}<span class="coins">🪙 ${ar(p.coins)}</span></div>
+    <div class="row" style="gap:6px;margin-top:8px;justify-content:center">${p.cards.map((c) => infl(c.c, { dead: c.dead, size: "sm" })).join("")}</div></div>`).join("")}</div>`;
+    if (v.phase === "over") return winnerBanner(`${esc(ctx2.player(v.winner)?.name)} يحكم المدينة`, "آخر من بقي بنفوذ") + table;
+    let side = "";
+    if (v.pend) side += panel(`<p class="center h2" style="margin:0">${pendLine(ctx2, v.pend)}</p>${v.pend.waiting?.length ? `<p class="center soft" style="margin:8px 0 0">بانتظار رد: ${v.pend.waiting.map((id) => nm(ctx2, id)).join("، ")}</p>` : ""}`);
+    else side += panel(`<p class="center h2" style="margin:0">دور ${nm(ctx2, v.turn)}</p>`);
+    if (v.loser) side += panel(`<p class="center" style="margin:0">${nm(ctx2, v.loser)} يختار نفوذًا يخسره…</p>`, "", "margin-top:10px");
+    if (v.lastChallenge) {
+      const c = v.lastChallenge;
+      side += `<p class="center soft" style="margin:10px 0">آخر تحدٍّ: ${nm(ctx2, c.challenger)} تحدّى ${nm(ctx2, c.claimant)} (${CARD[c.card][0]}) — ${c.truthful ? "كان صادقًا" : "كان يخادع"}</p>`;
+    }
+    side += logBlock((v.log || []).slice(-6));
+    return dispHead("👑 الانقلاب", `في الكومة ${ar(v.deck)} بطاقات`) + `<div class="disp-cols"><div>${table}</div><div>${side}</div></div>`;
+  }
 
   // js/ui/games/secret-ui.js
   var secret_ui_exports = {};
@@ -10689,7 +10911,7 @@ var qrcode = function() {
   var back4 = () => `<svg viewBox="0 0 200 280"><rect width="200" height="280" fill="#2e3036"/><rect x="16" y="16" width="168" height="248" rx="10" fill="none" stroke="#c9b37e" stroke-width="3"/><text x="100" y="150" text-anchor="middle" font-size="40" fill="#c9b37e">؟</text></svg>`;
   var roleCard4 = (r, flipped, attrs = "", size2 = "") => {
     const [n, t, d, c] = ROLE4[r];
-    return card2({ cls: `sh-card ${size2}`, back: back4(), front: roleFront({ type: t, name: n, desc: d, art: art2(c, r === "hitler") }), flipped, attrs, hint: flipped ? "" : "اضغط لكشف دورك" });
+    return card({ cls: `sh-card ${size2}`, back: back4(), front: roleFront({ type: t, name: n, desc: d, art: art2(c, r === "hitler") }), flipped, attrs, hint: flipped ? "" : "اضغط لكشف دورك" });
   };
   var POW = { investigate: "كشف ولاء", special: "انتخاب خاص", peek: "نظرة على القوانين", kill: "إعدام" };
   var pol = (p, extra = "") => `<span class="policy ${p === "L" ? "lib" : "fas"}" ${extra}>${p === "L" ? "ليبرالي" : "فاشي"}</span>`;
@@ -10710,16 +10932,16 @@ var qrcode = function() {
     const v = ctx2.view, me = v.me;
     if (v.phase === "reveal") return revealStep(ctx2, { cardHtml: roleCard4(me.role, !!ctx2.ui.revealed, 'data-ui="reveal" role="button" tabindex="0"'), readyCount: v.players.filter((p) => p.ready).length, total: v.players.length, ready: me.ready, after: knows(ctx2, me) });
     let h = boards(v);
-    const gov = `<p class="center" style="margin:10px 0">الرئيس: ${who2(ctx2, v.president)}${v.chancellor ? ` — المستشار: ${who2(ctx2, v.chancellor)}` : ""}</p>`;
+    const gov = `<p class="center" style="margin:10px 0">الرئيس: ${who(ctx2, v.president)}${v.chancellor ? ` — المستشار: ${who(ctx2, v.chancellor)}` : ""}</p>`;
     if (v.phase === "over") {
       h = winnerBanner(v.winner === "liberal" ? "فاز الليبراليون" : "فاز الفاشيون", v.reason, v.winner === "liberal" ? "#6fa0dc" : "#e07a62") + h;
-      return h + `<div class="reveal-grid" style="margin-top:12px">${v.players.map((p, k) => `<div>${roleCard4(p.role, false, `data-stagger="${k}"`, "sm")}<div class="who">${nm4(ctx2, p.id)}${p.alive ? "" : " ✝"}</div></div>`).join("")}</div>`;
+      return h + `<div class="reveal-grid" style="margin-top:12px">${v.players.map((p, k) => `<div>${roleCard4(p.role, false, `data-stagger="${k}"`, "sm")}<div class="who">${nm(ctx2, p.id)}${p.alive ? "" : " ✝"}</div></div>`).join("")}</div>`;
     }
     if (!me.alive) h += `<p class="center" style="color:var(--danger)">أُعدمت — لا تتكلم ولا تصوّت.</p>`;
-    if (v.lastVote && v.phase === "nominate") h += `<details class="panel"><summary>آخر تصويت: <b>${v.lastVote.pass ? "نجح" : "فشل"}</b></summary>${v.lastVote.votes.map((x) => `<div class="row spread"><span>${nm4(ctx2, x.id)}</span><span class="badge ${x.v === "ja" ? "ok" : "off"}">${x.v === "ja" ? "نعم" : "لا"}</span></div>`).join("")}</details>`;
+    if (v.lastVote && v.phase === "nominate") h += `<details class="panel"><summary>آخر تصويت: <b>${v.lastVote.pass ? "نجح" : "فشل"}</b></summary>${v.lastVote.votes.map((x) => `<div class="row spread"><span>${nm(ctx2, x.id)}</span><span class="badge ${x.v === "ja" ? "ok" : "off"}">${x.v === "ja" ? "نعم" : "لا"}</span></div>`).join("")}</details>`;
     if (v.phase === "nominate") {
       h += gov;
-      if (v.president === ctx2.me) h += `<p class="center">رشّح مستشارًا:</p>` + targets2(ctx2, v.eligible, { action: "nominate" });
+      if (v.president === ctx2.me) h += `<p class="center">رشّح مستشارًا:</p>` + targets(ctx2, v.eligible, { action: "nominate" });
       else h += wait("الرئيس يختار المستشار");
       return h;
     }
@@ -10741,13 +10963,13 @@ var qrcode = function() {
     }
     if (v.phase === "power" || v.phase === "invResult") {
       h += `<p class="h2 center">صلاحية الرئيس: ${POW[v.power] || "كشف ولاء"}</p>`;
-      if (v.president !== ctx2.me) return h + wait(`${nm4(ctx2, v.president)} يستخدم صلاحيته`);
+      if (v.president !== ctx2.me) return h + wait(`${nm(ctx2, v.president)} يستخدم صلاحيته`);
       const others = v.players.filter((p) => p.alive && p.id !== ctx2.me);
-      if (v.phase === "invResult") return h + panel(`${who2(ctx2, me.investigation.target)} من <b>${me.investigation.party === "liberal" ? "الحزب الليبرالي" : "الحزب الفاشي"}</b>`, "center") + btn("تم", { type: "invDone" }, "block");
+      if (v.phase === "invResult") return h + panel(`${who(ctx2, me.investigation.target)} من <b>${me.investigation.party === "liberal" ? "الحزب الليبرالي" : "الحزب الفاشي"}</b>`, "center") + btn("تم", { type: "invDone" }, "block");
       if (v.power === "peek") return h + `<div class="row" style="justify-content:center;gap:8px">${me.peek.map((p) => pol(p)).join("")}</div><p class="center muted">أعلى ٣ قوانين بالترتيب</p>` + btn("تم", { type: "peekDone" }, "block");
-      if (v.power === "investigate") return h + targets2(ctx2, others.filter((p) => !p.investigated).map((p) => p.id), { action: "investigate" });
-      if (v.power === "special") return h + `<p class="center">اختر الرئيس القادم:</p>` + targets2(ctx2, others.map((p) => p.id), { action: "special" });
-      if (v.power === "kill") return h + `<p class="center" style="color:var(--danger)">اختر من يُعدم:</p>` + targets2(ctx2, others.map((p) => p.id), { action: "kill" });
+      if (v.power === "investigate") return h + targets(ctx2, others.filter((p) => !p.investigated).map((p) => p.id), { action: "investigate" });
+      if (v.power === "special") return h + `<p class="center">اختر الرئيس القادم:</p>` + targets(ctx2, others.map((p) => p.id), { action: "special" });
+      if (v.power === "kill") return h + `<p class="center" style="color:var(--danger)">اختر من يُعدم:</p>` + targets(ctx2, others.map((p) => p.id), { action: "kill" });
     }
     return h;
   }
@@ -10784,6 +11006,7 @@ var qrcode = function() {
     onFx: () => onFx8,
     onUi: () => onUi8,
     render: () => render8,
+    renderDisplay: () => renderDisplay6,
     screenKey: () => screenKey8,
     theme: () => theme8
   });
@@ -10817,7 +11040,7 @@ var qrcode = function() {
   var back5 = () => `<svg viewBox="0 0 200 280"><rect width="200" height="280" rx="16" fill="#ff8e3c"/><rect x="14" y="14" width="172" height="252" rx="12" fill="#fff3c4"/><text x="100" y="155" text-anchor="middle" font-size="64">🐾</text></svg>`;
   function kcard(c, { attrs = "", size: size2 = "sm", cls = "" } = {}) {
     const [n, d, col] = CARDS2[c];
-    return card2({ cls: `k-card ${size2} ${cls}`, back: back5(), front: `<div class="cf" style="--kc:${col}"><div class="cf-head"><span class="cf-type">${n}</span></div><div class="cf-art">${cardArt(c)}</div><p class="cf-desc">${d}</p></div>`, flipped: true, attrs });
+    return card({ cls: `k-card ${size2} ${cls}`, back: back5(), front: `<div class="cf" style="--kc:${col}"><div class="cf-head"><span class="cf-type">${n}</span></div><div class="cf-art">${cardArt(c)}</div><p class="cf-desc">${d}</p></div>`, flipped: true, attrs });
   }
   var needsTarget = (sel) => {
     if (sel.length === 1) return sel[0] === "favor";
@@ -10834,12 +11057,12 @@ var qrcode = function() {
   var screenKey8 = (v) => [v.phase, v.turn, v.turnsLeft, v.players.filter((p) => p.alive).length].join(":");
   function render8(ctx2) {
     const v = ctx2.view, me = v.me;
-    let h = `<div class="k-top"><div class="k-pile">${card2({ cls: "k-card xs", back: back5(), front: "", flipped: false })}<span>${ar(v.deck)}</span></div>
+    let h = `<div class="k-top"><div class="k-pile">${card({ cls: "k-card xs", back: back5(), front: "", flipped: false })}<span>${ar(v.deck)}</span></div>
     <div class="row wrap" style="gap:6px;flex:1">${v.players.map((p) => chip(ctx2, p.id, ` • ${ar(p.count)}${p.alive ? "" : " 💥"}`, p.id === v.turn ? "ok" : p.alive ? "" : "off")).join("")}</div>
     ${v.discardTop ? `<div class="k-pile">${kcard(v.discardTop, { size: "xs" })}</div>` : ""}</div>`;
     if (v.last) {
       const L = v.last;
-      const t = L.type === "exploded" ? `💥 ${nm4(ctx2, L.who)} انفجر!` : L.type === "noped" ? "أُلغي الفعل بـ«لا!»" : `${nm4(ctx2, L.who)} لعب ${L.kind === "pair" ? "زوجًا" : L.kind === "triple" ? "ثلاثية" : L.kind === "five" ? "خمس بطاقات" : CARDS2[L.kind]?.[0] || ""}${L.target ? " على " + nm4(ctx2, L.target) : ""}${L.got === false ? " — لم يجدها" : ""}`;
+      const t = L.type === "exploded" ? `💥 ${nm(ctx2, L.who)} انفجر!` : L.type === "noped" ? "أُلغي الفعل بـ«لا!»" : `${nm(ctx2, L.who)} لعب ${L.kind === "pair" ? "زوجًا" : L.kind === "triple" ? "ثلاثية" : L.kind === "five" ? "خمس بطاقات" : CARDS2[L.kind]?.[0] || ""}${L.target ? " على " + nm(ctx2, L.target) : ""}${L.got === false ? " — لم يجدها" : ""}`;
       h += `<p class="center soft" style="margin:6px 0">${t}</p>`;
     }
     if (me?.got) h += `<p class="center muted" style="font-size:14px;margin:0">آخر بطاقة وصلتك: <b>${CARDS2[me.got][0]}</b></p>`;
@@ -10847,19 +11070,19 @@ var qrcode = function() {
     if (!me.alive) return h + panel('<p class="center" style="margin:0">💥 انفجرت — تابع البقية</p>');
     if (v.phase === "nope") {
       const p = v.pending;
-      h += panel(`<p class="center" style="margin:0">${nm4(ctx2, p.actor)} لعب <b>${comboLabel(p.cards) || ""}</b>${p.target ? ` على ${nm4(ctx2, p.target)}` : ""}${p.named ? ` (يطلب ${CARDS2[p.named][0]})` : ""}<br>«لا!» حتى الآن: ${ar(p.nopes)}</p>`) + timerHtml(v.deadline);
+      h += panel(`<p class="center" style="margin:0">${nm(ctx2, p.actor)} لعب <b>${comboLabel(p.cards) || ""}</b>${p.target ? ` على ${nm(ctx2, p.target)}` : ""}${p.named ? ` (يطلب ${CARDS2[p.named][0]})` : ""}<br>«لا!» حتى الآن: ${ar(p.nopes)}</p>`) + timerHtml(v.deadline);
       if (me.hand.includes("nope")) h += `<button class="btn danger block nope-btn" ${act16({ type: "nope" })}>لا! ✋</button>`;
     } else if (v.phase === "defuse" && v.turn === ctx2.me) {
       h += panel(`<p class="center h2" style="margin:0">أبطلتها! 😮‍💨</p><p class="center">ضع القطة سرًا في الكومة (٠ = الأعلى):</p>
       <input type="range" id="kpos" min="0" max="${v.deck}" value="${Math.min(v.deck, 3)}" data-fresh oninput="this.nextElementSibling.textContent=this.value"><p class="center"><b>${Math.min(v.deck, 3)}</b></p>
       <button class="btn block" data-act='{"type":"insert"}' data-input='{"position":"#kpos"}'>ضعها</button>`);
     } else if (v.phase === "favor" && v.favorFrom === ctx2.me) {
-      h += `<p class="center h2">${nm4(ctx2, v.favorTo)} يطلب خدمة — اختر بطاقة تعطيها:</p><div class="k-hand">${me.hand.map((c, k) => `<button class="card-btn" ${act16({ type: "give", index: k })}>${kcard(c)}</button>`).join("")}</div>`;
+      h += `<p class="center h2">${nm(ctx2, v.favorTo)} يطلب خدمة — اختر بطاقة تعطيها:</p><div class="k-hand">${me.hand.map((c, k) => `<button class="card-btn" ${act16({ type: "give", index: k })}>${kcard(c)}</button>`).join("")}</div>`;
       return h;
     } else if (v.phase === "pickDiscard" && v.turn === ctx2.me) {
       h += `<p class="center">اختر بطاقة من المهملات:</p><div class="k-hand">${v.discardSet.map((c) => `<button class="card-btn" ${act16({ type: "pickDiscard", card: c })}>${kcard(c)}</button>`).join("")}</div>`;
       return h;
-    } else if (v.phase !== "play") h += wait(v.phase === "favor" ? `${nm4(ctx2, v.favorFrom)} يختار بطاقة` : `دور ${nm4(ctx2, v.turn)}`);
+    } else if (v.phase !== "play") h += wait(v.phase === "favor" ? `${nm(ctx2, v.favorFrom)} يختار بطاقة` : `دور ${nm(ctx2, v.turn)}`);
     if (me.future) h += panel(`<p style="margin:0 0 6px">أعلى الكومة (الأول = التالي):</p><div class="row" style="gap:6px;justify-content:center">${me.future.map((c) => kcard(c, { size: "xs" })).join("")}</div>`, "", "margin-top:8px");
     const myTurn = v.phase === "play" && v.turn === ctx2.me;
     const sel = (ctx2.ui.sel || []).filter((k) => k < me.hand.length);
@@ -10908,6 +11131,25 @@ var qrcode = function() {
       } else ctx2.sfx("lose");
     }
   }
+  function renderDisplay6(ctx2) {
+    const v = ctx2.view;
+    const tiles2 = dispPlayers(ctx2, v.players.map((p) => ({ id: p.id, cls: !p.alive ? "dead" : p.id === v.turn ? "active" : "", sub: p.alive ? `🂠 ${ar(p.count)} بطاقات` : "💥 انفجر" })));
+    if (v.phase === "over") return winnerBanner(`${esc(ctx2.player(v.winner)?.name)} نجا من الانفجارات!`) + tiles2;
+    const piles = `<div class="row" style="justify-content:center;gap:28px;align-items:flex-end">
+    <div class="center">${card({ cls: "k-card md", back: back5(), front: "", flipped: false })}<p class="h2" style="margin:6px 0 0">الكومة: ${ar(v.deck)}</p></div>
+    ${v.discardTop ? `<div class="center">${kcard(v.discardTop, { size: "md" })}<p class="soft" style="margin:6px 0 0">آخر بطاقة</p></div>` : ""}</div>`;
+    let ev = "";
+    if (v.last) {
+      const L = v.last;
+      ev = L.type === "exploded" ? `💥 ${nm(ctx2, L.who)} انفجر!` : L.type === "noped" ? "أُلغي الفعل بـ«لا!»" : `${nm(ctx2, L.who)} لعب ${L.kind === "pair" ? "زوجًا" : L.kind === "triple" ? "ثلاثية" : L.kind === "five" ? "خمس بطاقات" : CARDS2[L.kind]?.[0] || ""}${L.target ? " على " + nm(ctx2, L.target) : ""}${L.got === false ? " — لم يجدها" : ""}`;
+    }
+    let side = piles + (ev ? `<p class="center h2" style="margin:14px 0">${ev}</p>` : "");
+    if (v.phase === "nope" && v.pending) side += panel(`<p class="center" style="margin:0">${nm(ctx2, v.pending.actor)} لعب <b>${comboLabel(v.pending.cards) || ""}</b>${v.pending.target ? ` على ${nm(ctx2, v.pending.target)}` : ""}<br>«لا!» حتى الآن: ${ar(v.pending.nopes)}</p>`) + `<div class="center">${timerHtml(v.deadline)}</div>`;
+    else if (v.phase === "defuse") side += panel(`<p class="center h2" style="margin:0">😮‍💨 ${nm(ctx2, v.turn)} أبطل القطة ويخبّيها في الكومة…</p>`);
+    else if (v.phase === "favor") side += panel(`<p class="center" style="margin:0">${nm(ctx2, v.favorTo)} طلب خدمة من ${nm(ctx2, v.favorFrom)}</p>`);
+    const sub = `دور ${nm(ctx2, v.turn)}${v.turnsLeft > 1 ? ` (${ar(v.turnsLeft)} أدوار)` : ""}`;
+    return dispHead("💣 القطط المتفجرة", sub) + `<div class="disp-cols"><div>${tiles2}</div><div>${side}</div></div>`;
+  }
 
   // js/ui/games/wavelength-ui.js
   var wavelength_ui_exports = {};
@@ -10951,7 +11193,7 @@ var qrcode = function() {
     const isPsy = v.psychic === ctx2.me;
     const myTeamActive = v.myTeam === v.active;
     let h = teamsBlock(ctx2, v.teams, LBL, v.score);
-    h += `<p class="center muted" style="margin:6px 0">الهدف: ${ar(v.target)} نقاط • الجولة ${ar(v.round)} • دور ${LBL[v.active]} • الوسيط: ${nm4(ctx2, v.psychic)}</p>`;
+    h += `<p class="center muted" style="margin:6px 0">الهدف: ${ar(v.target)} نقاط • الجولة ${ar(v.round)} • دور ${LBL[v.active]} • الوسيط: ${nm(ctx2, v.psychic)}</p>`;
     const reveal = v.phase === "reveal" || v.phase === "over";
     h += dial(v, reveal || isPsy && v.phase !== "over");
     if (v.clue) h += `<p class="h2 center wl-clue">«${esc(v.clue)}»</p>`;
@@ -10959,7 +11201,7 @@ var qrcode = function() {
       if (isPsy) h += `<p class="center">أنت الوسيط: الهدف ظاهر لك فقط. أعطِ تلميحًا يضع فريقك في المكان الصحيح.</p>
       <div class="field"><input id="wclue" maxlength="40" placeholder="اكتب التلميح (أو قله بصوتك)"></div>
       <div class="row">${`<button class="btn grow-btn" data-act='{"type":"clue"}' data-input='{"text":"#wclue"}'>أرسل التلميح</button>`}${btn("قلته شفهيًا", { type: "clue", text: "" }, "soft grow-btn")}</div>`;
-      else h += wait(`${nm4(ctx2, v.psychic)} يفكر بتلميح`);
+      else h += wait(`${nm(ctx2, v.psychic)} يفكر بتلميح`);
     } else if (v.phase === "dial") {
       if (myTeamActive && !isPsy) h += `<p class="center">حرّكوا المؤشر ثم ثبّتوه:</p><input type="range" id="wdial" min="0" max="100" value="${v.dial}" class="wl-range" onchange="document.getElementById('wsend').click()">
       <button id="wsend" hidden data-act='{"type":"dial"}' data-input='{"value":"#wdial"}'></button>${btn("ثبّت المؤشر 🔒", { type: "lock" }, "block")}`;
@@ -11027,8 +11269,8 @@ var qrcode = function() {
     } else if (v.phase === "result" || v.phase === "over") {
       const r = v.result;
       h += panel(r.herd.length ? `<p class="center" style="margin:0">القطيع: ${r.herd.map((id) => chip(ctx2, id)).join(" ")} — نقطة لكل واحد 🐮</p>` : '<p class="center" style="margin:0">تعادل في الأغلبية — لا نقاط هذه الجولة</p>');
-      if (r.cowTo) h += panel(`<p class="center" style="margin:0">${cow(true)} البقرة الوردية انتقلت إلى <b>${nm4(ctx2, r.cowTo)}</b></p>`, "", "margin-top:8px");
-      if (v.phase === "over") h = winnerBanner(`فاز ${v.winner.map((id) => nm4(ctx2, id)).join(" و")}`, "عقل القطيع الأصيل") + h;
+      if (r.cowTo) h += panel(`<p class="center" style="margin:0">${cow(true)} البقرة الوردية انتقلت إلى <b>${nm(ctx2, r.cowTo)}</b></p>`, "", "margin-top:8px");
+      if (v.phase === "over") h = winnerBanner(`فاز ${v.winner.map((id) => nm(ctx2, id)).join(" و")}`, "عقل القطيع الأصيل") + h;
       else if (ctx2.isHost) h += `<div style="margin-top:12px">${btn("السؤال التالي", { type: "next" }, "block")}</div>`;
       else h += wait("بانتظار السؤال التالي");
     }
@@ -11091,7 +11333,7 @@ var qrcode = function() {
     const isMod = v.host === ctx2.me;
     const myTeam = v.myTeam;
     let h = teamsBlock(ctx2, v.teams, LBL2, v.boards > 1 ? v.wins : null);
-    h += `<p class="center muted" style="margin:4px 0">المقدم: ${nm4(ctx2, v.host)}${v.boards > 1 ? ` • اللوحة ${ar(v.board)}` : ""}</p>`;
+    h += `<p class="center muted" style="margin:4px 0">المقدم: ${nm(ctx2, v.host)}${v.boards > 1 ? ` • اللوحة ${ar(v.board)}` : ""}</p>`;
     const canPick = v.phase === "pick" && (isMod || v.picker && myTeam === v.picker);
     h += grid(v, canPick);
     if (v.phase === "pick") {
@@ -11099,7 +11341,7 @@ var qrcode = function() {
     } else if (v.phase === "buzz") {
       const letter = v.letters[v.cell];
       h += `<div class="panel center letters-q pop-in"><p class="h2" style="margin:0">${esc(v.prompt)} يبدأ بحرف «${letter}»</p></div>`;
-      if (v.buzz) h += `<p class="center h2" style="margin:10px 0">🔔 ${who2(ctx2, v.buzz.id)} يجاوب</p>`;
+      if (v.buzz) h += `<p class="center h2" style="margin:10px 0">🔔 ${who(ctx2, v.buzz.id)} يجاوب</p>`;
       if (isMod) {
         if (v.buzz) h += `<div class="row">${btn("صح ✓", { type: "judge", correct: true }, "grow-btn")}${btn("خطأ ✕", { type: "judge", correct: false }, "danger grow-btn")}</div>`;
         else h += wait("بانتظار الجرس");
@@ -11160,13 +11402,13 @@ var qrcode = function() {
     const v = ctx2.view;
     const isMod = v.isMod;
     let h = teamsBlock(ctx2, v.teams, LBL3, v.score);
-    h += `<p class="center muted" style="margin:4px 0">الجولة ${ar(v.round)} من ${ar(v.rounds)} • المقدم: ${nm4(ctx2, v.host)}</p>`;
+    h += `<p class="center muted" style="margin:4px 0">الجولة ${ar(v.round)} من ${ar(v.rounds)} • المقدم: ${nm(ctx2, v.host)}</p>`;
     h += `<div class="ff-q"><p class="h2" style="margin:0">${esc(v.question)}</p><span class="ff-bank">${ar(v.bank)}</span></div>`;
     h += board(v, isMod);
     if (v.phase === "faceoff") {
       const f = v.face;
-      h += `<p class="center" style="margin:10px 0">المواجهة: ${who2(ctx2, f.A)} ضد ${who2(ctx2, f.B)}</p>`;
-      if (f.buzz) h += `<p class="center h2">🔔 يجاوب ${nm4(ctx2, f[f.buzz])} (${LBL3[f.buzz]})</p>` + clock(v);
+      h += `<p class="center" style="margin:10px 0">المواجهة: ${who(ctx2, f.A)} ضد ${who(ctx2, f.B)}</p>`;
+      if (f.buzz) h += `<p class="center h2">🔔 يجاوب ${nm(ctx2, f[f.buzz])} (${LBL3[f.buzz]})</p>` + clock(v);
       if (isMod && f.buzz) h += `<p class="center muted">اضغط الإجابة التي قالها، أو:</p>${btn("ليست في اللوحة ✕", { type: "judge", index: -1 }, "danger block")}`;
       else if (!f.buzz && (ctx2.me === f.A || ctx2.me === f.B) && !(f.first && f.first === v.myTeam)) h += `<button class="buzzer buzzer-${v.myTeam}" ${act16({ type: "buzz" })}>جرس!</button>`;
       else if (!f.buzz) h += wait("بانتظار الجرس");
@@ -11175,7 +11417,7 @@ var qrcode = function() {
       if (v.myTeam === v.faceWinner || isMod) h += `<div class="row">${btn("نلعب", { type: "choose", value: "play" }, "grow-btn")}${btn("نمرّر", { type: "choose", value: "pass" }, "soft grow-btn")}</div>`;
       else h += wait("الفريق الفائز يقرر");
     } else if (v.phase === "play") {
-      h += strikes(v.strikes) + `<p class="center">${LBL3[v.control]} يلعب — يجاوب الآن: ${who2(ctx2, v.answerer)}</p>` + clock(v);
+      h += strikes(v.strikes) + `<p class="center">${LBL3[v.control]} يلعب — يجاوب الآن: ${who(ctx2, v.answerer)}</p>` + clock(v);
       if (isMod) h += btn("إجابة خاطئة ✕", { type: "judge", index: -1 }, "danger block");
     } else if (v.phase === "steal") {
       const st = v.control === "A" ? "B" : "A";
@@ -11233,7 +11475,7 @@ var qrcode = function() {
   var back6 = () => `<svg viewBox="0 0 200 280"><rect width="200" height="280" fill="#16302e"/><path d="M0 120 L200 80 L200 110 L0 150 Z" fill="#e1b84b"/><text x="100" y="125" text-anchor="middle" font-size="16" fill="#111" transform="rotate(-11 100 115)">تحقيق</text></svg>`;
   var roleCard5 = (r, flipped, attrs = "", size2 = "") => {
     const [n, d, c] = ROLE5[r];
-    return card2({ cls: `dc-card ${size2}`, back: back6(), front: roleFront({ type: "دورك", name: n, desc: d, art: art3(c) }), flipped, attrs, hint: flipped ? "" : "اضغط لكشف دورك" });
+    return card({ cls: `dc-card ${size2}`, back: back6(), front: roleFront({ type: "دورك", name: n, desc: d, art: art3(c) }), flipped, attrs, hint: flipped ? "" : "اضغط لكشف دورك" });
   };
   function knows2(ctx2, me) {
     const k = me.knows;
@@ -11259,7 +11501,7 @@ var qrcode = function() {
     const v = ctx2.view, me = v.me;
     if (v.phase === "roles") return revealStep(ctx2, { cardHtml: roleCard5(me.role, !!ctx2.ui.revealed, 'data-ui="reveal" role="button" tabindex="0"'), readyCount: v.players.filter((p) => p.ready).length, total: v.players.length, ready: me.ready, after: knows2(ctx2, me) });
     const F = v.players.find((p) => p.forensic).id;
-    let h = `<p class="center muted" style="margin:0">الجولة ${ar(v.round)} من ٣ • الطبيب الشرعي: ${nm4(ctx2, F)}</p>`;
+    let h = `<p class="center muted" style="margin:0">الجولة ${ar(v.round)} من ٣ • الطبيب الشرعي: ${nm(ctx2, F)}</p>`;
     if (v.crime && v.phase !== "over") h += `<p class="center" style="margin:6px 0">الحل (سري): <span class="dc-m">${esc(v.crime.means)}</span> + <span class="dc-c">${esc(v.crime.clue)}</span></p>`;
     if (v.phase === "crime") {
       if (me.role === "murderer") {
@@ -11280,7 +11522,7 @@ var qrcode = function() {
     }
     if (v.phase === "discuss") {
       h += timerHtml(v.deadline) + tiles(v, false);
-      if (v.guesses.length) h += panel(v.guesses.map((g) => `<div>${nm4(ctx2, g.by)} اتهم ${nm4(ctx2, g.target)} (${esc(v.players.find((p) => p.id === g.target).means[v.players.find((p) => p.id === g.target).meansIdx.indexOf(g.means)])} + ${esc(v.players.find((p) => p.id === g.target).clues[v.players.find((p) => p.id === g.target).cluesIdx.indexOf(g.clue)])}) — <b style="color:var(--danger)">خطأ</b></div>`).join(""), "", "margin-top:8px");
+      if (v.guesses.length) h += panel(v.guesses.map((g) => `<div>${nm(ctx2, g.by)} اتهم ${nm(ctx2, g.target)} (${esc(v.players.find((p) => p.id === g.target).means[v.players.find((p) => p.id === g.target).meansIdx.indexOf(g.means)])} + ${esc(v.players.find((p) => p.id === g.target).clues[v.players.find((p) => p.id === g.target).cluesIdx.indexOf(g.clue)])}) — <b style="color:var(--danger)">خطأ</b></div>`).join(""), "", "margin-top:8px");
       if (me.role !== "forensic" && me.badge) h += `<div style="margin-top:10px">${`<button class="btn block" data-ui="solve">🔰 اتهام (مرة واحدة)</button>`}</div>`;
       h += suspects(ctx2, v);
       if (me.role === "forensic" || ctx2.isHost) h += `<div style="margin-top:10px">${btn(v.round >= 3 ? "أنهِ الجولة الأخيرة" : "أنهِ الجولة", { type: "endRound" }, "soft block")}</div>`;
@@ -11293,15 +11535,15 @@ var qrcode = function() {
       return h;
     }
     if (v.phase === "witnessHunt") {
-      h += `<p class="h2 center">${nm4(ctx2, v.solvedBy)} كشف الجريمة!</p>`;
-      if (me.role === "murderer") h += `<p class="center">آخر فرصة: من الشاهد؟</p>` + targets2(ctx2, v.players.filter((p) => !p.forensic && p.id !== ctx2.me).map((p) => p.id), { action: "accuseWitness" });
+      h += `<p class="h2 center">${nm(ctx2, v.solvedBy)} كشف الجريمة!</p>`;
+      if (me.role === "murderer") h += `<p class="center">آخر فرصة: من الشاهد؟</p>` + targets(ctx2, v.players.filter((p) => !p.forensic && p.id !== ctx2.me).map((p) => p.id), { action: "accuseWitness" });
       else h += wait("القاتل يبحث عن الشاهد");
       return h;
     }
     if (v.phase === "over") {
       h = winnerBanner(v.winner === "good" ? "انتصر المحققون" : "نجا القاتل", v.reason, v.winner === "good" ? "#7bdcb5" : "#ff6b6b");
       if (v.crime) h += `<p class="center">الحل: <span class="dc-m">${esc(v.crime.means)}</span> + <span class="dc-c">${esc(v.crime.clue)}</span></p>`;
-      h += `<div class="reveal-grid">${v.players.map((p, k) => `<div>${roleCard5(p.role, false, `data-stagger="${k}"`, "sm")}<div class="who">${nm4(ctx2, p.id)}</div></div>`).join("")}</div>`;
+      h += `<div class="reveal-grid">${v.players.map((p, k) => `<div>${roleCard5(p.role, false, `data-stagger="${k}"`, "sm")}<div class="who">${nm(ctx2, p.id)}</div></div>`).join("")}</div>`;
     }
     return h;
   }
@@ -11403,7 +11645,7 @@ var qrcode = function() {
   var back7 = () => `<svg viewBox="0 0 200 280"><rect width="200" height="280" fill="#5a3415"/><circle cx="100" cy="140" r="40" fill="#a3231f"/><text x="100" y="152" text-anchor="middle" font-size="34" fill="#f3d9a4">ش</text></svg>`;
   function good(g, { size: size2 = "sm", attrs = "" } = {}) {
     const [n, v, p, legal, col, em] = G[g];
-    return card2({
+    return card({
       cls: `sh-good ${size2} ${legal ? "" : "contra"}`,
       back: back7(),
       flipped: true,
@@ -11419,7 +11661,7 @@ var qrcode = function() {
   function render14(ctx2) {
     const v = ctx2.view, me = v.me;
     const isSheriff = v.sheriff === ctx2.me;
-    let h = `<p class="center muted" style="margin:0">الدور ${ar(v.turnNo)} من ${ar(v.turnsTotal)} • الشريف: ${nm4(ctx2, v.sheriff)} ⭐</p>` + stands(ctx2, v);
+    let h = `<p class="center muted" style="margin:0">الدور ${ar(v.turnNo)} من ${ar(v.turnsTotal)} • الشريف: ${nm(ctx2, v.sheriff)} ⭐</p>` + stands(ctx2, v);
     const mine = v.players.find((p) => p.id === ctx2.me);
     const sel = ctx2.ui.sel || [];
     const hand = (mode, max) => `<div class="k-hand">${me.hand.map((g, k) => `<button class="card-btn ${sel.includes(k) ? "sel" : ""}" data-ui="sel" data-k="${k}" data-max="${max}" ${mode ? "" : "disabled"}>${good(g)}</button>`).join("")}</div>`;
@@ -11438,7 +11680,7 @@ var qrcode = function() {
     }
     if (v.phase === "inspect") {
       const cur2 = v.players.find((p) => p.id === v.current);
-      h += panel(`<p class="center h2" style="margin:0">💼 ${nm4(ctx2, cur2.id)} يعلن: ${ar(cur2.declare.count)} × ${G[cur2.declare.good][5]} ${G[cur2.declare.good][0]}</p>${cur2.offer ? `<p class="center" style="margin:6px 0 0">الرشوة المعروضة: <b>🪙 ${ar(cur2.offer)}</b></p>` : ""}`, "sh-bag");
+      h += panel(`<p class="center h2" style="margin:0">💼 ${nm(ctx2, cur2.id)} يعلن: ${ar(cur2.declare.count)} × ${G[cur2.declare.good][5]} ${G[cur2.declare.good][0]}</p>${cur2.offer ? `<p class="center" style="margin:6px 0 0">الرشوة المعروضة: <b>🪙 ${ar(cur2.offer)}</b></p>` : ""}`, "sh-bag");
       if (v.current === ctx2.me) {
         if (me.bag) h += `<p class="center muted" style="font-size:14px">حقيبتك: ${me.bag.map((g) => G[g][5]).join(" ")}</p>`;
         h += `<div class="field"><label>اعرض رشوة على الشريف (ذهب)</label><input id="bribe" type="number" min="0" max="${me.gold}" inputmode="numeric" value="${cur2.offer || 0}"></div><button class="btn soft block" data-act='{"type":"offer"}' data-input='{"gold":"#bribe"}'>اعرض</button>`;
@@ -11455,15 +11697,15 @@ var qrcode = function() {
     }
     if (v.phase === "over") {
       const sc = v.scores.slice().sort((a, b) => b.total - a.total);
-      h = winnerBanner(`أغنى تاجر: ${v.winner.map((id) => nm4(ctx2, id)).join(" و")}`) + `<div class="panel"><table class="score-table"><tr><th>اللاعب</th><th>ذهب</th><th>بضائع</th><th>مكافآت</th><th>المجموع</th></tr>${sc.map((r) => `<tr><td>${nm4(ctx2, r.id)}</td><td>${ar(r.gold)}</td><td>${ar(r.goods)}</td><td>${ar(r.bonus)}</td><td><b>${ar(r.total)}</b></td></tr>`).join("")}</table></div>` + stands(ctx2, v);
+      h = winnerBanner(`أغنى تاجر: ${v.winner.map((id) => nm(ctx2, id)).join(" و")}`) + `<div class="panel"><table class="score-table"><tr><th>اللاعب</th><th>ذهب</th><th>بضائع</th><th>مكافآت</th><th>المجموع</th></tr>${sc.map((r) => `<tr><td>${nm(ctx2, r.id)}</td><td>${ar(r.gold)}</td><td>${ar(r.goods)}</td><td>${ar(r.bonus)}</td><td><b>${ar(r.total)}</b></td></tr>`).join("")}</table></div>` + stands(ctx2, v);
     }
     return h;
   }
   function lastInspect(ctx2, v) {
     const L = v.lastInspect;
     if (!L) return "";
-    if (!L.inspected) return panel(`<p class="center" style="margin:0">مرّت حقيبة ${nm4(ctx2, L.merchant)}${L.bribe ? ` مقابل 🪙 ${ar(L.bribe)}` : ""}</p>`, "", "margin-top:8px");
-    return panel(`<p class="center" style="margin:0">فُتّشت حقيبة ${nm4(ctx2, L.merchant)}: ${L.bag.map((g) => G[g][5]).join(" ")} — ${L.honest ? `<b style="color:var(--ok)">صادق!</b> الشريف دفع ${ar(L.paid)}` : `<b style="color:var(--danger)">كاذب!</b> صودر ${L.confiscated.map((g) => G[g][5]).join(" ")} ودفع ${ar(L.paid)}`}</p>`, "", "margin-top:8px");
+    if (!L.inspected) return panel(`<p class="center" style="margin:0">مرّت حقيبة ${nm(ctx2, L.merchant)}${L.bribe ? ` مقابل 🪙 ${ar(L.bribe)}` : ""}</p>`, "", "margin-top:8px");
+    return panel(`<p class="center" style="margin:0">فُتّشت حقيبة ${nm(ctx2, L.merchant)}: ${L.bag.map((g) => G[g][5]).join(" ")} — ${L.honest ? `<b style="color:var(--ok)">صادق!</b> الشريف دفع ${ar(L.paid)}` : `<b style="color:var(--danger)">كاذب!</b> صودر ${L.confiscated.map((g) => G[g][5]).join(" ")} ودفع ${ar(L.paid)}`}</p>`, "", "margin-top:8px");
   }
   function onUi11(name, el, ctx2, rerender) {
     if (name === "sel") {
@@ -11524,7 +11766,7 @@ var qrcode = function() {
       h += `<button class="mcell ${[0, 10, 20, 30].includes(k) ? "corner" : ""}" style="grid-row:${r};grid-column:${c}" data-ui="sq" data-k="${k}" aria-label="${esc(b.name)}">${strip}${own}<span class="toks">${tokens}</span></button>`;
     });
     const cur2 = v.turn;
-    h += `<div class="mcenter" dir="rtl"><div class="mono-logo">مونوبولي</div><div class="dice">${v.dice ? DICE[v.dice[0]] + DICE[v.dice[1]] : "🎲"}</div><div>دور ${who2(ctx2, cur2)}</div>
+    h += `<div class="mcenter" dir="rtl"><div class="mono-logo">مونوبولي</div><div class="dice">${v.dice ? DICE[v.dice[0]] + DICE[v.dice[1]] : "🎲"}</div><div>دور ${who(ctx2, cur2)}</div>
     ${v.lastCard ? `<div class="mcard">${v.lastCard.kind === "chance" ? "❓ فرصة" : "🎁 صندوق المجتمع"}: ${esc(v.lastCard.text)}</div>` : ""}
     ${v.maxRounds ? `<small>الجولة ${ar(v.round)} من ${ar(v.maxRounds)}</small>` : `<small>الجولة ${ar(v.round)}</small>`}</div>`;
     return h + "</div>";
@@ -11562,27 +11804,27 @@ var qrcode = function() {
     const v = ctx2.view;
     const meP = v.players.find((p) => p.id === ctx2.me);
     let h = "";
-    if (v.phase === "over") h += winnerBanner(`فاز ${v.winner.map((id) => nm4(ctx2, id)).join(" و")}`, "أقوى إمبراطورية عقارية");
-    h += `<div class="mono-players">${v.players.map((p) => `<div class="mp ${p.id === v.turn ? "turn" : ""} ${p.bankrupt ? "out" : ""}"><i class="tok" style="background:${pcolor(v, p.id)}">${esc(ctx2.player(p.id)?.emoji || "")}</i><span>${nm4(ctx2, p.id)}</span><b>${money(p.cash)}</b>${p.jail ? " 🚔" : ""}${p.jailCards ? " 🎫" : ""}</div>`).join("")}</div>`;
+    if (v.phase === "over") h += winnerBanner(`فاز ${v.winner.map((id) => nm(ctx2, id)).join(" و")}`, "أقوى إمبراطورية عقارية");
+    h += `<div class="mono-players">${v.players.map((p) => `<div class="mp ${p.id === v.turn ? "turn" : ""} ${p.bankrupt ? "out" : ""}"><i class="tok" style="background:${pcolor(v, p.id)}">${esc(ctx2.player(p.id)?.emoji || "")}</i><span>${nm(ctx2, p.id)}</span><b>${money(p.cash)}</b>${p.jail ? " 🚔" : ""}${p.jailCards ? " 🎫" : ""}</div>`).join("")}</div>`;
     h += boardHtml(ctx2, v);
     if (v.phase === "over") return h + logBlock(v.log);
     if (meP.bankrupt) return h + panel('<p class="center" style="margin:0">أفلست — تابع اللعب</p>') + logBlock(v.log);
     if (v.trade) {
       const t = v.trade;
       const side = (s) => [s.cash ? money(s.cash) : "", ...s.props.map((k) => esc(BOARD[k].name)), s.cards ? `${ar(s.cards)} بطاقة سجن` : ""].filter(Boolean).join("، ") || "لا شيء";
-      h += panel(`<p style="margin:0">صفقة من ${nm4(ctx2, t.from)} إلى ${nm4(ctx2, t.to)}:<br>يعطي: ${side(t.give)}<br>يأخذ: ${side(t.get)}</p>
+      h += panel(`<p style="margin:0">صفقة من ${nm(ctx2, t.from)} إلى ${nm(ctx2, t.to)}:<br>يعطي: ${side(t.give)}<br>يأخذ: ${side(t.get)}</p>
       ${t.to === ctx2.me ? `<div class="row" style="margin-top:8px">${btn("أقبل", { type: "answerTrade", accept: true }, "grow-btn")}${btn("أرفض", { type: "answerTrade", accept: false }, "soft grow-btn")}</div>` : t.from === ctx2.me ? btn("ألغِ الصفقة", { type: "cancelTrade" }, "soft block") : ""}`, "trade-box", "margin-top:10px");
     }
     const myTurn = v.turn === ctx2.me;
     if (v.phase === "auction") {
       const a = v.auction;
-      h += panel(`<p class="center h2" style="margin:0">مزاد: ${esc(BOARD[a.sq].name)}</p><p class="center" style="margin:4px 0">أعلى مزايدة: ${a.bidder ? `${money(a.high)} — ${nm4(ctx2, a.bidder)}` : "لا يوجد"}</p>`);
+      h += panel(`<p class="center h2" style="margin:0">مزاد: ${esc(BOARD[a.sq].name)}</p><p class="center" style="margin:4px 0">أعلى مزايدة: ${a.bidder ? `${money(a.high)} — ${nm(ctx2, a.bidder)}` : "لا يوجد"}</p>`);
       if (a.at === ctx2.me) h += `<div class="field"><input id="mbid" type="number" inputmode="numeric" min="${a.high + 1}" max="${meP.cash}" value="${a.high + 10}"></div><div class="row"><button class="btn grow-btn" data-act='{"type":"bid"}' data-input='{"amount":"#mbid"}'>زايد</button>${btn("انسحب", { type: "passBid" }, "soft grow-btn")}</div>`;
-      else h += wait(`دور ${nm4(ctx2, a.at)} في المزاد`);
+      else h += wait(`دور ${nm(ctx2, a.at)} في المزاد`);
     } else if (v.phase === "debt") {
       const d = v.debt;
-      if (d.from === ctx2.me) h += panel(`<p class="center" style="margin:0;color:var(--danger)">عليك ${money(d.amount)} ${d.to ? "لـ" + nm4(ctx2, d.to) : "للبنك"} — رصيدك ${money(meP.cash)}</p><p class="center muted">ارهن أو بِع مبانيك ثم سدّد، أو أعلن الإفلاس.</p><div class="row">${btn("سدّد", { type: "payDebt" }, "grow-btn", meP.cash >= d.amount ? "" : "disabled")}${btn("أعلن الإفلاس", { type: "bankrupt" }, "danger grow-btn")}</div>`);
-      else h += wait(`${nm4(ctx2, d.from)} يحاول تسديد دين`);
+      if (d.from === ctx2.me) h += panel(`<p class="center" style="margin:0;color:var(--danger)">عليك ${money(d.amount)} ${d.to ? "لـ" + nm(ctx2, d.to) : "للبنك"} — رصيدك ${money(meP.cash)}</p><p class="center muted">ارهن أو بِع مبانيك ثم سدّد، أو أعلن الإفلاس.</p><div class="row">${btn("سدّد", { type: "payDebt" }, "grow-btn", meP.cash >= d.amount ? "" : "disabled")}${btn("أعلن الإفلاس", { type: "bankrupt" }, "danger grow-btn")}</div>`);
+      else h += wait(`${nm(ctx2, d.from)} يحاول تسديد دين`);
     } else if (myTurn) {
       const sq = BOARD[meP.pos];
       if (v.phase === "roll") {
@@ -11593,7 +11835,7 @@ var qrcode = function() {
       } else if (v.phase === "end") {
         h += btn(v.rolledDouble && !meP.jail ? "زوج! ارمِ مرة أخرى 🎲" : "أنهِ الدور ✓", { type: "endTurn" }, "block");
       }
-    } else h += wait(`دور ${nm4(ctx2, v.turn)}`);
+    } else h += wait(`دور ${nm(ctx2, v.turn)}`);
     if (!v.trade && !["auction", "debt"].includes(v.phase)) h += `<button class="btn soft block" style="margin-top:8px" data-ui="trade">🤝 اعرض صفقة</button>`;
     return h + myProps(ctx2, v) + logBlock(v.log);
   }
@@ -11669,6 +11911,7 @@ var qrcode = function() {
   var GAME_UI = { mafia: mafia_ui_exports, skull: skull_ui_exports, bara: bara_ui_exports, avalon: avalon_ui_exports, werewolf: werewolf_ui_exports, coup: coup_ui_exports, secret: secret_ui_exports, kittens: kittens_ui_exports, wavelength: wavelength_ui_exports, herd: herd_ui_exports, letters: letters_ui_exports, familyfeud: familyfeud_ui_exports, deception: deception_ui_exports, shareef: shareef_ui_exports, monopoly: monopoly_ui_exports };
   var HOST_KEY = "samra.host";
   var LAST_ROOM_KEY = "samra.lastRoom";
+  var LAST_DISPLAY_KEY = "samra.lastDisplay";
   var S2 = null;
   var timerLoop = null;
   var navigate = (h) => {
@@ -11715,7 +11958,7 @@ var qrcode = function() {
   }
   if (typeof document !== "undefined") document.addEventListener("visibilitychange", () => {
     if (document.visibilityState !== "visible" || !S2) return;
-    if (S2.isHost && S2.host && !S2.host.closed) keepAwake(true);
+    if (S2.isHost && S2.host && !S2.host.closed || S2.isDisplay) keepAwake(true);
     try {
       S2.client?.wake();
     } catch {
@@ -11797,6 +12040,25 @@ var qrcode = function() {
     navigate("#/play");
     client.start();
   }
+  function joinDisplay(code) {
+    unlockAudio();
+    if (S2 && S2.code === code && S2.isDisplay && !S2.dead) return navigate("#/play");
+    endSession(false);
+    const client = new ClientSession({ transport: peerClientTransport({ code }), code, store, profile: null, role: "display" });
+    S2 = newSession({ client, code, isHost: false, isDisplay: true });
+    store.set(LAST_DISPLAY_KEY, { code, at: Date.now() });
+    wireClient(S2);
+    navigate("#/play");
+    client.start();
+    keepAwake(true);
+  }
+  function lastDisplay() {
+    const r = store.get(LAST_DISPLAY_KEY);
+    return r && Date.now() - r.at < 6 * 3600 * 1e3 ? r : null;
+  }
+  function displayUrl(code) {
+    return location.origin + location.pathname + location.search + "#/display/" + code;
+  }
   function lastRoom() {
     const r = store.get(LAST_ROOM_KEY);
     if (!r || Date.now() - r.at > 6 * 3600 * 1e3) return null;
@@ -11866,6 +12128,7 @@ var qrcode = function() {
       room: msg.room,
       me: msg.you,
       isHost: s.isHost,
+      isDisplay: !!s.isDisplay,
       player: (id) => players.get(id),
       ui: s.ui,
       sfx: (name) => play(gameUi?.kit || "shell", name),
@@ -11887,6 +12150,7 @@ var qrcode = function() {
     const gameUi = GAME_UI[gameId];
     const meta16 = byId(gameId);
     setTheme(msg && msg.room.status === "playing" ? gameUi?.theme : gameUi?.theme || "shell", gameUi);
+    document.body.classList.toggle("display-mode", !!s.isDisplay);
     if (!app2.querySelector("#stage")) {
       app2.innerHTML = `<div class="page"><header class="topbar glass" id="topbar"></header><div id="conn"></div><main id="stage"></main></div>`;
     }
@@ -11914,7 +12178,10 @@ var qrcode = function() {
     stage.classList.toggle("no-enter", key === s.screenKey);
     if (key !== s.screenKey) closeSheetOfScope("game");
     s.screenKey = key;
-    if (msg.room.status === "lobby" || !msg.game) {
+    if (s.isDisplay) {
+      stage.innerHTML = msg.room.status === "lobby" || !msg.game ? displayLobbyHtml(ctx2, meta16) : `<div class="game-${gameId} disp">${gameUi.renderDisplay ? gameUi.renderDisplay(ctx2) : displayFallback(ctx2, meta16)}</div>`;
+      if (msg.game && msg.room.status !== "lobby") gameUi.after?.(stage, ctx2);
+    } else if (msg.room.status === "lobby" || !msg.game) {
       stage.innerHTML = lobbyHtml(ctx2, meta16);
     } else {
       let html = `<div class="game-${gameId}">${gameUi.render(ctx2)}</div>`;
@@ -11963,6 +12230,14 @@ var qrcode = function() {
     const gameUi = msg ? GAME_UI[msg.room.gameId] : null;
     const extra = msg && msg.game && msg.room.status === "playing" && gameUi?.headerExtra ? gameUi.headerExtra(ctxFor(S2)) : "";
     const snd = settings.get().sound;
+    if (S2?.isDisplay) {
+      top.innerHTML = `<button class="icon-btn" data-cmd="leave" aria-label="إغلاق شاشة العرض">✕</button>
+      <div class="title">${esc(meta16?.name || "سمرة")} <span class="badge disp-badge">📺 شاشة العرض</span></div>${extra}
+      ${msg ? `<span class="badge" dir="ltr">${esc(msg.room.code)}</span>` : ""}
+      <button class="icon-btn" data-cmd="fullscreen" aria-label="ملء الشاشة">⛶</button>
+      <button class="icon-btn" data-cmd="mute" aria-label="${snd ? "كتم الصوت" : "تشغيل الصوت"}">${snd ? "🔊" : "🔇"}</button>`;
+      return;
+    }
     top.innerHTML = `<button class="icon-btn" data-cmd="leave" aria-label="مغادرة الغرفة">✕</button>
     <div class="title">${esc(meta16?.name || "سمرة")}</div>${extra}
     <button class="icon-btn" data-cmd="mute" aria-label="${snd ? "كتم الصوت" : "تشغيل الصوت"}">${snd ? "🔊" : "🔇"}</button>
@@ -11992,7 +12267,8 @@ var qrcode = function() {
       version: "نسخة المنصة لديك تختلف عن نسخة المضيف. حدّث الصفحة.",
       kicked: "أخرجك المضيف من الغرفة.",
       ended: "أنهى المضيف الغرفة.",
-      replaced: "فتحت هذه الغرفة في نافذة أو جهاز آخر."
+      replaced: "فتحت هذه الغرفة في نافذة أو جهاز آخر.",
+      "displays-full": "وصلت الغرفة للحد الأقصى من شاشات العرض (٣)."
     };
     const msg = reasons[s.detail] || NET_MESSAGES[s.detail] || "انتهى الاتصال بالغرفة.";
     document.getElementById("conn").innerHTML = "";
@@ -12023,6 +12299,9 @@ var qrcode = function() {
     </div>`).join("")}</div>
     <p class="muted center" style="font-size:14px">هذه اللعبة تحتاج من ${ar(eng.meta.minPlayers)} إلى ${ar(eng.meta.maxPlayers)} لاعبين${byId(room.gameId)?.moderator ? " (بمن فيهم المقدم)" : ""}.</p>
     ${byId(room.gameId)?.moderator ? '<p class="private-note">في هذه اللعبة المضيف هو <b>المقدم والحَكَم</b> ولا ينضم لأي فريق. باقي اللاعبين يُقسّمون عشوائيًا لفريقين عند البدء.</p>' : ""}`;
+    html += `<div class="panel display-hint" style="margin:10px 0"><div class="row spread"><b>📺 شاشة عرض للجميع</b>${room.displays ? `<span class="badge ok">متصلة: ${ar(room.displays)}</span>` : ""}</div>
+    <p class="soft" style="margin:6px 0 8px;font-size:15px">اعرض اللعبة على تلفزيون أو لابتوب: افتح الموقع هناك، اكتب الكود <b dir="ltr">${esc(room.code)}</b> واضغط «شاشة عرض». الشاشة لا تعرض أسرار أحد.</p>
+    <button class="btn soft small" data-cmd="copyDisplay">نسخ رابط شاشة العرض</button></div>`;
     html += `<div class="row" style="margin:6px 0 12px"><button class="btn ghost small" data-cmd="profile">${avatar(meP, "sm")} تعديل اسمي وصورتي</button><a class="btn ghost small" href="#/g/${room.gameId}" data-cmd="rules">طريقة اللعب</a></div>`;
     html += optionsHtml(ctx2);
     if (ctx2.isHost) {
@@ -12034,6 +12313,29 @@ var qrcode = function() {
       <p class="center muted" style="margin:6px 0 0;font-size:15px">المضيف يبدأ اللعبة عندما يكون الجميع جاهزًا.</p></div>`;
     }
     return html;
+  }
+  function displayLobbyHtml(ctx2, meta16) {
+    const room = ctx2.room;
+    const n = room.players.length;
+    return `<div class="disp-lobby">
+    <section class="panel disp-join">
+      <div class="disp-cover">${COVERS[room.gameId] ? COVERS[room.gameId]() : ""}</div>
+      <p class="h1 disp-gname">${esc(meta16?.name || "")}</p>
+      <div class="qr" aria-label="رمز QR للانضمام">${qrSvg(joinUrl(room.code))}</div>
+      <p class="soft" style="margin:4px 0">امسحوا الرمز بكاميرا الجوال للانضمام، أو اكتبوا الكود:</p>
+      <div class="code-digits">${esc(room.code)}</div>
+    </section>
+    <section>
+      <div class="row spread" style="margin-bottom:12px"><h2 class="h2">اللاعبون</h2><span class="badge">${ar(n)}</span></div>
+      <div class="disp-pgrid">${room.players.map((p) => `<div class="disp-p ${p.connected ? "" : "off"}">${avatar(p, "lg")}<b>${esc(p.name)}</b>
+        <span class="muted">${p.isHost ? "المضيف" : !p.connected ? "منقطع" : p.ready ? "✓ جاهز" : "يستعد…"}</span></div>`).join("")}</div>
+      ${meta16?.short ? `<p class="soft center" style="margin-top:18px">${esc(meta16.short)}</p>` : ""}
+      <p class="h2 center" style="margin-top:10px">بانتظار المضيف لبدء اللعبة<span class="waiting-dots"></span></p>
+    </section>
+  </div>`;
+  }
+  function displayFallback(ctx2, meta16) {
+    return `<div class="big-status"><p class="h1">${esc(meta16?.name || "")}</p><p class="h2">اللعبة جارية</p></div>`;
   }
   function optionsHtml(ctx2) {
     const room = ctx2.room, o = room.options || {}, g = room.gameId, host = ctx2.isHost;
@@ -12169,6 +12471,16 @@ var qrcode = function() {
       }
       case "copy":
         return copy(joinUrl(s.state.room.code));
+      case "copyDisplay":
+        return copy(displayUrl(s.state.room.code));
+      case "fullscreen": {
+        try {
+          if (document.fullscreenElement) await document.exitFullscreen();
+          else await document.documentElement.requestFullscreen();
+        } catch {
+        }
+        return;
+      }
       case "profile":
         return editProfile();
       case "rules":
@@ -12283,8 +12595,11 @@ var qrcode = function() {
       } catch {
       }
     }
-    if (forget && !s.isHost) store.remove(LAST_ROOM_KEY);
-    document.body.classList.remove("is-night");
+    if (s.isDisplay) {
+      keepAwake(false);
+      if (forget) store.remove(LAST_DISPLAY_KEY);
+    } else if (forget && !s.isHost) store.remove(LAST_ROOM_KEY);
+    document.body.classList.remove("is-night", "display-mode");
   }
   function showBusy(text) {
     const app2 = document.getElementById("app");
@@ -12369,6 +12684,7 @@ var qrcode = function() {
         <button class="btn" type="submit">انضم</button>
       </form>
       <p class="muted" style="font-size:14px;margin:8px 0 0">أو امسح رمز QR من جوال المضيف بالكاميرا مباشرة.</p>
+      <button class="btn ghost small" id="h-display" style="margin-top:10px">📺 افتح كشاشة عرض (تلفزيون أو لابتوب)</button>
     </section>
     ${cur2 && !cur2.dead ? `<div class="banner warn"><div class="grow">أنت داخل غرفة <b dir="ltr">${esc(cur2.code)}</b></div><a class="btn small" href="#/play">ارجع للغرفة</a></div>` : ""}
     ${!cur2 && host ? `<div class="banner warn"><div class="grow">غرفتك <b dir="ltr">${esc(host.code)}</b> (${esc(byId(host.room.gameId)?.name || "")}) محفوظة</div><button class="btn small" id="h-resume">استئناف</button><button class="btn ghost small" id="h-drop">حذف</button></div>` : ""}
@@ -12397,6 +12713,16 @@ var qrcode = function() {
         return;
       }
       location.hash = "#/join/" + code;
+    });
+    app.querySelector("#h-display").addEventListener("click", () => {
+      const code = app.querySelector("#code").value.replace(/[٠-٩]/g, (d) => "٠١٢٣٤٥٦٧٨٩".indexOf(d)).replace(/\D/g, "");
+      if (code.length !== 6) {
+        toast("اكتب كود الغرفة (٦ أرقام) أولًا ثم اضغط شاشة عرض", "err");
+        play("shell", "error");
+        app.querySelector("#code").focus();
+        return;
+      }
+      location.hash = "#/display/" + code;
     });
     app.querySelector("#h-resume")?.addEventListener("click", () => resumeHost());
     app.querySelector("#h-drop")?.addEventListener("click", () => {
@@ -12467,7 +12793,9 @@ var qrcode = function() {
     if (h === "#/play") {
       if (!current2()) {
         if (savedHostRoom()) return resumeHost();
+        const disp = lastDisplay();
         const last = lastRoom();
+        if (disp && (!last || disp.at >= last.at)) return joinDisplay(disp.code);
         if (last && profile.get()) return joinRoom(last.code);
         location.hash = "#/";
         return;
@@ -12476,6 +12804,7 @@ var qrcode = function() {
       return renderPlay();
     }
     if (m = h.match(/^#\/join\/(\d{6})$/)) return renderJoin(m[1]);
+    if (m = h.match(/^#\/display\/(\d{6})$/)) return joinDisplay(m[1]);
     if (m = h.match(/^#\/g\/([a-z]+)$/)) return renderGame(m[1]);
     renderHome();
     window.scrollTo(0, 0);
