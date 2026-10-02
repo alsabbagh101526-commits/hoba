@@ -3166,12 +3166,13 @@ var qrcode = function() {
           "المواجهة: لاعب من كل فريق، من يضغط الجرس أولًا يجاوب. الإجابة الأعلى ترتيبًا تكسب المواجهة.",
           "الفريق الفائز يختار: يلعب السؤال أو يمرره للفريق الآخر.",
           "الفريق المسيطر يجاوب بالدور؛ كل إجابة صحيحة تُكشف وتضاف نقاطها للرصيد، وكل خطأ = علامة ✕.",
-          "عند ٣ أخطاء: الفريق الآخر يتشاور ويحاول «السرقة» بإجابة واحدة."
+          "عند ٣ أخطاء: الفريق الآخر يتشاور ويحاول «السرقة» بإجابة واحدة.",
+          "وقت الإجابة (يُضبط في الغرفة): لكل مجاوب عدّاد، وفرصة السرقة ضعف الوقت. انتهاء الوقت = إجابة خاطئة ✕. المقدم يوقف العداد بزر «أجاب» إذا قال اللاعب إجابته في الوقت."
         ],
         scoring: "رصيد الجولة يذهب للفريق الذي كشف كل الإجابات، أو للفريق السارق إن نجحت السرقة، وإلا للفريق المسيطر.",
         win: "بعد عدد الجولات المحدد، الفريق صاحب النقاط الأعلى يفوز.",
         beginner: "فكّر بإجابة «أغلب الناس» لا بإجابتك الخاصة.",
-        verify: ["الأسئلة والنقاط في هذه النسخة أصلية وتقديرية للعب، وليست نتائج استطلاع حقيقي.", "لا توجد مضاعفة نقاط للجولات الأخيرة في هذه النسخة."]
+        verify: ["الأسئلة والنقاط في هذه النسخة أصلية وتقديرية للعب، وليست نتائج استطلاع حقيقي.", "لا توجد مضاعفة نقاط للجولات الأخيرة في هذه النسخة.", "مؤقت الإجابة إضافة من هذه النسخة: مدته، وضعف الوقت للسرقة، واحتساب انتهائه خطأً — كلها اختيارات قابلة للتعديل."]
       }
     },
     {
@@ -7086,6 +7087,7 @@ var qrcode = function() {
     optionSchema: () => optionSchema7,
     setup: () => setup12,
     summary: () => summary12,
+    tick: () => tick4,
     view: () => view12
   });
 
@@ -7112,9 +7114,16 @@ var qrcode = function() {
   ];
 
   // js/engines/familyfeud.js
-  var meta12 = { id: "familyfeud", minPlayers: 3, maxPlayers: 16, defaultOptions: { rounds: 5 } };
-  var normalizeOptions9 = (o = {}) => ({ rounds: [3, 5, 7].includes(o.rounds) ? o.rounds : 5 });
-  var optionSchema7 = () => [{ key: "rounds", type: "select", label: "عدد الجولات", options: [[3, "٣"], [5, "٥"], [7, "٧"]] }];
+  var meta12 = { id: "familyfeud", minPlayers: 3, maxPlayers: 16, defaultOptions: { rounds: 5, answerSec: 15 } };
+  var ANSWER_SECS = [0, 10, 15, 20, 30];
+  var normalizeOptions9 = (o = {}) => ({
+    rounds: [3, 5, 7].includes(o.rounds) ? o.rounds : 5,
+    answerSec: ANSWER_SECS.includes(o.answerSec) ? o.answerSec : 15
+  });
+  var optionSchema7 = () => [
+    { key: "rounds", type: "select", label: "عدد الجولات", options: [[3, "٣"], [5, "٥"], [7, "٧"]] },
+    { key: "answerSec", type: "select", label: "وقت الإجابة", options: [[0, "بدون وقت"], [10, "١٠ ثوانٍ"], [15, "١٥ ثانية"], [20, "٢٠ ثانية"], [30, "٣٠ ثانية"]] }
+  ];
   function setup12(players, options, rng) {
     const o = normalizeOptions9(options);
     const host = players.find((p) => p.isHost) || players[0];
@@ -7136,6 +7145,7 @@ var qrcode = function() {
     s.face = { A: pick(s, "A"), B: pick(s, "B"), buzz: null, first: null, firstIdx: null };
     s.answerer = null;
     s.result = null;
+    disarm(s);
     s.phase = "faceoff";
     pushFx(s, { kind: "round-start" });
   }
@@ -7149,18 +7159,28 @@ var qrcode = function() {
   function nextAnswerer(s) {
     s.answerer = pick(s, s.control);
   }
+  function arm(s, now, mult = 1) {
+    s.deadline = s.o.answerSec && Number.isFinite(now) ? now + s.o.answerSec * 1e3 * mult : null;
+    s.clockStopped = false;
+  }
+  function disarm(s) {
+    s.deadline = null;
+    s.clockStopped = false;
+  }
   function act12(s, pid, a, ctx2) {
     if (idxOf(s, pid) < 0) return err4("لست ضمن هذه اللعبة");
     if (!a || typeof a.type !== "string") return err4("إجراء غير صالح");
     if (s.phase === "over") return err4("انتهت اللعبة");
     const isMod = pid === s.host;
     const ans = FEUD_QUESTIONS[s.q].a;
+    const now = ctx2 && Number.isFinite(ctx2.now) ? ctx2.now : null;
     switch (a.type) {
       case "buzz": {
         if (s.phase !== "faceoff" || s.face.buzz) return err4("ليس وقت الجرس");
         if (pid !== s.face.A && pid !== s.face.B) return err4("المواجهة بين لاعبين فقط");
         if (s.face.first && s.face.first === teamOf3(s, pid)) return err4("دور الفريق الآخر");
         s.face.buzz = teamOf3(s, pid);
+        arm(s, now);
         pushFx(s, { kind: "buzz" });
         return ok4();
       }
@@ -7169,53 +7189,14 @@ var qrcode = function() {
         const k = a.index;
         if (!(Number.isInteger(k) && k >= -1 && k < ans.length)) return err4("اختيار غير صالح");
         if (k >= 0 && s.revealed[k]) return err4("هذه الإجابة مكشوفة");
-        if (s.phase === "faceoff") {
-          const f = s.face;
-          if (!f.buzz) return err4("لم يضغط أحد الجرس");
-          const t = f.buzz;
-          if (k >= 0) revealIdx(s, k);
-          else {
-            pushFx(s, { kind: "strike" });
-          }
-          if (!f.first) {
-            if (k === 0) return winFace(s, t);
-            f.first = t;
-            f.firstIdx = k;
-            f.buzz = other2(t);
-            return ok4();
-          }
-          const firstK = f.firstIdx;
-          if (k >= 0 && (firstK < 0 || k < firstK)) return winFace(s, t);
-          if (firstK >= 0) return winFace(s, f.first);
-          s.face = { A: pick(s, "A"), B: pick(s, "B"), buzz: null, first: null, firstIdx: null };
-          return ok4();
-        }
-        if (s.phase === "play") {
-          if (k >= 0) {
-            revealIdx(s, k);
-            if (s.revealed.every(Boolean)) return award(s, s.control);
-            nextAnswerer(s);
-            return ok4();
-          }
-          s.strikes++;
-          pushFx(s, { kind: "strike" });
-          if (s.strikes >= 3) {
-            s.phase = "steal";
-            pushFx(s, { kind: "phase" });
-            return ok4();
-          }
-          nextAnswerer(s);
-          return ok4();
-        }
-        if (s.phase === "steal") {
-          if (k >= 0) {
-            revealIdx(s, k);
-            return award(s, other2(s.control), true);
-          }
-          pushFx(s, { kind: "strike" });
-          return award(s, s.control);
-        }
-        return err4("لا يوجد ما يُحكم عليه");
+        return judge(s, k, now);
+      }
+      case "stopClock": {
+        if (!isMod) return err4("المقدم فقط يوقف الوقت");
+        if (!s.deadline) return err4("لا يوجد وقت يعمل");
+        s.deadline = null;
+        s.clockStopped = true;
+        return ok4();
       }
       case "choose": {
         if (s.phase !== "choose") return err4("ليس وقت الاختيار");
@@ -7224,6 +7205,7 @@ var qrcode = function() {
         s.control = a.value === "play" ? s.faceWinner : other2(s.faceWinner);
         s.phase = "play";
         nextAnswerer(s);
+        arm(s, now);
         pushFx(s, { kind: "phase" });
         return ok4();
       }
@@ -7246,7 +7228,72 @@ var qrcode = function() {
         return err4("إجراء غير معروف");
     }
   }
+  function judge(s, k, now) {
+    if (s.phase === "faceoff") {
+      const f = s.face;
+      if (!f.buzz) return err4("لم يضغط أحد الجرس");
+      const t = f.buzz;
+      if (k >= 0) revealIdx(s, k);
+      else {
+        pushFx(s, { kind: "strike" });
+      }
+      if (!f.first) {
+        if (k === 0) return winFace(s, t);
+        f.first = t;
+        f.firstIdx = k;
+        f.buzz = other2(t);
+        arm(s, now);
+        return ok4();
+      }
+      const firstK = f.firstIdx;
+      if (k >= 0 && (firstK < 0 || k < firstK)) return winFace(s, t);
+      if (firstK >= 0) return winFace(s, f.first);
+      s.face = { A: pick(s, "A"), B: pick(s, "B"), buzz: null, first: null, firstIdx: null };
+      disarm(s);
+      return ok4();
+    }
+    if (s.phase === "play") {
+      if (k >= 0) {
+        revealIdx(s, k);
+        if (s.revealed.every(Boolean)) return award(s, s.control);
+        nextAnswerer(s);
+        arm(s, now);
+        return ok4();
+      }
+      s.strikes++;
+      pushFx(s, { kind: "strike" });
+      if (s.strikes >= 3) {
+        s.phase = "steal";
+        arm(s, now, 2);
+        pushFx(s, { kind: "phase" });
+        return ok4();
+      }
+      nextAnswerer(s);
+      arm(s, now);
+      return ok4();
+    }
+    if (s.phase === "steal") {
+      if (k >= 0) {
+        revealIdx(s, k);
+        return award(s, other2(s.control), true);
+      }
+      pushFx(s, { kind: "strike" });
+      return award(s, s.control);
+    }
+    return err4("لا يوجد ما يُحكم عليه");
+  }
+  function tick4(s, now) {
+    if (!s.deadline || now < s.deadline) return false;
+    if (!["faceoff", "play", "steal"].includes(s.phase) || s.phase === "faceoff" && !s.face.buzz) {
+      disarm(s);
+      return true;
+    }
+    pushFx(s, { kind: "timeUp" });
+    judge(s, -1, now);
+    return true;
+  }
   function winFace(s, t) {
+    disarm(s);
     s.faceWinner = t;
     if (s.revealed.every(Boolean)) return award(s, t);
     s.phase = "choose";
@@ -7254,6 +7301,7 @@ var qrcode = function() {
     return ok4();
   }
   function award(s, t, stolen = false) {
+    disarm(s);
     s.score[t] += s.bank;
     s.result = { team: t, points: s.bank, stolen };
     s.phase = "roundEnd";
@@ -7285,6 +7333,9 @@ var qrcode = function() {
       result: s.result,
       myTeam: teamOf3(s, pid),
       winner: s.winner,
+      deadline: s.deadline || null,
+      clockStopped: !!s.clockStopped,
+      answerSec: s.o.answerSec,
       fx: viewFx(s, pid)
     };
   }
@@ -7301,7 +7352,7 @@ var qrcode = function() {
     optionSchema: () => optionSchema8,
     setup: () => setup13,
     summary: () => summary13,
-    tick: () => tick4,
+    tick: () => tick5,
     view: () => view13
   });
 
@@ -7475,7 +7526,7 @@ var qrcode = function() {
     pushFx(s, { kind: "phase" });
     return ok4();
   }
-  function tick4(s, now, rng) {
+  function tick5(s, now, rng) {
     if (s.phase === "discuss" && s.deadline && now >= s.deadline) {
       endRound(s);
       return true;
@@ -11098,6 +11149,11 @@ var qrcode = function() {
       return `<button class="ff-slot ${shown ? "shown" : ""} ${isMod && !shown ? "mod" : ""}" ${canJudge ? act16({ type: "judge", index: k }) : "disabled"}>${inner}</button>`;
     }).join("")}</div>`;
   }
+  function clock(v) {
+    if (v.deadline) return timerHtml(v.deadline) + (v.isMod ? btn("✋ أجاب — أوقف الوقت", { type: "stopClock" }, "soft block") : "");
+    if (v.clockStopped) return `<p class="center muted" style="margin:6px 0">⏸ الوقت متوقف — بانتظار حكم المقدم</p>`;
+    return "";
+  }
   var strikes = (n) => `<div class="ff-strikes">${Array.from({ length: 3 }, (_, k) => `<span class="${k < n ? "on" : ""}">✕</span>`).join("")}</div>`;
   var screenKey12 = (v) => [v.phase, v.round].join(":");
   function render12(ctx2) {
@@ -11110,7 +11166,7 @@ var qrcode = function() {
     if (v.phase === "faceoff") {
       const f = v.face;
       h += `<p class="center" style="margin:10px 0">المواجهة: ${who2(ctx2, f.A)} ضد ${who2(ctx2, f.B)}</p>`;
-      if (f.buzz) h += `<p class="center h2">🔔 يجاوب ${nm4(ctx2, f[f.buzz])} (${LBL3[f.buzz]})</p>`;
+      if (f.buzz) h += `<p class="center h2">🔔 يجاوب ${nm4(ctx2, f[f.buzz])} (${LBL3[f.buzz]})</p>` + clock(v);
       if (isMod && f.buzz) h += `<p class="center muted">اضغط الإجابة التي قالها، أو:</p>${btn("ليست في اللوحة ✕", { type: "judge", index: -1 }, "danger block")}`;
       else if (!f.buzz && (ctx2.me === f.A || ctx2.me === f.B) && !(f.first && f.first === v.myTeam)) h += `<button class="buzzer buzzer-${v.myTeam}" ${act16({ type: "buzz" })}>جرس!</button>`;
       else if (!f.buzz) h += wait("بانتظار الجرس");
@@ -11119,11 +11175,11 @@ var qrcode = function() {
       if (v.myTeam === v.faceWinner || isMod) h += `<div class="row">${btn("نلعب", { type: "choose", value: "play" }, "grow-btn")}${btn("نمرّر", { type: "choose", value: "pass" }, "soft grow-btn")}</div>`;
       else h += wait("الفريق الفائز يقرر");
     } else if (v.phase === "play") {
-      h += strikes(v.strikes) + `<p class="center">${LBL3[v.control]} يلعب — يجاوب الآن: ${who2(ctx2, v.answerer)}</p>`;
+      h += strikes(v.strikes) + `<p class="center">${LBL3[v.control]} يلعب — يجاوب الآن: ${who2(ctx2, v.answerer)}</p>` + clock(v);
       if (isMod) h += btn("إجابة خاطئة ✕", { type: "judge", index: -1 }, "danger block");
     } else if (v.phase === "steal") {
       const st = v.control === "A" ? "B" : "A";
-      h += strikes(3) + `<p class="center h2">فرصة السرقة لـ${LBL3[st]}!</p><p class="center soft">تشاوروا وأعطوا إجابة واحدة.</p>`;
+      h += strikes(3) + `<p class="center h2">فرصة السرقة لـ${LBL3[st]}!</p><p class="center soft">تشاوروا وأعطوا إجابة واحدة.</p>` + clock(v);
       if (isMod) h += btn("إجابة السرقة خاطئة ✕", { type: "judge", index: -1 }, "danger block");
     } else if (v.phase === "roundEnd") {
       const r = v.result;
@@ -11135,8 +11191,9 @@ var qrcode = function() {
     return h;
   }
   function onFx12(e, ctx2) {
-    const m = { buzz: "buzz", reveal: "correct", strike: "wrong", award: "coin", phase: "phase", "round-start": "round" };
+    const m = { buzz: "buzz", reveal: "correct", strike: "wrong", award: "coin", phase: "phase", "round-start": "round", timeUp: "timeUp" };
     if (m[e.kind]) ctx2.sfx(m[e.kind]);
+    if (e.kind === "timeUp") vibrate([60, 40, 60]);
     if (e.kind === "strike") {
       flash("#c62828");
       shake();
