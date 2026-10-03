@@ -1026,6 +1026,9 @@ body[data-theme="abdea"] { --bg: #1a1240; --bg-2: #24195a; --surface: rgba(255, 
 .ab-sp b { font: 400 19px var(--font-display); } .ab-sp small { font-size: 11px; font-weight: 700; }
 .ab-streak { font-style: normal; font-size: 12px; }
 .ab-cnt { font-size: 12px; color: var(--ink-mute); white-space: nowrap; }
+.ab-sc.done { opacity: .62; } .ab-st { font-size: 12px; } .ab-st.no { color: var(--danger); font-weight: 700; }
+.ab-tm span { position: relative; } .ab-tm span.done { opacity: .55; } .ab-tm span i { position: absolute; bottom: -4px; inset-inline-end: -4px; font-style: normal; font-size: 11px; }
+.ab-passn { font-size: 13px; color: var(--ink-soft); white-space: nowrap; } .ab-turn.big .ab-passn { font-size: .8em; }
 .ab-scores.big .ab-cnt { font-size: .7em; } .ab-scores.big .ab-sn { flex: 1; }
 .ab-scores.big { display: grid; grid-template-columns: repeat(auto-fill, minmax(clamp(160px, 15vw, 280px), 1fr)); gap: 10px; }
 .ab-scores.big .ab-sc { border-radius: 18px; padding: 8px 12px; font-size: 1em; }
@@ -3794,19 +3797,20 @@ var qrcode = function() {
           ["لاعبو الذكاء الاصطناعي 🤖", "يمكن إضافتهم من إعدادات الغرفة (حتى ٨ لاعبين بالمجموع)، أو اللعب ضدهم مباشرة من زر «العب ضد الذكاء الاصطناعي» بدون إنترنت."]
         ],
         phases: [
-          "يظهر اسم صاحب الدور وبطاقاته والكلمة أو العبارة الناقصة.",
-          "يختار حرفًا من بطاقاته ويضعه في مكانه (بالضغط أو بالسحب) ثم يضغط «تأكيد الإجابة».",
-          "إجابة صحيحة: تُقبل الكلمة وتُستهلك البطاقة ويأخذ نقطة، ويظهر «أبدعت! +١»، ثم تحدٍّ جديد والدور للتالي.",
-          "إجابة خاطئة: تُزال البطاقة من يده نهائيًا إلى المستخدمة ويسحب بطاقة بديلة فيبقى عدد بطاقاته كما كان، بلا نقاط، ويخسر دوره.",
-          "ما عنده حرف مناسب؟ يتخطى دوره دون خسارة أي بطاقة ودون نقاط.",
-          "إذا لم يحل أحد التحدي خلال دورة كاملة يظهر تحدٍّ جديد تلقائيًا."
+          "ما فيه أدوار: تظهر كلمة أو عبارة ناقصة للجميع في نفس الوقت.",
+          "أي لاعب عنده الحرف المناسب يضعه في مكانه (بالضغط أو بالسحب) ويضغط «تأكيد الإجابة» — أسرع إجابة صحيحة تكسب.",
+          "إجابة صحيحة: تُقبل الكلمة وتُستهلك البطاقة ويأخذ نقطة، ويظهر «أبدعت! +١»، ثم تحدٍّ جديد للجميع.",
+          "إجابة خاطئة: تُزال البطاقة من يده نهائيًا إلى المستخدمة ويسحب بطاقة بديلة فيبقى عدد بطاقاته كما كان، بلا نقاط، ويخسر محاولته في هذا التحدي.",
+          "ما عنده حرف مناسب؟ يضغط «ما عندي حرف» دون خسارة أي بطاقة.",
+          "إذا ما أحد عنده الحرف (الكل تخطّى) أو انتهى وقت التحدي يظهر تحدٍّ جديد تلقائيًا."
         ],
         scoring: "الوضع الكلاسيكي: الإجابة الصحيحة +١ نقطة، والخاطئة والتخطي بلا نقاط. وضع «مكافأة الحروف النادرة» اختياري: +٢ عند استخدام حرف نادر مثل ظ ض ذ.",
         win: "أول لاعب (أو فريق) يصل لنقاط الفوز المحددة. إذا أُلغي السحب بعد الإجابة الصحيحة تنتهي اللعبة عندما تفرغ يد أحد اللاعبين ويفوز صاحب أعلى نقاط.",
         beginner: "ابدأ بالحروف الشائعة (ا، ل، م، ي، و). أي كلمة صحيحة تتكون بحرفك في المكان المطلوب تُقبل حتى لو لم تكن الكلمة المقصودة — أبدع!",
         verify: [
+          "اللعب جماعي متزامن (بدون أدوار) حسب طلب صاحب المنصة: من عنده الحرف يرميه، ومن ما عنده يتخطى.",
           "التحقق آلي من قاموس اللعبة مع تجاهل التشكيل واختلاف الهمزات والتاء المربوطة والهاء. الكلمة غير الموجودة في القاموس يحكم فيها اللاعبون بالتصويت أو المضيف أو تُرفض — حسب إعداد الغرفة.",
-          "السحب بعد الإجابة الصحيحة، وتغيير التحدي لكل دور، ومكافأة الحروف النادرة: قواعد اختيارية في الإعدادات لأنها غير محددة في القواعد الأساسية."
+          "السحب بعد الإجابة الصحيحة، ومدة كل تحدٍّ، ومكافأة الحروف النادرة: قواعد اختيارية في الإعدادات لأنها غير محددة في القواعد الأساسية."
         ]
       }
     },
@@ -9337,13 +9341,12 @@ var qrcode = function() {
       { key: "mode", type: "select", label: "نمط اللعب", options: [["solo", "فردي (كل لاعب لنفسه)"], ["teams", "فرق"]] },
       { key: "teams", type: "select", label: "عدد الفرق (في نمط الفرق)", options: [[2, "فريقان"], [3, "٣ فرق"], [4, "٤ فرق"]] },
       { key: "target", type: "select", label: "نقاط الفوز", options: [5, 10, 15, 20].map((x) => [x, a2(x) + " نقاط"]) },
-      { key: "turnSec", type: "select", label: "مدة التفكير في كل دور", options: [[0, "بدون مؤقت"], [20, "٢٠ ثانية"], [30, "٣٠ ثانية"], [45, "٤٥ ثانية"], [60, "دقيقة"]] },
+      { key: "turnSec", type: "select", label: "مدة كل تحدٍّ (ثم يتغير)", options: [[0, "بدون مؤقت"], [20, "٢٠ ثانية"], [30, "٣٠ ثانية"], [45, "٤٥ ثانية"], [60, "دقيقة"]] },
       { key: "hand", type: "select", label: "عدد البطاقات الابتدائية", options: [5, 6, 7, 8].map((x) => [x, a2(x) + " بطاقات"]) },
       { key: "bots", type: "select", label: "لاعبو الذكاء الاصطناعي 🤖", options: [0, 1, 2, 3, 4, 5, 6, 7].map((x) => [x, x ? a2(x) : "بدون"]) },
       { key: "botLevel", type: "select", label: "مستوى الذكاء الاصطناعي", options: [["easy", "سهل"], ["normal", "متوسط"], ["hard", "محترف"]] },
       { key: "hint", type: "select", label: "تلميح مكان الحرف", options: [["region", "عادي: الجزء فقط"], ["exact", "سهل: المكان بالضبط"]] },
       { key: "judge", type: "select", label: "كلمة ليست في قاموس اللعبة", options: [["vote", "تصويت اللاعبين"], ["host", "المضيف يحكم"], ["auto", "تُرفض تلقائيًا"]] },
-      { key: "rotate", type: "select", label: "التحدي الناقص", options: [["stay", "يبقى حتى يُحل"], ["each", "جديد لكل دور"]] },
       { key: "scoring", type: "select", label: "النقاط", options: [["classic", "كلاسيكي: +١ للصحيحة"], ["rare", "+٢ للحروف النادرة"]] },
       { key: "content", type: "select", label: "نوع التحديات", options: [["all", "كلمات وعبارات"], ["words", "كلمات فقط"], ["phrases", "عبارات فقط"]] },
       { key: "refill", type: "switch", label: "سحب بطاقة بديلة بعد الإجابة الصحيحة" },
@@ -9438,19 +9441,20 @@ var qrcode = function() {
       ps: {},
       deck: rng.shuffle(deck),
       discard: [],
-      turn: 0,
-      turnNo: 0,
       phase: "play",
       ch: null,
       chNo: 0,
       chDeck: [],
-      missStreak: 0,
+      round: 1,
+      passed: [],
+      locked: [],
+      botPlan: {},
       pending: null,
+      pausedLeft: null,
       last: null,
       learned: [],
       deadline: null,
       needArm: !!o.turnSec,
-      botAt: null,
       winners: null,
       reshuffles: 0,
       fx: [],
@@ -9464,8 +9468,6 @@ var qrcode = function() {
       }
     }
     newChallengeAb(s, rng);
-    s.turnNo = 1;
-    pushFx(s, { kind: "turn", who: order[0] });
     return s;
   }
   function drawAb(s, rng) {
@@ -9510,11 +9512,10 @@ var qrcode = function() {
         if (hit) acc[k + "|" + X] = hit;
       }
       s.ch = { ei, word: e.w, frag, idx, region, slots, acc, hint: e.h, ph: e.ph, no: ++s.chNo, letter: letters[idx] };
-      s.missStreak = 0;
       return;
     }
   }
-  var curIdAb = (s) => s.order[s.turn];
+  // اللعب جماعي متزامن (بدون أدوار): أي لاعب عنده الحرف يرميه، وأسرع إجابة صحيحة تكسب النقطة
   var isBotAb = (s, id) => s.bots.some((b) => b.id === id);
   var teamOfAb = (s, id) => s.teams ? s.teams.findIndex((t) => t.members.includes(id)) : -1;
   function scoreOfAb(s, id) {
@@ -9522,28 +9523,26 @@ var qrcode = function() {
     const t = s.teams[teamOfAb(s, id)];
     return t ? t.members.reduce((a, m) => a + s.ps[m].score, 0) : 0;
   }
-  function armTurnAb(s, now) {
+  function armAb(s, now, ms) {
+    const dur = Number.isFinite(ms) ? ms : s.o.turnSec * 1e3;
     if (s.o.turnSec && Number.isFinite(now)) {
-      s.deadline = now + s.o.turnSec * 1e3;
+      s.deadline = now + dur;
       s.needArm = false;
     } else {
       s.deadline = null;
       s.needArm = !!s.o.turnSec;
     }
   }
-  function nextTurnAb(s, now, rng) {
-    if (s.phase === "over") return;
-    s.turn = (s.turn + 1) % s.order.length;
-    s.turnNo++;
-    s.botAt = null;
-    if (s.o.rotate === "each") newChallengeAb(s, rng);
-    else if (s.missStreak >= s.order.length) {
-      newChallengeAb(s, rng);
-      pushFx(s, { kind: "newChallenge", auto: true });
-    }
+  // تحدٍّ جديد للجميع: تُصفّر قوائم «ما عندي» و«خسر محاولته»
+  function openChallengeAb(s, rng, now, why = null) {
+    newChallengeAb(s, rng);
+    s.passed = [];
+    s.locked = [];
+    s.botPlan = {};
+    s.round = (s.round || 0) + 1;
     s.phase = "play";
-    armTurnAb(s, now);
-    pushFx(s, { kind: "turn", who: curIdAb(s) });
+    armAb(s, now);
+    pushFx(s, { kind: "newChallenge", why });
   }
   function pointsForAb(s, letter) {
     return s.o.scoring === "rare" && AB_RARE.includes(letter) ? 2 : 1;
@@ -9562,7 +9561,13 @@ var qrcode = function() {
     s.pending = null;
     pushFx(s, { kind: "game-over", winners: w.ids });
   }
-  // نتيجة صحيحة: تُستهلك البطاقة، نقطة، تأثير احتفالي، تحدٍّ جديد، الدور للتالي
+  // لاعب «انتهى» من التحدي الحالي: تخطّى، أو خسر محاولته، أو يده فاضية
+  var doneAb = (s, id) => s.passed.includes(id) || s.locked.includes(id) || !s.ps[id].hand.length;
+  function checkAllDoneAb(s, rng, now) {
+    if (s.phase !== "play") return;
+    if (s.order.every((id) => doneAb(s, id))) openChallengeAb(s, rng, now, "noOne");
+  }
+  // إجابة صحيحة: تُستهلك البطاقة، نقطة، احتفال، ثم تحدٍّ جديد للجميع
   function resolveCorrectAb(s, id, card3, slot, word, rng, now) {
     const p = s.ps[id];
     const pts = pointsForAb(s, card3.l);
@@ -9571,9 +9576,8 @@ var qrcode = function() {
     p.streak++;
     if ([...abNorm(word)].length > [...abNorm(p.best)].length) p.best = word;
     s.discard.push(card3);
-    let drew = null;
     if (s.o.refill) {
-      drew = drawAb(s, rng);
+      const drew = drawAb(s, rng);
       if (drew) {
         p.hand.push(drew);
         p.newCard = drew.id;
@@ -9583,10 +9587,9 @@ var qrcode = function() {
     pushFx(s, { kind: "correct", who: id, letter: card3.l, word, slot, pts, streak: p.streak, frag: s.ch.frag.slice(), ph: s.ch.ph });
     if (scoreOfAb(s, id) >= s.o.target) return endGameAb(s, "target");
     if (!s.o.refill && p.hand.length === 0) return endGameAb(s, "empty");
-    newChallengeAb(s, rng);
-    nextTurnAb(s, now, rng);
+    openChallengeAb(s, rng, now);
   }
-  // نتيجة خاطئة: تُزال البطاقة نهائيًا لمنطقة المستخدمة، ثم تُسحب بطاقة بديلة، لا نقطة، ويخسر الدور
+  // إجابة خاطئة: البطاقة تُزال نهائيًا، ويُسحب بديلها، بلا نقطة، ويخسر محاولته في هذا التحدي
   function resolveWrongAb(s, id, card3, slot, word, rng, now) {
     const p = s.ps[id];
     p.wrong++;
@@ -9597,20 +9600,19 @@ var qrcode = function() {
       p.hand.push(drew);
       p.newCard = drew.id;
     }
-    s.missStreak++;
+    if (!s.locked.includes(id)) s.locked.push(id);
     s.last = { type: "wrong", by: id, letter: card3.l, word, slot, drew: !!drew, frag: s.ch.frag.slice(), ph: s.ch.ph };
     pushFx(s, { kind: "wrong", who: id, letter: card3.l, word, slot, drew: !!drew, frag: s.ch.frag.slice(), ph: s.ch.ph });
     if (!s.o.refill && p.hand.length === 0) return endGameAb(s, "empty");
-    nextTurnAb(s, now, rng);
+    checkAllDoneAb(s, rng, now);
   }
-  function doSkipAb(s, id, kind, rng, now) {
-    const p = s.ps[id];
-    p.skips++;
-    p.streak = 0;
-    s.missStreak++;
-    s.last = { type: kind, by: id };
-    pushFx(s, { kind, who: id });
-    nextTurnAb(s, now, rng);
+  function doPassAb(s, id, rng, now) {
+    if (s.passed.includes(id)) return;
+    s.passed.push(id);
+    s.ps[id].skips++;
+    s.ps[id].streak = 0;
+    pushFx(s, { kind: "skip", who: id });
+    checkAllDoneAb(s, rng, now);
   }
   function voterIdsAb(s, by) {
     const others = s.humans.filter((h) => h !== by);
@@ -9628,6 +9630,8 @@ var qrcode = function() {
     const voters = fromBot ? [] : voterIdsAb(s, id);
     if (!voters.length) return resolveWrongAb(s, id, card3, slot, W, rng, now);
     const shown = ch.ph ? [ch.ph.before, W, ch.ph.after].filter(Boolean).join(" ") : W;
+    // يتوقف السباق أثناء التصويت، ويُحفظ الوقت المتبقي للتحدي
+    s.pausedLeft = s.deadline && Number.isFinite(now) ? Math.max(5e3, s.deadline - now) : null;
     s.pending = { by: id, card: card3, slot, word: W, shown, voters, votes: {}, deadline: Number.isFinite(now) ? now + 2e4 : null };
     s.phase = "vote";
     s.deadline = null;
@@ -9637,6 +9641,9 @@ var qrcode = function() {
     const pd = s.pending;
     s.pending = null;
     s.phase = "play";
+    if (s.pausedLeft) armAb(s, now, s.pausedLeft);
+    s.pausedLeft = null;
+    s.botPlan = {};
     if (ok5) {
       const n = abSoft(pd.word);
       if (!s.ch.ph && !s.learned.includes(n)) s.learned.push(n);
@@ -9661,10 +9668,13 @@ var qrcode = function() {
     const now = Number.isFinite(ctx2.now) ? ctx2.now : NaN;
     const rng = ctx2.rng;
     const isHost = pid === s.host;
+    const stale = a.ch !== void 0 && a.ch !== null && a.ch !== s.ch.no;
     switch (a.type) {
       case "play": {
+        if (s.phase === "vote") return err4("انتظر نتيجة التصويت");
         if (s.phase !== "play") return err4("ليس وقت اللعب");
-        if (curIdAb(s) !== pid) return err4("ليس دورك");
+        if (stale) return err4("سبقك أحد! ظهر تحدٍّ جديد");
+        if (s.locked.includes(pid)) return err4("استخدمت محاولتك في هذا التحدي — انتظر التحدي الجاي");
         const p = s.ps[pid];
         const ci = p.hand.findIndex((c) => c.id === a.card);
         if (ci < 0) return err4("اختر بطاقة من يدك");
@@ -9676,15 +9686,9 @@ var qrcode = function() {
       }
       case "skip": {
         if (s.phase !== "play") return err4("ليس وقت اللعب");
-        if (curIdAb(s) !== pid) return err4("ليس دورك");
+        if (stale) return ok4();
         s.ps[pid].newCard = null;
-        doSkipAb(s, pid, "skip", rng, now);
-        return ok4();
-      }
-      case "forceSkip": {
-        if (!isHost) return err4("للمضيف فقط");
-        if (s.phase !== "play") return err4("ليس وقتها");
-        doSkipAb(s, curIdAb(s), "skip", rng, now);
+        doPassAb(s, pid, rng, now);
         return ok4();
       }
       case "vote": {
@@ -9705,62 +9709,74 @@ var qrcode = function() {
       case "newChallenge": {
         if (!isHost) return err4("للمضيف فقط");
         if (s.phase !== "play") return err4("ليس وقتها");
-        newChallengeAb(s, rng);
-        pushFx(s, { kind: "newChallenge", auto: false });
+        openChallengeAb(s, rng, now, "host");
         return ok4();
       }
       default:
         return err4("إجراء غير معروف");
     }
   }
-  // الذكاء الاصطناعي: يختار حرفًا يكوّن كلمة معروفة، أو يتخطى، وأحيانًا يخطئ حسب المستوى
-  function botMoveAb(s, rng, now) {
-    const id = curIdAb(s);
-    const p = s.ps[id];
+  // الذكاء الاصطناعي: كل لاعب آلي يقرر بعد زمن تفكير (حسب المستوى): يرمي حرفًا يكوّن كلمة معروفة، أو «ما عندي»، وأحيانًا يخطئ
+  function planBotAb(s, b, rng, now) {
+    const p = s.ps[b];
     const ch = s.ch;
     const opts = [];
     for (const c of p.hand) for (const k of ch.slots) if (ch.acc[k + "|" + c.l]) opts.push({ c, k, w: ch.acc[k + "|" + c.l] });
     const lvl = s.o.botLevel;
-    const pSolve = lvl === "hard" ? 1 : lvl === "normal" ? 0.8 : 0.5;
-    const pBlunder = lvl === "hard" ? 0.02 : lvl === "normal" ? 0.12 : 0.25;
-    const take = (c, k) => {
-      p.hand.splice(p.hand.indexOf(c), 1);
-      p.newCard = null;
-      evaluatePlayAb(s, id, c, k, rng, now, true);
-    };
-    if (opts.length && rng.next() < pSolve) {
+    const pSolve = lvl === "hard" ? 0.95 : lvl === "normal" ? 0.75 : 0.45;
+    const pBlunder = lvl === "hard" ? 0.02 : lvl === "normal" ? 0.08 : 0.18;
+    const [lo, hi] = lvl === "hard" ? [3e3, 6e3] : lvl === "normal" ? [4500, 9e3] : [6e3, 12e3];
+    const r = (x) => rng ? rng.int(x) : Math.floor(x / 2);
+    let plan;
+    if (opts.length && (rng ? rng.next() : 0) < pSolve) {
       const best = opts.sort((x, y) => pointsForAb(s, y.c.l) - pointsForAb(s, x.c.l) || [...y.w].length - [...x.w].length)[0];
-      return take(best.c, best.k);
-    }
-    if (p.hand.length && rng.next() < pBlunder) return take(rng.pick(p.hand), rng.pick(ch.slots));
-    doSkipAb(s, id, "skip", rng, now);
+      plan = { type: "play", card: best.c.id, slot: best.k };
+    } else if (p.hand.length && (rng ? rng.next() : 1) < pBlunder) plan = { type: "play", card: rng.pick(p.hand).id, slot: rng.pick(ch.slots) };
+    else plan = { type: "skip" };
+    plan.at = now + lo + r(hi - lo) + (plan.type === "skip" ? 1500 : 0);
+    plan.ch = ch.no;
+    plan.wait = plan.at - now;
+    s.botPlan[b] = plan;
+  }
+  function runBotAb(s, b, plan, rng, now) {
+    if (plan.ch !== s.ch.no || doneAb(s, b)) return;
+    const p = s.ps[b];
+    if (plan.type === "play") {
+      const ci = p.hand.findIndex((c) => c.id === plan.card);
+      if (ci < 0) return;
+      const card3 = p.hand.splice(ci, 1)[0];
+      p.newCard = null;
+      evaluatePlayAb(s, b, card3, plan.slot, rng, now, true);
+    } else doPassAb(s, b, rng, now);
   }
   function tickAb(s, now, rng) {
     if (s.phase === "over") return false;
     if (s.phase === "play") {
       if (s.needArm && s.o.turnSec) {
-        armTurnAb(s, now);
+        armAb(s, now);
         return true;
       }
-      const id = curIdAb(s);
-      if (isBotAb(s, id)) {
-        if (!s.botAt) {
-          s.botAt = now + 1500 + (rng ? rng.int(1600) : 800);
-          return false;
+      let changed = false;
+      const humansDone = s.humans.every((h) => doneAb(s, h));
+      for (const b of s.bots.map((x) => x.id)) {
+        if (s.phase !== "play" || doneAb(s, b)) continue;
+        const plan = s.botPlan[b];
+        if (!plan || plan.ch !== s.ch.no) {
+          planBotAb(s, b, rng, now);
+          continue;
         }
-        if (now >= s.botAt) {
-          s.botAt = null;
-          botMoveAb(s, rng, now);
-          return true;
+        // إذا تخطّى كل البشر، الآلي اللي ما عنده حرف يتخطى فورًا (ما ننتظره)
+        if (now >= plan.at || humansDone && plan.type === "skip" && now >= plan.at - plan.wait + 900) {
+          delete s.botPlan[b];
+          runBotAb(s, b, plan, rng, now);
+          changed = true;
         }
-        return false;
       }
-      if (s.deadline && now >= s.deadline) {
-        s.ps[id].newCard = null;
-        doSkipAb(s, id, "timeout", rng, now);
+      if (s.phase === "play" && s.deadline && now >= s.deadline) {
+        openChallengeAb(s, rng, now, "time");
         return true;
       }
-      return false;
+      return changed;
     }
     if (s.phase === "vote" && s.pending) {
       if (!s.pending.deadline) {
@@ -9783,15 +9799,15 @@ var qrcode = function() {
     return {
       game: "abdea",
       phase: s.phase,
-      turnNo: s.turnNo,
+      round: s.round || 1,
       target: s.o.target,
       turnSec: s.o.turnSec,
       mode: s.teams ? "teams" : "solo",
       host: s.host,
       bots: s.bots.map((b) => ({ id: b.id, name: b.name, emoji: b.emoji })),
       teams: s.teams ? s.teams.map((t) => ({ id: t.id, name: t.name, color: t.color, members: t.members, score: t.members.reduce((a, m) => a + s.ps[m].score, 0) })) : null,
-      order: s.order.map((id) => ({ id, bot: isBotAb(s, id), team: teamOfAb(s, id), score: s.ps[id].score, correct: s.ps[id].correct, wrong: s.ps[id].wrong, skips: s.ps[id].skips, streak: s.ps[id].streak, count: s.ps[id].hand.length, best: s.ps[id].best })),
-      turn: curIdAb(s),
+      order: s.order.map((id) => ({ id, bot: isBotAb(s, id), team: teamOfAb(s, id), score: s.ps[id].score, correct: s.ps[id].correct, wrong: s.ps[id].wrong, skips: s.ps[id].skips, streak: s.ps[id].streak, count: s.ps[id].hand.length, best: s.ps[id].best, passed: s.passed.includes(id), locked: s.locked.includes(id) })),
+      passedN: s.order.filter((id) => doneAb(s, id)).length,
       deadline: s.phase === "play" ? s.deadline : pd ? pd.deadline : null,
       ch: ch ? { no: ch.no, frag: ch.frag, region: ch.region, slots: ch.slots, exact: showSlot ? ch.idx : null, hint: s.o.catHint || ch.ph ? ch.hint : null, ph: ch.ph, len: ch.frag.length + 1 } : null,
       answer: s.phase === "over" && ch ? ch.word : null,
@@ -9806,7 +9822,7 @@ var qrcode = function() {
       judge: s.o.judge,
       scoring: s.o.scoring,
       refill: s.o.refill,
-      me: me ? { hand: me.hand.map((c) => ({ id: c.id, l: c.l })), newCard: me.newCard, isTurn: curIdAb(s) === pid && s.phase === "play" } : null,
+      me: me ? { hand: me.hand.map((c) => ({ id: c.id, l: c.l })), newCard: me.newCard, passed: s.passed.includes(pid), locked: s.locked.includes(pid), canPlay: s.phase === "play" && !s.locked.includes(pid) && me.hand.length > 0 } : null,
       fx: viewFx(s, pid)
     };
   }
@@ -15144,7 +15160,7 @@ var qrcode = function() {
     return `<${tag} class="ab-card ${rare ? "rare" : ""} ${cls}" ${attrs}><span class="ab-cc">${esc(l)}</span><span class="ab-cl">${esc(l)}</span>${rare ? '<span class="ab-star" aria-hidden="true">★</span>' : ""}</${tag}>`;
   }
   var REGION = { start: "الحرف الناقص في البداية", middle: "الحرف الناقص في الوسط", end: "الحرف الناقص في النهاية" };
-  var screenKeyAb = (v) => [v.phase, v.turnNo, v.ch ? v.ch.no : 0].join(":");
+  var screenKeyAb = (v) => [v.phase, v.ch ? v.ch.no : 0].join(":");
   var headerExtraAb = () => `<button class="icon-btn" data-ui="abhelp" aria-label="طريقة اللعب">📖</button>`;
   function wordWith(frag, slot, l) {
     return esc(frag.slice(0, slot).join("")) + `<em>${esc(l)}</em>` + esc(frag.slice(slot).join(""));
@@ -15171,7 +15187,7 @@ var qrcode = function() {
     const after9 = ch.ph && ch.ph.after ? `<span class="ab-ctx">${esc(ch.ph.after)}</span>` : "";
     let preview = "";
     if (selCard && selSlot != null) preview = `<p class="ab-preview">${ch.ph && ch.ph.before ? esc(ch.ph.before) + " " : ""}<b>${wordWith(ch.frag, selSlot, selCard.l)}</b>${ch.ph && ch.ph.after ? " " + esc(ch.ph.after) : ""}</p>`;
-    return `<section class="ab-board ${ch.ph ? "phrase" : ""}">
+    return `<section class="ab-board pop-in ${ch.ph ? "phrase" : ""}">
       <div class="ab-board-top">${ch.hint ? `<span class="ab-chip">${ch.ph ? "💬 عبارة" : "💡 " + esc(ch.hint)}</span>` : "<span></span>"}<span class="ab-chip region">${REGION[ch.region]}</span></div>
       <div class="ab-line">${before}<div class="ab-tiles" style="--n:${ch.frag.length + 1}">${tiles}</div>${after9}</div>
       ${preview}
@@ -15179,14 +15195,15 @@ var qrcode = function() {
   }
   function abScores(ctx2, v, big = false) {
     if (v.teams) {
-      return `<div class="ab-teams ${big ? "big" : ""}">${v.teams.map((t) => `<div class="ab-team ${t.members.includes(v.turn) && v.phase !== "over" ? "turn" : ""}" style="--tc:${t.color}">
+      const st = (id) => v.order.find((p) => p.id === id) || {};
+      return `<div class="ab-teams ${big ? "big" : ""}">${v.teams.map((t) => `<div class="ab-team" style="--tc:${t.color}">
         <div class="ab-tn">${esc(t.name)}</div>
-        <div class="ab-tm">${t.members.map((id) => `<span class="${id === v.turn ? "act" : ""}" title="${abN(ctx2, v, id)}">${abAv(ctx2, v, id)}</span>`).join("")}</div>
+        <div class="ab-tm">${t.members.map((id) => `<span class="${st(id).passed || st(id).locked ? "done" : ""}" title="${abN(ctx2, v, id)}">${abAv(ctx2, v, id)}${st(id).locked ? "<i>✕</i>" : st(id).passed ? "<i>⏭</i>" : ""}</span>`).join("")}</div>
         <div class="ab-ts"><b>${ar(t.score)}</b><small>/ ${ar(v.target)}</small></div></div>`).join("")}</div>`;
     }
-    return `<div class="ab-scores ${big ? "big" : ""}">${v.order.map((p) => `<div class="ab-sc ${p.id === v.turn && v.phase !== "over" ? "turn" : ""} ${p.id === ctx2.me ? "me" : ""}">
+    return `<div class="ab-scores ${big ? "big" : ""}">${v.order.map((p) => `<div class="ab-sc ${p.passed || p.locked ? "done" : ""} ${p.id === ctx2.me ? "me" : ""}">
       ${abAv(ctx2, v, p.id, big ? "lg" : "sm")}<span class="ab-sn">${abN(ctx2, v, p.id)}${p.id === ctx2.me ? " (أنت)" : ""}</span>
-      <span class="ab-sp" title="النقاط"><b>${ar(p.score)}</b><small>نقطة</small></span>${p.streak >= 2 ? `<i class="ab-streak">🔥${ar(p.streak)}</i>` : ""}<span class="ab-cnt" title="بطاقات في اليد">🃏${ar(p.count)}</span></div>`).join("")}</div>`;
+      <span class="ab-sp" title="النقاط"><b>${ar(p.score)}</b><small>نقطة</small></span>${p.streak >= 2 ? `<i class="ab-streak">🔥${ar(p.streak)}</i>` : ""}<span class="ab-cnt" title="بطاقات في اليد">🃏${ar(p.count)}</span>${p.locked ? '<span class="ab-st no" title="خسر محاولته">✕</span>' : p.passed ? '<span class="ab-st" title="ما عنده حرف">⏭</span>' : ""}</div>`).join("")}</div>`;
   }
   function abPiles(v, big = false) {
     return `<div class="ab-piles ${big ? "big" : ""}">
@@ -15206,8 +15223,12 @@ var qrcode = function() {
   function turnBanner(ctx2, v, big = false) {
     if (v.phase === "over") return "";
     if (v.phase === "vote") return `<div class="ab-turn vote ${big ? "big" : ""}"><b>🗳️ تصويت على كلمة ${abN(ctx2, v, v.pending.by)}</b>${timerHtml(v.deadline)}</div>`;
-    const mine = v.turn === ctx2.me;
-    return `<div class="ab-turn ${mine ? "mine" : ""} ${big ? "big" : ""}">${abAv(ctx2, v, v.turn, big ? "lg" : "sm")}<b>${mine ? "الدور عليك! ✨" : `الدور على: ${abN(ctx2, v, v.turn)}`}</b>${timerHtml(v.deadline)}</div>`;
+    const me = v.me;
+    let msg = big ? "⚡ الكل يلعب! أسرع واحد عنده الحرف يرميه" : "⚡ الكل يلعب — الأسرع يكسب!";
+    if (me && me.locked) msg = "😅 خسرت محاولتك — انتظر التحدي الجاي";
+    else if (me && me.passed) msg = "⏭ تخطيت — لقيت حرف؟ ارمه!";
+    const live = me && me.canPlay && !me.passed;
+    return `<div class="ab-turn ${live ? "mine" : ""} ${big ? "big" : ""}"><b>${msg}</b><span class="ab-passn" title="انتهوا من هذا التحدي">⏭ ${ar(v.passedN)}/${ar(v.order.length)}</span>${timerHtml(v.deadline)}</div>`;
   }
   function votePanel(ctx2, v) {
     const pd = v.pending;
@@ -15250,7 +15271,7 @@ var qrcode = function() {
       ui.abSlot = null;
     }
     if (v.phase === "over") return overHtml(ctx2, v) + `<div style="margin-top:12px">${`<button class="btn ghost block" data-cmd="leave">الصفحة الرئيسية</button>`}</div>`;
-    const myTurn = !!(me && me.isTurn);
+    const myTurn = !!(me && me.canPlay);
     let h = `<div class="ab-head">${abLogo("sm")}${turnBanner(ctx2, v)}</div>`;
     h += abScores(ctx2, v);
     h += abBoard(ctx2, v, { interactive: myTurn });
@@ -15258,16 +15279,16 @@ var qrcode = function() {
     if (v.phase === "vote") h += votePanel(ctx2, v);
     if (me) {
       const sel = ui.abCard;
-      h += `<div class="ab-hand-wrap"><div class="row spread" style="margin:4px 2px 6px"><b>بطاقاتك</b><span class="muted" style="font-size:14px">${myTurn ? sel ? ui.abSlot != null ? "اضغط «تأكيد الإجابة»" : "اضغط مكان الحرف (+) أو اسحب البطاقة إليه" : "اختر بطاقة أو اسحبها إلى الكلمة" : "انتظر دورك"}</span></div>
+      h += `<div class="ab-hand-wrap"><div class="row spread" style="margin:4px 2px 6px"><b>بطاقاتك</b><span class="muted" style="font-size:14px">${myTurn ? sel ? ui.abSlot != null ? "اضغط «تأكيد الإجابة» بسرعة!" : "اضغط مكان الحرف (+) أو اسحب البطاقة إليه" : "عندك الحرف؟ اختره أو اسحبه للكلمة" : v.phase === "vote" ? "انتظر نتيجة التصويت" : "انتظر التحدي الجاي"}</span></div>
       <div class="ab-hand ${myTurn ? "live" : ""}">${me.hand.map((c) => abCard(c.l, { cls: `${sel === c.id ? "sel" : ""} ${me.newCard === c.id ? "fresh" : ""}`, attrs: `data-ui="abcard" data-id="${c.id}" aria-pressed="${sel === c.id}" aria-label="حرف ${esc(c.l)}"` })).join("") || '<p class="muted">لا بطاقات في يدك</p>'}</div></div>`;
       if (myTurn) {
         const can = sel && Number.isInteger(ui.abSlot) && v.ch.slots.includes(ui.abSlot);
-        h += `<div class="ab-actions">${btn("تأكيد الإجابة ✓", { type: "play", card: sel || "", slot: can ? ui.abSlot : -1 }, "ab-confirm grow-btn", can ? "" : "disabled")}${btn("تخطي الدور ⏭", { type: "skip" }, "soft grow-btn")}</div>
-        <p class="center muted" style="font-size:13px;margin:6px 0 0">ما عندك حرف مناسب؟ تخطَّ بدون خسارة أي بطاقة.</p>`;
-      }
+        h += `<div class="ab-actions">${btn("تأكيد الإجابة ✓", { type: "play", card: sel || "", slot: can ? ui.abSlot : -1, ch: v.ch.no }, "ab-confirm grow-btn", can ? "" : "disabled")}${me.passed ? "" : btn("ما عندي حرف ⏭", { type: "skip", ch: v.ch.no }, "soft grow-btn")}</div>
+        <p class="center muted" style="font-size:13px;margin:6px 0 0">${me.passed ? "تخطيت بدون خسارة — إذا تخطّى الكل يظهر تحدٍّ جديد." : "ما عندك حرف مناسب؟ اضغط «ما عندي حرف» بدون خسارة أي بطاقة."}</p>`;
+      } else if (me.locked && v.phase === "play") h += `<p class="center muted" style="font-size:14px;margin:8px 0 0">خسرت محاولتك في هذا التحدي — تقدر تلعب في التحدي الجاي.</p>`;
     }
     h += abPiles(v);
-    if (ctx2.isHost && v.phase === "play") h += `<details class="panel ab-host"><summary class="soft">أدوات المضيف</summary><div class="row wrap" style="gap:8px;margin-top:8px">${btn("🔄 تحدٍّ جديد", { type: "newChallenge" }, "soft small")}${v.turn !== ctx2.me ? btn(`⏭ تخطَّ دور ${abN(ctx2, v, v.turn)}`, { type: "forceSkip" }, "soft small") : ""}</div></details>`;
+    if (ctx2.isHost && v.phase === "play") h += `<details class="panel ab-host"><summary class="soft">أدوات المضيف</summary><div class="row wrap" style="gap:8px;margin-top:8px">${btn("🔄 تحدٍّ جديد للجميع", { type: "newChallenge" }, "soft small")}</div></details>`;
     return h;
   }
   function renderDisplayAb(ctx2) {
@@ -15293,10 +15314,10 @@ var qrcode = function() {
     <p class="soft" style="margin-top:0">حرف منك… وإبداع من الجميع!</p>
     <ol style="padding-inline-start:20px;line-height:1.8">
       <li>في منتصف الشاشة كلمة أو عبارة ينقصها حرف واحد، ومكتوب أين ينقص: البداية أو الوسط أو النهاية.</li>
-      <li>في دورك اختر بطاقة حرف من يدك (أو اسحبها) وضعها في مكان <b>+</b> ثم اضغط «تأكيد الإجابة».</li>
-      <li>إجابة صحيحة: تُستهلك البطاقة وتأخذ نقطة <b>+١</b> ويظهر تحدٍّ جديد.</li>
-      <li>إجابة خاطئة: تخسر البطاقة نهائيًا وتسحب بطاقة بديلة، بلا نقاط، ويذهب الدور للتالي.</li>
-      <li>ما عندك حرف مناسب؟ تخطَّ دورك بلا خسارة.</li>
+      <li>ما فيه أدوار: الكل يلعب في نفس الوقت. اللي عنده الحرف يختار بطاقته (أو يسحبها) ويضعها في مكان <b>+</b> ثم يضغط «تأكيد الإجابة» — أسرع واحد يكسب.</li>
+      <li>إجابة صحيحة: تُستهلك البطاقة وتأخذ نقطة <b>+١</b> ويظهر تحدٍّ جديد للجميع.</li>
+      <li>إجابة خاطئة: تخسر البطاقة نهائيًا وتسحب بطاقة بديلة، بلا نقاط، وتخسر محاولتك في هذا التحدي.</li>
+      <li>ما عندك حرف مناسب؟ اضغط «ما عندي حرف» بلا خسارة. إذا ما أحد عنده الحرف (أو انتهى الوقت) يظهر تحدٍّ جديد.</li>
       <li>أي كلمة صحيحة تتكون بحرفك في المكان المطلوب تُقبل — حتى لو غير الكلمة المقصودة. الكلمة غير الموجودة في قاموس اللعبة يحكم فيها اللاعبون بالتصويت أو المضيف (حسب الإعداد).</li>
       <li>الفائز أول من يصل لنقاط الفوز.</li>
     </ol>
@@ -15311,8 +15332,8 @@ var qrcode = function() {
     if (!v.me) return;
     if (name === "abcard") {
       if (ctx2.ui.abDragAt && Date.now() - ctx2.ui.abDragAt < 450) return;
-      if (!v.me.isTurn) {
-        toast(v.phase === "vote" ? "انتظر نتيجة التصويت" : "انتظر دورك");
+      if (!v.me.canPlay) {
+        toast(v.phase === "vote" ? "انتظر نتيجة التصويت" : "خسرت محاولتك في هذا التحدي — انتظر الجاي");
         return;
       }
       const id = el.dataset.id;
@@ -15324,7 +15345,7 @@ var qrcode = function() {
       return;
     }
     if (name === "abslot") {
-      if (!v.me.isTurn) return;
+      if (!v.me.canPlay) return;
       if (!ctx2.ui.abCard) {
         toast("اختر بطاقة حرف أولًا ثم ضعها هنا");
         return;
@@ -15343,7 +15364,7 @@ var qrcode = function() {
   }
   function afterAb(root2, ctx2) {
     const v = ctx2.view;
-    if (!v.me || !v.me.isTurn) return;
+    if (!v.me || !v.me.canPlay) return;
     root2.querySelectorAll(".ab-hand .ab-card[data-id]").forEach((el) => {
       el.addEventListener("pointerdown", (ev) => abStartDrag(ev, el, ctx2));
     });
@@ -15383,9 +15404,12 @@ var qrcode = function() {
       el.classList.remove("dragging");
       ctx2.ui.abDragAt = Date.now();
       if (over) {
-        ctx2.ui.abCard = id;
+        const k = over.dataset.k;
         over.classList.remove("hot");
-        over.click();
+        ctx2.ui.abCard = id;
+        // الواجهة قد تُعاد رسمها أثناء السحب (اللعب جماعي): نبحث عن الخانة في الصفحة الحالية
+        const live = document.querySelector(`.ab-slot[data-k="${k}"]`);
+        if (live) live.click();
       }
     };
     window.addEventListener("pointermove", move, { passive: false });
@@ -15397,20 +15421,13 @@ var qrcode = function() {
     const mine = e.who === ctx2.me;
     const N = (id) => abN(ctx2, v, id);
     switch (e.kind) {
-      case "turn":
-        if (mine && !ctx2.isDisplay) {
-          ctx2.sfx("next");
-          vibrate(40);
-          abPop("الدور عليك! ✨", "turn");
-        }
-        break;
       case "correct":
         ctx2.sfx("correct");
         if (mine) {
           abPop(`أبدعت! +${ar(e.pts)} 🔥`, "good");
           burst(["#ffcf3f", "#ff5e7e", "#2ec4b6", "#fff"], 50);
         } else if (!ctx2.isDisplay) {
-          toast(`✨ ${abNr(ctx2, v, e.who)}: أبدعت! «${e.word}»`);
+          toast(`⚡ سبقك ${abNr(ctx2, v, e.who)}: «${e.word}»`);
           burst(["#ffcf3f", "#2ec4b6"], 18);
         } else burst(["#ffcf3f", "#ff5e7e", "#2ec4b6", "#fff"], 70);
         if (e.streak === 3 && mine) setTimeout(() => toast("🔥 ثلاث إجابات متتالية! يا سلام عليك!"), 900);
@@ -15421,7 +15438,7 @@ var qrcode = function() {
         if (mine) {
           vibrate([60, 40, 60]);
           abPop("حرفك ما ضبط! 😅", "bad");
-          setTimeout(() => toast(e.drew ? "سحبت بطاقة جديدة، الدور على اللاعب التالي!" : "الكومة فارغة — الدور على اللاعب التالي!"), 1100);
+          setTimeout(() => toast(e.drew ? "سحبت بطاقة جديدة — انتظر التحدي الجاي!" : "الكومة فارغة — انتظر التحدي الجاي!"), 1100);
         }
         break;
       case "skip":
@@ -15449,7 +15466,9 @@ var qrcode = function() {
         break;
       case "newChallenge":
         ctx2.sfx("flip");
-        toast(e.auto ? "🔄 ما أحد قدر يحلها — تحدٍّ جديد!" : "🔄 تحدٍّ جديد!");
+        if (e.why === "noOne") toast("🔄 ما أحد عنده الحرف — تحدٍّ جديد!");
+        else if (e.why === "time") toast("⏰ انتهى الوقت — تحدٍّ جديد!");
+        else if (e.why === "host") toast("🔄 تحدٍّ جديد من المضيف");
         break;
       case "reshuffle":
         toast("🔀 انتهت كومة السحب — خُلطت البطاقات المستخدمة من جديد");
