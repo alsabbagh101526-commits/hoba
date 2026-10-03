@@ -931,6 +931,194 @@ body[data-theme="kalim"] { --bg: #13203a; --bg-2: #1a2b4d; --surface: rgba(255, 
 .km-score.big .km-pts b { font-size: clamp(26px, 2.4vw, 46px); } .km-score.big .km-tname { font-size: clamp(20px, 1.8vw, 34px); }
 @media (max-aspect-ratio: 1/1) { .disp .km-card.disp-km { --w: min(80vw, 46vh); } }
 
+/* ===== إضافة: اختيار أعضاء الفرق في غرفة الانتظار ===== */
+.team-pick .tp-mode { display: flex; gap: 6px; flex-wrap: wrap; }
+.team-pick .chip-btn { cursor: pointer; }
+.tp-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(135px, 1fr)); gap: 8px; margin-top: 10px; }
+.tp-col { background: var(--surface-2); border-radius: var(--r-md); padding: 10px; border-top: 6px solid var(--tc, var(--accent)); display: flex; flex-direction: column; gap: 8px; min-height: 96px; transition: box-shadow .2s; }
+.tp-col.mine { box-shadow: 0 0 0 2px var(--tc, var(--accent)); }
+.tp-head { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.tp-head b { color: var(--tc, var(--ink)); font-size: 16px; }
+.tp-mem { display: flex; flex-wrap: wrap; gap: 6px; flex: 1; align-content: flex-start; }
+.tp-chip { display: inline-flex; align-items: center; gap: 4px; border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: 5px 10px; font: inherit; font-size: 14px; line-height: 1.3; }
+button.tp-chip { cursor: pointer; }
+.tp-chip.on { border-color: var(--accent); background: var(--accent); color: var(--accent-ink); transform: scale(1.05); }
+.tp-act { width: 100%; }
+.tp-free { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.disp-teams { margin-top: 18px !important; }
+.disp-teams .tp-chip { font-size: 1em; padding: 6px 14px; }
+.disp-teams .tp-head b { font-size: 1.15em; }
+
+/* ===== إضافة: البطاقة المرمية في منتصف شاشة العرض ===== */
+.throw-center { position: fixed; inset: 0; z-index: 90; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+  pointer-events: none; background: radial-gradient(circle at 50% 45%, rgba(10,8,20,.62), rgba(10,8,20,.9)); -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px); animation: tcFade .3s ease-out both; padding: 16px; }
+.throw-center.out { animation: tcOut .45s ease-in forwards; }
+.throw-center .tc-glow { position: absolute; width: min(70vw, 70vh); aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle, color-mix(in srgb, var(--accent) 45%, transparent), transparent 65%); filter: blur(8px); animation: tcPulse 1.6s ease-in-out infinite; }
+.throw-center.danger .tc-glow { background: radial-gradient(circle, rgba(230, 57, 70, .55), transparent 65%); }
+.throw-center.good .tc-glow { background: radial-gradient(circle, rgba(111, 207, 142, .5), transparent 65%); }
+.tc-cards { position: relative; display: flex; justify-content: center; align-items: center; gap: clamp(8px, 1.6vw, 22px); flex-wrap: wrap; max-width: 96vw;
+  animation: tcThrow .62s cubic-bezier(.2, 1.25, .4, 1) both; }
+.tc-cards > * { flex: none; }
+.tc-cards > :nth-child(odd) { rotate: -3deg; } .tc-cards > :nth-child(even) { rotate: 3deg; }
+.tc-cards > :only-child { rotate: 0deg; }
+.throw-center .card { --w: clamp(150px, 26vh, 300px); margin: 0; cursor: default; }
+.throw-center .tc-cards > .card:only-child { --w: clamp(170px, 36vh, 380px); }
+.tc-cards:has(> .tc-abword) { flex-direction: column; }
+.throw-center .tc-cards:has(> :nth-child(3)) .card { --w: clamp(110px, 20vh, 220px); }
+.throw-center .tc-cards:has(> :nth-child(5)) .card { --w: clamp(90px, 16vh, 180px); }
+.throw-center .card-face { box-shadow: 0 24px 60px rgba(0, 0, 0, .6), 0 0 0 3px rgba(255, 255, 255, .15); }
+.throw-center .disc.tc-disc { --d: clamp(150px, 30vh, 280px); cursor: default; }
+.tc-cap { position: relative; margin: 0; font-family: var(--font-display); font-size: clamp(26px, 4vw, 64px); line-height: 1.15; text-align: center; color: #fff; text-shadow: 0 4px 18px rgba(0,0,0,.6); animation: tcCap .5s .25s both; }
+.tc-sub { position: relative; margin: 0; font-size: clamp(18px, 2.2vw, 34px); color: #f3e7cf; text-align: center; text-shadow: 0 2px 10px rgba(0,0,0,.6); animation: tcCap .5s .4s both; }
+.tc-policy { width: clamp(170px, 32vh, 300px); aspect-ratio: 5 / 7; border-radius: 18px; display: grid; place-items: center; align-content: center; gap: 8px; color: #fff; border: 5px solid rgba(255,255,255,.75); box-shadow: 0 24px 60px rgba(0,0,0,.6); text-align: center; padding: 12px; }
+.tc-policy span { font-size: clamp(40px, 7vh, 80px); } .tc-policy b { font-size: clamp(22px, 3.4vh, 38px); font-family: var(--font-display); } .tc-policy small { opacity: .85; }
+.tc-policy.lib { background: linear-gradient(160deg, #4f86c6, #2b5687); } .tc-policy.fas { background: linear-gradient(160deg, #cf6a52, #8f3626); }
+.tc-mono { width: clamp(260px, 54vh, 580px); min-height: clamp(170px, 32vh, 360px); border-radius: 16px; background: #fffaf0; color: #2b1d12; display: grid; align-content: center; gap: 10px; padding: 18px 22px; text-align: center; border-top: 14px solid #f39c12; box-shadow: 0 24px 60px rgba(0,0,0,.6); }
+.tc-mono.chest { border-top-color: #2e86de; } .tc-mono small { font-weight: 700; font-size: clamp(16px, 2.6vh, 28px); } .tc-mono b { font-size: clamp(22px, 4vh, 44px); line-height: 1.4; }
+.tc-word { width: clamp(160px, 30vh, 280px); aspect-ratio: 5 / 7; border-radius: 18px; display: grid; align-content: center; justify-items: center; gap: 10px; padding: 14px; text-align: center; color: #fff; box-shadow: 0 24px 60px rgba(0,0,0,.6); border: 4px solid rgba(255,255,255,.6); }
+.tc-word.means { background: linear-gradient(160deg, #3a6ea5, #1d3557); } .tc-word.clue { background: linear-gradient(160deg, #d1495b, #7d1d2c); }
+.tc-word small { font-size: clamp(14px, 2vh, 22px); opacity: .85; } .tc-word b { font-size: clamp(22px, 3.6vh, 40px); font-family: var(--font-display); line-height: 1.2; }
+.tc-x { position: relative; } .tc-x > span { position: absolute; inset: 0; display: grid; place-items: center; font-size: clamp(90px, 18vh, 200px); color: #ff4d5a; font-weight: 900; text-shadow: 0 6px 24px rgba(0,0,0,.6); animation: popIn .5s .5s both; }
+.tc-mission .card-face { display: grid; place-items: center; }
+.tc-mback { width: 100%; height: 100%; display: grid; place-items: center; font-size: 56px; background: linear-gradient(160deg, #3b3355, #1f1a30); }
+.tc-mface { width: 100%; height: 100%; display: grid; place-items: center; align-content: center; font-size: clamp(60px, 11vh, 120px); font-weight: 900; color: #fff; line-height: 1; }
+.tc-mface small { font-size: clamp(16px, 2.4vh, 26px); font-weight: 700; margin-top: 8px; }
+.tc-mface.ok { background: linear-gradient(160deg, #2bb673, #146b42); } .tc-mface.no { background: linear-gradient(160deg, #e63946, #7d1620); }
+@keyframes tcFade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes tcOut { to { opacity: 0; transform: scale(.92) translateY(20px); } }
+@keyframes tcThrow { 0% { transform: translateY(70vh) rotate(-28deg) scale(.5); opacity: 0; } 70% { opacity: 1; } 100% { transform: none; opacity: 1; } }
+@keyframes tcCap { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes tcPulse { 50% { transform: scale(1.08); opacity: .8; } }
+@media (prefers-reduced-motion: reduce) { .tc-cards, .tc-cap, .tc-sub, .throw-center { animation-duration: .01s !important; } }
+
+/* ===== إضافة: لعبة «أَبْدِع» ===== */
+body[data-theme="abdea"] { --bg: #1a1240; --bg-2: #24195a; --surface: rgba(255, 255, 255, .08); --surface-2: #2f2470; --ink: #fff8ec; --ink-soft: #ddd3fa; --ink-mute: #a399d1;
+  --accent: #ffcf3f; --accent-ink: #2a1a00; --accent-2: #ff5e7e; --danger: #ff4d6d; --ok: #2ec4b6; --line: rgba(255, 207, 63, .2); --font-display: 'Lalezar', 'Readex', sans-serif;
+  --team-a: #ff5e7e; --team-b: #3fa7ff;
+  background-image: radial-gradient(circle at 12% 8%, rgba(255, 94, 126, .22), transparent 38%), radial-gradient(circle at 88% 92%, rgba(46, 196, 182, .2), transparent 42%), radial-gradient(circle at 80% 20%, rgba(255, 207, 63, .12), transparent 30%); background-attachment: fixed; }
+.ab-amb { position: absolute; inset: 0; overflow: hidden; }
+.ab-amb span { position: absolute; bottom: -12vh; left: var(--x); font: 400 calc(64px * var(--s)) Lalezar, sans-serif; color: rgba(255, 255, 255, .07); animation: abFloat var(--d) linear infinite; animation-delay: var(--delay); }
+@keyframes abFloat { from { transform: translateY(0) rotate(-10deg); } to { transform: translateY(-125vh) rotate(18deg); } }
+.ab-logo { display: inline-flex; align-items: center; gap: 2px; font-family: 'Lalezar', sans-serif; line-height: 1; position: relative; }
+.ab-logo .ab-lw { font-size: 30px; color: var(--ink, #fff); }
+.ab-logo .ab-lc { display: inline-grid; place-items: center; width: 34px; height: 42px; border-radius: 8px; background: #ff5e7e; color: #fff; font-size: 28px; transform: rotate(-8deg) translateY(-2px); box-shadow: 0 4px 0 rgba(0,0,0,.25); margin-inline-start: 2px; }
+.ab-logo small { position: absolute; bottom: -12px; inset-inline-end: 0; font: 700 9px/1 'Readex', sans-serif; letter-spacing: .12em; color: var(--accent); direction: ltr; }
+.ab-logo.sm .ab-lw { font-size: 24px; } .ab-logo.sm .ab-lc { width: 28px; height: 34px; font-size: 22px; } .ab-logo.sm small { display: none; }
+.ab-logo.disp .ab-lw { font-size: clamp(40px, 4vw, 80px); } .ab-logo.disp .ab-lc { width: clamp(46px, 4.4vw, 88px); height: clamp(56px, 5.4vw, 108px); font-size: clamp(36px, 3.6vw, 72px); border-radius: 14px; }
+.ab-logo.disp small { font-size: clamp(11px, 1vw, 18px); bottom: -18px; }
+.ab-dhead { display: grid; justify-items: center; gap: 14px; }
+.ab-head { display: flex; align-items: center; gap: 10px; margin: 0 0 10px; flex-wrap: wrap; }
+.ab-head .ab-turn { flex: 1; }
+.ab-turn { display: flex; align-items: center; gap: 8px; background: var(--surface); border-radius: 14px; padding: 6px 10px; border: 1.5px solid var(--line); min-height: 48px; }
+.ab-turn b { flex: 1; font-size: 16px; }
+.ab-turn.mine { background: linear-gradient(90deg, rgba(255, 207, 63, .28), rgba(255, 94, 126, .2)); border-color: var(--accent); animation: abGlow 1.6s ease-in-out infinite; }
+.ab-turn.vote { border-color: var(--accent-2); }
+.ab-turn .timer { font-size: 20px; min-width: 64px; text-align: center; }
+.ab-turn.big { padding: 14px 18px; border-radius: 22px; margin-bottom: 14px; } .ab-turn.big b { font: 400 clamp(22px, 2.2vw, 44px) var(--font-display); }
+.ab-turn.big .timer { font-size: clamp(28px, 3vw, 60px); }
+@keyframes abGlow { 50% { box-shadow: 0 0 0 4px rgba(255, 207, 63, .25); } }
+.ab-scores { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.ab-sc { display: flex; align-items: center; gap: 6px; background: var(--surface); border-radius: 99px; padding: 4px 10px 4px 4px; border: 1.5px solid transparent; font-size: 14px; transition: transform .25s; }
+.ab-sc.turn { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,.25); }
+.ab-sc.me .ab-sn { color: var(--accent); }
+.ab-sc .avatar.sm { width: 30px; height: 30px; font-size: 17px; }
+.ab-sp { display: inline-flex; align-items: baseline; gap: 3px; background: var(--accent); color: var(--accent-ink); border-radius: 99px; padding: 0 9px; line-height: 1.5; }
+.ab-sp b { font: 400 19px var(--font-display); } .ab-sp small { font-size: 11px; font-weight: 700; }
+.ab-streak { font-style: normal; font-size: 12px; }
+.ab-cnt { font-size: 12px; color: var(--ink-mute); white-space: nowrap; }
+.ab-scores.big .ab-cnt { font-size: .7em; } .ab-scores.big .ab-sn { flex: 1; }
+.ab-scores.big { display: grid; grid-template-columns: repeat(auto-fill, minmax(clamp(160px, 15vw, 280px), 1fr)); gap: 10px; }
+.ab-scores.big .ab-sc { border-radius: 18px; padding: 8px 12px; font-size: 1em; }
+.ab-scores.big .ab-sp b { font-size: clamp(26px, 2.4vw, 48px); } .ab-scores.big .ab-sp small { font-size: .7em; }
+.ab-teams { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; margin-bottom: 10px; }
+.ab-team { background: var(--surface); border-radius: 14px; padding: 8px 10px; border-top: 5px solid var(--tc); }
+.ab-team.turn { box-shadow: 0 0 0 3px var(--tc), 0 8px 22px rgba(0,0,0,.3); }
+.ab-tn { font: 400 18px var(--font-display); color: var(--tc); filter: brightness(1.25); }
+.ab-tm { display: flex; flex-wrap: wrap; gap: 3px; margin: 4px 0; } .ab-tm .avatar.sm { width: 26px; height: 26px; font-size: 15px; } .ab-tm .act .avatar { box-shadow: 0 0 0 2px var(--accent); }
+.ab-ts b { font: 400 26px var(--font-display); color: var(--accent); } .ab-ts small { color: var(--ink-mute); }
+.ab-teams.big .ab-tn { font-size: clamp(22px, 2vw, 40px); } .ab-teams.big .ab-ts b { font-size: clamp(30px, 3vw, 60px); }
+.ab-board { position: relative; background: linear-gradient(160deg, rgba(255,255,255,.12), rgba(255,255,255,.04)); border: 2px solid rgba(255, 207, 63, .35); border-radius: 24px; padding: 12px 10px 16px; margin: 6px 0 8px; box-shadow: 0 14px 40px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.15); }
+.ab-board-top { display: flex; justify-content: space-between; align-items: center; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
+.ab-chip { font-size: 13px; padding: 3px 10px; border-radius: 99px; background: rgba(255,255,255,.1); color: var(--ink-soft); }
+.ab-chip.region { background: rgba(255, 94, 126, .2); color: #ffd3dc; font-weight: 700; }
+.ab-line { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; }
+.ab-ctx { font: 400 30px var(--font-display); color: var(--ink-soft); }
+.ab-tiles { display: flex; align-items: center; justify-content: center; gap: 5px; flex-wrap: wrap; --t: clamp(38px, calc((92vw - 40px) / (var(--n) * 1.7)), 58px); }
+.ab-tile { display: inline-grid; place-items: center; width: var(--t); height: calc(var(--t) * 1.18); border-radius: 12px; background: #fffaf0; color: #2a1460; font: 400 calc(var(--t) * .62) 'Lalezar', sans-serif; box-shadow: 0 4px 0 #d9cfb8, 0 8px 16px rgba(0,0,0,.25); }
+.ab-slot { display: inline-grid; place-items: center; width: calc(var(--t) * .78); min-width: 30px; height: calc(var(--t) * 1.18); border-radius: 12px; border: 2.5px dashed rgba(255, 207, 63, .7); background: rgba(255, 207, 63, .08); color: var(--accent); padding: 0; font: inherit; cursor: pointer; transition: transform .15s, background .2s, width .2s; touch-action: manipulation; }
+.ab-slot .ab-plus { font: 700 22px 'Readex', sans-serif; }
+.ab-slot.ready { animation: abSlot 1.1s ease-in-out infinite; }
+.ab-slot.hot { background: rgba(255, 207, 63, .35); transform: scale(1.12); border-style: solid; }
+.ab-slot.filled { width: var(--t); border: 0; background: none; }
+.ab-slot.show { cursor: default; width: var(--t); } .ab-slot .ab-q { font: 400 calc(var(--t) * .55) 'Lalezar', sans-serif; }
+.ab-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255, 207, 63, .7); }
+.ab-tile.ab-new { background: linear-gradient(160deg, #ffcf3f, #ffb02e); color: #2a1460; animation: abDrop .4s cubic-bezier(.2, 1.4, .4, 1); box-shadow: 0 4px 0 #c98a12, 0 8px 18px rgba(0,0,0,.3); }
+@keyframes abSlot { 50% { background: rgba(255, 207, 63, .25); transform: translateY(-3px); } }
+@keyframes abDrop { from { transform: translateY(-40px) scale(1.3) rotate(-12deg); opacity: 0; } to { transform: none; opacity: 1; } }
+.ab-preview { text-align: center; margin: 12px 0 0; font: 400 34px var(--font-display); color: #fff; }
+.ab-preview b { font-weight: 400; } .ab-preview em, .tc-abword em { font-style: normal; color: var(--accent); }
+.ab-last { text-align: center; margin: 4px 0 8px; padding: 6px 10px; border-radius: 12px; background: rgba(255,255,255,.06); font-size: 15px; }
+.ab-last.ok { background: rgba(46, 196, 182, .16); } .ab-last.no { background: rgba(255, 77, 109, .14); }
+.ab-hand-wrap { margin-top: 6px; }
+.ab-hand { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; padding: 8px 4px 4px; }
+.ab-card { position: relative; width: 62px; height: 86px; border-radius: 12px; border: 0; padding: 0; background: linear-gradient(170deg, #fffdf6, #f6ecd6); color: #2a1460; box-shadow: 0 5px 0 #d6c8a8, 0 10px 18px rgba(0,0,0,.3); cursor: pointer; display: grid; place-items: center; transition: transform .18s ease, box-shadow .18s ease; touch-action: none; user-select: none; -webkit-user-select: none; }
+.ab-card .ab-cl { font: 400 42px/1 'Lalezar', sans-serif; margin-top: 4px; }
+.ab-card .ab-cc { position: absolute; top: 4px; inset-inline-start: 6px; font: 400 13px/1 'Lalezar', sans-serif; color: #ff5e7e; }
+.ab-card .ab-star { position: absolute; bottom: 5px; inset-inline-end: 7px; font-size: 11px; color: #c98a12; }
+.ab-card::after { content: ""; position: absolute; inset: 4px; border-radius: 9px; border: 1.5px solid rgba(42, 20, 96, .12); pointer-events: none; }
+.ab-card.rare { background: linear-gradient(170deg, #fff6d6, #ffe08a); box-shadow: 0 5px 0 #d1a530, 0 10px 18px rgba(0,0,0,.3); }
+.ab-card.rare::after { border-color: rgba(201, 138, 18, .55); }
+.ab-card.sel { transform: translateY(-14px) rotate(-3deg); box-shadow: 0 0 0 3px var(--accent), 0 16px 26px rgba(0,0,0,.4); }
+.ab-card.fresh { animation: abFresh .7s cubic-bezier(.2, 1.3, .4, 1); }
+.ab-card.dragging { opacity: .35; }
+.ab-hand:not(.live) .ab-card { filter: saturate(.75); cursor: default; }
+.ab-card.mini { width: 40px; height: 56px; cursor: default; } .ab-card.mini .ab-cl { font-size: 26px; } .ab-card.mini .ab-cc { display: none; }
+.ab-ghost { position: fixed; z-index: 95; pointer-events: none; transform: translate(-50%, -60%) rotate(-6deg) scale(1.12); box-shadow: 0 0 0 3px var(--accent), 0 20px 34px rgba(0,0,0,.45) !important; }
+@keyframes abFresh { from { transform: translate(-60px, -80px) rotate(-25deg) scale(.6); opacity: 0; } to { transform: none; opacity: 1; } }
+.ab-actions { display: flex; gap: 8px; margin-top: 12px; }
+.ab-confirm:not([disabled]) { background: linear-gradient(90deg, #ffcf3f, #ffb02e); animation: abGlow 1.4s ease-in-out infinite; }
+.ab-piles { display: flex; justify-content: center; gap: 22px; margin: 14px 0 6px; }
+.ab-pile { display: grid; justify-items: center; gap: 2px; font-size: 13px; color: var(--ink-soft); }
+.ab-pile b { font: 400 20px var(--font-display); color: var(--ink); }
+.ab-stack { position: relative; width: 44px; height: 60px; display: grid; place-items: center; }
+.ab-back { position: absolute; inset: 0; border-radius: 9px; background: repeating-linear-gradient(45deg, #ff5e7e 0 6px, #e04868 6px 12px); border: 2px solid #fff; box-shadow: 0 3px 8px rgba(0,0,0,.3); }
+.ab-back:nth-child(2) { transform: translate(-3px, -3px); } .ab-back:nth-child(3) { transform: translate(-6px, -6px); }
+.ab-empty { font-size: 12px; color: var(--ink-mute); border: 1.5px dashed var(--line); border-radius: 9px; width: 100%; height: 100%; display: grid; place-items: center; }
+.ab-piles.big { gap: 40px; } .ab-piles.big .ab-stack { width: 70px; height: 96px; } .ab-piles.big .ab-card.mini { width: 64px; height: 90px; } .ab-piles.big .ab-card.mini .ab-cl { font-size: 42px; }
+.ab-piles.big .ab-pile { font-size: .8em; } .ab-piles.big .ab-pile b { font-size: 1.6em; }
+.ab-vote { border: 2px solid var(--accent-2); margin: 8px 0; }
+.ab-vword { text-align: center; font: 400 38px var(--font-display); color: var(--accent); margin: 4px 0; }
+.ab-host { margin-top: 12px; }
+.ab-win { text-align: center; padding: 8px 0 14px; }
+.ab-wtitle { color: var(--accent); margin: 14px 0 4px; }
+.ab-trophy { font-size: 64px; animation: abTrophy 1.6s ease-in-out infinite; }
+@keyframes abTrophy { 50% { transform: translateY(-8px) rotate(6deg) scale(1.08); } }
+.ab-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.ab-table th, .ab-table td { padding: 8px 4px; text-align: center; border-bottom: 1px solid var(--line); }
+.ab-table td:nth-child(2) { text-align: start; } .ab-table .avatar.sm { width: 26px; height: 26px; font-size: 15px; vertical-align: middle; }
+.ab-table tr.me td { background: rgba(255, 207, 63, .1); }
+.ab-dot2 { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--tc); vertical-align: middle; }
+.ab-pop { position: fixed; inset: 0; z-index: 92; display: grid; place-items: center; pointer-events: none; }
+.ab-pop span { font: 400 clamp(34px, 10vw, 72px)/1.2 'Lalezar', sans-serif; color: #fff; padding: 14px 26px; border-radius: 26px; background: rgba(26, 18, 64, .82); box-shadow: 0 20px 50px rgba(0,0,0,.45); text-align: center; max-width: 90vw; animation: abPopIn .5s cubic-bezier(.2, 1.5, .4, 1) both; }
+.ab-pop.good span { background: linear-gradient(135deg, #2ec4b6, #1a8f85); } .ab-pop.bad span { background: linear-gradient(135deg, #ff4d6d, #b3243f); animation: abPopIn .5s cubic-bezier(.2, 1.5, .4, 1) both, shake .45s .5s; }
+.ab-pop.turn span { background: linear-gradient(135deg, #ffcf3f, #ff9f1c); color: #2a1a00; }
+.ab-pop.out span { animation: abPopOut .45s ease-in forwards; }
+@keyframes abPopIn { from { transform: scale(.4) rotate(-6deg); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes abPopOut { to { transform: scale(1.2); opacity: 0; } }
+/* شاشة العرض */
+.ab-disp .ab-board { padding: 22px 16px 26px; }
+.ab-disp .ab-tiles { --t: clamp(56px, calc((58vw - 60px) / (var(--n) * 1.5)), 140px); gap: 10px; }
+.ab-disp .ab-ctx { font-size: clamp(34px, 4vw, 90px); }
+.ab-disp .ab-chip { font-size: clamp(16px, 1.4vw, 28px); padding: 6px 16px; }
+.ab-disp .ab-last { font-size: clamp(18px, 1.6vw, 32px); }
+.ab-disp .ab-dot { width: 14px; height: 14px; }
+.tc-ab.ab-card { width: clamp(120px, 20vh, 220px); height: clamp(166px, 28vh, 306px); border-radius: 20px; cursor: default; }
+.tc-ab.ab-card .ab-cl { font-size: clamp(90px, 16vh, 170px); } .tc-ab.ab-card .ab-cc { font-size: clamp(20px, 3vh, 34px); top: 10px; inset-inline-start: 12px; } .tc-ab.ab-card .ab-star { font-size: clamp(16px, 2.4vh, 28px); bottom: 10px; inset-inline-end: 12px; }
+.tc-abword { font: 400 clamp(46px, 8vh, 110px)/1.2 'Lalezar', sans-serif; color: #fff; padding: 6px 26px; border-radius: 20px; background: rgba(255,255,255,.1); border: 2px solid rgba(255,255,255,.25); }
+.tc-abword.ok { border-color: #2ec4b6; } .tc-abword.no { border-color: #ff4d6d; text-decoration: line-through rgba(255, 77, 109, .8) 4px; }
+@media (max-width: 380px) { .ab-card { width: 54px; height: 76px; } .ab-card .ab-cl { font-size: 36px; } }
+.tc-cards > .tc-abword { rotate: 0deg; }
+
 </style>
 </head>
 <body data-theme="shell">
@@ -3591,6 +3779,38 @@ var qrcode = function() {
       }
     },
     {
+      id: "abdea",
+      name: "أَبْدِع",
+      players: "2–8",
+      status: "ready",
+      theme: "abdea",
+      short: "حرف منك… وإبداع من الجميع! أكمل الكلمة الناقصة ببطاقات الحروف قبل غيرك.",
+      rules: {
+        goal: "أن تكون أول من يصل لنقاط الفوز بإكمال الكلمات والعبارات الناقصة ببطاقات الحروف التي في يدك.",
+        roles: [
+          ["بطاقات الحروف", "كل لاعب يبدأ بعدد من بطاقات الحروف العربية (٧ افتراضيًا). الحروف الشائعة أكثر في الكومة، والنادرة مميزة بلون ذهبي."],
+          ["التحدي", "كلمة أو عبارة في منتصف الشاشة ينقصها حرف واحد، ومكتوب هل النقص في البداية أو الوسط أو النهاية."],
+          ["كومة السحب والمستخدمة", "منها تُسحب البطاقات البديلة. إذا انتهت كومة السحب تُخلط البطاقات المستخدمة لتصبح كومة جديدة تلقائيًا."],
+          ["لاعبو الذكاء الاصطناعي 🤖", "يمكن إضافتهم من إعدادات الغرفة (حتى ٨ لاعبين بالمجموع)، أو اللعب ضدهم مباشرة من زر «العب ضد الذكاء الاصطناعي» بدون إنترنت."]
+        ],
+        phases: [
+          "يظهر اسم صاحب الدور وبطاقاته والكلمة أو العبارة الناقصة.",
+          "يختار حرفًا من بطاقاته ويضعه في مكانه (بالضغط أو بالسحب) ثم يضغط «تأكيد الإجابة».",
+          "إجابة صحيحة: تُقبل الكلمة وتُستهلك البطاقة ويأخذ نقطة، ويظهر «أبدعت! +١»، ثم تحدٍّ جديد والدور للتالي.",
+          "إجابة خاطئة: تُزال البطاقة من يده نهائيًا إلى المستخدمة ويسحب بطاقة بديلة فيبقى عدد بطاقاته كما كان، بلا نقاط، ويخسر دوره.",
+          "ما عنده حرف مناسب؟ يتخطى دوره دون خسارة أي بطاقة ودون نقاط.",
+          "إذا لم يحل أحد التحدي خلال دورة كاملة يظهر تحدٍّ جديد تلقائيًا."
+        ],
+        scoring: "الوضع الكلاسيكي: الإجابة الصحيحة +١ نقطة، والخاطئة والتخطي بلا نقاط. وضع «مكافأة الحروف النادرة» اختياري: +٢ عند استخدام حرف نادر مثل ظ ض ذ.",
+        win: "أول لاعب (أو فريق) يصل لنقاط الفوز المحددة. إذا أُلغي السحب بعد الإجابة الصحيحة تنتهي اللعبة عندما تفرغ يد أحد اللاعبين ويفوز صاحب أعلى نقاط.",
+        beginner: "ابدأ بالحروف الشائعة (ا، ل، م، ي، و). أي كلمة صحيحة تتكون بحرفك في المكان المطلوب تُقبل حتى لو لم تكن الكلمة المقصودة — أبدع!",
+        verify: [
+          "التحقق آلي من قاموس اللعبة مع تجاهل التشكيل واختلاف الهمزات والتاء المربوطة والهاء. الكلمة غير الموجودة في القاموس يحكم فيها اللاعبون بالتصويت أو المضيف أو تُرفض — حسب إعداد الغرفة.",
+          "السحب بعد الإجابة الصحيحة، وتغيير التحدي لكل دور، ومكافأة الحروف النادرة: قواعد اختيارية في الإعدادات لأنها غير محددة في القواعد الأساسية."
+        ]
+      }
+    },
+    {
       id: "monopoly",
       name: "مونوبولي",
       players: "2–8",
@@ -3803,6 +4023,11 @@ var qrcode = function() {
     <rect width="300" height="400" fill="url(#${g})"/>${body}</svg>`;
   };
   var COVERS = {
+    abdea: () => coverBase("#1a1240", "#3a1f7a", `
+    <g opacity=".12" font-family="Lalezar, sans-serif" font-size="46" fill="#fff"><text x="30" y="70">ب</text><text x="230" y="60">ج</text><text x="250" y="340">ق</text><text x="22" y="370">ظ</text><text x="150" y="44">ر</text></g>
+    ${[["أ", 8, 240, 172, "#fff7e6"], ["ب", -4, 182, 160, "#fff7e6"], ["د", 6, 124, 170, "#fff7e6"]].map(([l, r, x, y, c]) => `<g transform="translate(${x} ${y}) rotate(${r})"><rect x="-28" y="-38" width="56" height="76" rx="10" fill="${c}" stroke="#d6c8a8" stroke-width="3"/><text x="0" y="17" text-anchor="middle" font-size="44" fill="#2a1460" font-family="Lalezar, sans-serif">${l}</text></g>`).join("")}
+    <g transform="translate(62 182) rotate(-12)"><rect x="-32" y="-44" width="64" height="88" rx="12" fill="#ff5e7e" stroke="#fff" stroke-width="4"/><text x="0" y="20" text-anchor="middle" font-size="52" fill="#fff" font-family="Lalezar, sans-serif">ع</text></g>
+    <g transform="translate(150 290)"><rect x="-108" y="-28" width="216" height="56" rx="28" fill="#ffcf3f"/><text x="0" y="12" text-anchor="middle" font-size="28" fill="#1a1240" font-family="Lalezar, sans-serif">حرف منك… وإبداع!</text></g>`),
     kalim: () => coverBase("#13203a", "#1f3b6b", `
     ${[["ك", "#ff8a3d", 70, 150, -8], ["َ", "#ffcc33", 120, 118, 0], ["ل", "#2bb673", 150, 165, 6], ["ِ", "#ffcc33", 196, 128, 0], ["م", "#e63946", 228, 172, -5]].filter((x) => x[0].trim().length && !"َِ".includes(x[0])).map(([l, c, x, y, r]) => `<g transform="translate(${x} ${y}) rotate(${r})"><rect x="-34" y="-40" width="68" height="80" rx="12" fill="${c}" stroke="#fff" stroke-width="4"/><text x="0" y="16" text-anchor="middle" font-size="48" font-weight="700" fill="#fff" font-family="Lalezar, sans-serif">${l}</text></g>`).join("")}
     <g transform="translate(150 285)"><rect x="-90" y="-26" width="180" height="52" rx="26" fill="#ffcc33"/><text x="0" y="12" text-anchor="middle" font-size="30" font-weight="700" fill="#13203a" font-family="Lalezar, sans-serif">٣٠ ثانية!</text></g>`),
@@ -4717,14 +4942,20 @@ var qrcode = function() {
 
   // js/data/bara-words.js
   var BARA_CATEGORIES = [
-    { id: "food", name: "أكلات", icon: "🍲", words: ["كبسة", "مندي", "مطازيز", "جريش", "هريس", "سليق", "مرقوق", "شاورما", "برجر", "بيتزا", "معكرونة", "سمبوسة", "لقيمات", "كنافة", "مقلوبة", "فول", "تميس", "شكشوكة"] },
-    { id: "places", name: "أماكن", icon: "📍", words: ["مستشفى", "مطار", "مدرسة", "حديقة", "سوق شعبي", "مسجد", "ملعب", "بنك", "مطعم", "شاطئ", "صيدلية", "محطة وقود", "مكتبة", "سينما", "فندق", "مخيم بر", "حلاق", "مغسلة سيارات"] },
-    { id: "animals", name: "حيوانات", icon: "🐪", words: ["جمل", "صقر", "حصان", "غزال", "ذئب", "ثعلب", "قطة", "أرنب", "سلحفاة", "دلفين", "قرش", "أسد", "فيل", "زرافة", "بطريق", "ضب", "نسر", "تمساح"] },
-    { id: "jobs", name: "مهن", icon: "🧰", words: ["طبيب", "معلم", "طيار", "مهندس", "شرطي", "إطفائي", "طباخ", "نجار", "محاسب", "صيدلي", "مذيع", "مزارع", "سباك", "خياط", "مصور", "محامي", "رائد فضاء", "حارس مرمى"] },
-    { id: "home", name: "أغراض البيت", icon: "🏠", words: ["ثلاجة", "مكيف", "غسالة", "مكنسة", "دلة", "ترمس", "مبخرة", "كنب", "سجادة", "مرآة", "مخدة", "فرن", "خلاط", "مكواة", "ساعة جدار", "ستارة", "شاحن", "ريموت"] },
-    { id: "sports", name: "رياضات", icon: "⚽", words: ["كرة قدم", "كرة سلة", "تنس", "سباحة", "ملاكمة", "فروسية", "رماية", "جري", "دراجات", "طائرة", "بولينج", "جولف", "شطرنج", "تزلج", "كاراتيه", "غوص", "بلوت", "هجن"] },
-    { id: "countries", name: "دول", icon: "🌍", words: ["السعودية", "الكويت", "الإمارات", "قطر", "البحرين", "عمان", "مصر", "المغرب", "الأردن", "تركيا", "اليابان", "البرازيل", "إيطاليا", "الهند", "كندا", "أستراليا", "إندونيسيا", "ماليزيا"] },
-    { id: "transport", name: "مواصلات", icon: "🚙", words: ["سيارة", "باص", "قطار", "طائرة", "سفينة", "دباب", "دراجة", "تاكسي", "مترو", "هليكوبتر", "قارب", "شاحنة", "إسعاف", "جيب", "عربة خيل", "سكوتر", "تلفريك", "غواصة"] }
+    { id: "food", name: "أكلات", icon: "🍲", words: ["كبسة", "مندي", "مطازيز", "جريش", "هريس", "سليق", "مرقوق", "شاورما", "برجر", "بيتزا", "معكرونة", "سمبوسة", "لقيمات", "كنافة", "مقلوبة", "فول", "تميس", "شكشوكة", "مظبي", "مضغوط", "قرصان", "مراصيع", "حنيني", "عريكة", "برياني", "مجبوس", "صالونة", "فلافل", "كباب", "شيش طاووق", "سوشي", "ستيك", "كريب", "بان كيك", "وافل", "دونات", "كوسا محشي", "ورق عنب", "منسف", "ملوخية", "فطاير", "مشاوي"] },
+    { id: "places", name: "أماكن", icon: "📍", words: ["مستشفى", "مطار", "مدرسة", "حديقة", "سوق شعبي", "مسجد", "ملعب", "بنك", "مطعم", "شاطئ", "صيدلية", "محطة وقود", "مكتبة", "سينما", "فندق", "مخيم بر", "حلاق", "مغسلة سيارات", "مول", "حديقة حيوان", "متحف", "مخبز", "جامعة", "مركز شرطة", "مطافي", "قاعة أفراح", "استراحة", "مزرعة", "ملاهي", "نادي رياضي", "مختبر", "سوبرماركت", "ورشة سيارات", "مقهى", "محطة قطار", "ميناء", "مكتب بريد", "جزيرة", "قصر", "خيمة رمضانية"] },
+    { id: "animals", name: "حيوانات", icon: "🐪", words: ["جمل", "صقر", "حصان", "غزال", "ذئب", "ثعلب", "قطة", "أرنب", "سلحفاة", "دلفين", "قرش", "أسد", "فيل", "زرافة", "بطريق", "ضب", "نسر", "تمساح", "نمر", "فهد", "دب", "قرد", "كنغر", "حوت", "أخطبوط", "بومة", "طاووس", "ببغاء", "نعامة", "حمار وحشي", "وحيد القرن", "خفاش", "عقرب", "ثعبان", "نحلة", "فراشة", "حمامة", "ديك", "خروف", "بقرة", "ماعز", "سنجاب"] },
+    { id: "jobs", name: "مهن", icon: "🧰", words: ["طبيب", "معلم", "طيار", "مهندس", "شرطي", "إطفائي", "طباخ", "نجار", "محاسب", "صيدلي", "مذيع", "مزارع", "سباك", "خياط", "مصور", "محامي", "رائد فضاء", "حارس مرمى", "ممرض", "صحفي", "قاضي", "مبرمج", "مضيف طيران", "حلاق", "خباز", "جزار", "ساعي بريد", "رسام", "مصمم أزياء", "عالم آثار", "صياد سمك", "سائق تاكسي", "كهربائي", "ميكانيكي", "حداد", "مدرب رياضي", "مرشد سياحي", "محقق", "مترجم", "طبيب أسنان", "طبيب بيطري"] },
+    { id: "home", name: "أغراض البيت", icon: "🏠", words: ["ثلاجة", "مكيف", "غسالة", "مكنسة", "دلة", "ترمس", "مبخرة", "كنب", "سجادة", "مرآة", "مخدة", "فرن", "خلاط", "مكواة", "ساعة جدار", "ستارة", "شاحن", "ريموت", "تلفزيون", "مروحة", "مايكرويف", "غلاية", "دولاب", "سرير", "بطانية", "مصباح", "ثريا", "طاولة", "كرسي", "مزهرية", "سخان", "راوتر", "مجفف شعر", "برادة ماء", "مفرش", "رف كتب", "حوض سمك", "منشفة", "فرشاة أسنان", "سلة غسيل"] },
+    { id: "sports", name: "رياضات", icon: "⚽", words: ["كرة قدم", "كرة سلة", "تنس", "سباحة", "ملاكمة", "فروسية", "رماية", "جري", "دراجات", "طائرة", "بولينج", "جولف", "شطرنج", "تزلج", "كاراتيه", "غوص", "بلوت", "هجن", "كرة يد", "هوكي", "بيسبول", "رجبي", "تنس طاولة", "بلياردو", "سكواش", "رفع أثقال", "مصارعة", "جودو", "تايكوندو", "ركوب أمواج", "تسلق جبال", "قفز بالمظلات", "سباق سيارات", "يوغا", "تجديف", "قفز حواجز", "مقناص", "رمي سهام"] },
+    { id: "countries", name: "دول", icon: "🌍", words: ["السعودية", "الكويت", "الإمارات", "قطر", "البحرين", "عمان", "مصر", "المغرب", "الأردن", "تركيا", "اليابان", "البرازيل", "إيطاليا", "الهند", "كندا", "أستراليا", "إندونيسيا", "ماليزيا", "فرنسا", "ألمانيا", "بريطانيا", "إسبانيا", "أمريكا", "الصين", "كوريا", "روسيا", "المكسيك", "الأرجنتين", "تايلاند", "سويسرا", "اليونان", "جورجيا", "أذربيجان", "لبنان", "تونس", "الجزائر", "السودان", "اليمن", "العراق", "باكستان", "جنوب أفريقيا", "نيوزيلندا"] },
+    { id: "transport", name: "مواصلات", icon: "🚙", words: ["سيارة", "باص", "قطار", "طائرة", "سفينة", "دباب", "دراجة", "تاكسي", "مترو", "هليكوبتر", "قارب", "شاحنة", "إسعاف", "جيب", "عربة خيل", "سكوتر", "تلفريك", "غواصة", "منطاد", "يخت", "جت سكي", "عبّارة", "تريلا", "ونش", "صاروخ", "قطار سريع", "لوح تزلج", "عربة جولف", "سيارة إطفاء", "باص مدرسة", "كرفان", "دباب بر", "طائرة شراعية", "مركبة فضائية"] },
+    { id: "fruitveg", name: "فواكه وخضار", icon: "🍉", words: ["تفاح", "موز", "برتقال", "بطيخ", "عنب", "رمان", "مانجو", "فراولة", "أناناس", "كيوي", "خوخ", "مشمش", "تين", "تمر", "ليمون", "جوافة", "شمام", "طماطم", "خيار", "جزر", "بطاطس", "بصل", "ثوم", "باذنجان", "كوسا", "فلفل", "خس", "ملفوف", "قرنبيط", "بروكلي", "بامية", "ذرة", "فطر", "أفوكادو"] },
+    { id: "clothes", name: "ملابس وإكسسوار", icon: "👕", words: ["ثوب", "شماغ", "غترة", "عقال", "بشت", "عباية", "طرحة", "فستان", "قميص", "بنطلون", "جاكيت", "فروة", "جزمة", "نعال", "جوارب", "قبعة", "نظارة شمسية", "ساعة يد", "خاتم", "سلسال", "حزام", "محفظة", "شنطة يد", "ربطة عنق", "بيجاما", "قفازات", "وشاح", "أقراط"] },
+    { id: "events", name: "مناسبات", icon: "🎉", words: ["عرس", "عيد الفطر", "عيد الأضحى", "حفل تخرج", "عيد ميلاد", "ملكة", "خطوبة", "عزيمة", "مولود جديد", "اليوم الوطني", "يوم التأسيس", "رمضان", "حفلة مفاجأة", "رحلة مدرسية", "نهائي كأس", "افتتاح محل", "حفل تكريم", "معرض كتاب", "سهرة شتوية", "حج", "عمرة", "سفرة صيف", "ترقية", "أول يوم دوام", "بيت جديد", "مسابقة", "حفلة شواء", "مهرجان تمور"] },
+    { id: "nature", name: "طبيعة وطقس", icon: "🌴", words: ["بحر", "جبل", "صحراء", "نهر", "شلال", "بركان", "غابة", "جزيرة", "وادي", "كهف", "مطر", "ثلج", "رعد", "برق", "عاصفة رملية", "ضباب", "قوس قزح", "غروب", "شروق", "كسوف", "زلزال", "موج", "كثبان", "واحة", "قمر", "نجوم", "شمس", "ريح", "بحيرة"] },
+    { id: "drinks", name: "مشروبات وحلويات", icon: "🧃", words: ["قهوة عربية", "شاي", "كرك", "لاتيه", "عصير برتقال", "ليمون بالنعناع", "حليب", "لبن", "فيمتو", "سحلب", "كاكاو", "ميلك شيك", "سموذي", "مشروب غازي", "آيس كوفي", "تمر هندي", "قمر الدين", "بسبوسة", "كيك", "آيسكريم", "شوكولاتة", "حلاوة طحينية", "معمول", "تشيز كيك", "بقلاوة", "مهلبية", "أم علي", "كريم كراميل", "غريبة"] },
+    { id: "school", name: "المدرسة", icon: "🎒", words: ["قلم", "دفتر", "ممحاة", "مسطرة", "مبراة", "حقيبة", "سبورة", "طباشير", "معلم", "مدير المدرسة", "فسحة", "مقصف", "طابور الصباح", "اختبار", "واجب", "شهادة", "فصل", "مختبر", "باص المدرسة", "كتاب", "آلة حاسبة", "فرجار", "ألوان", "مكتبة المدرسة", "حصة رياضة", "جرس", "زي مدرسي", "لوحة شرف"] }
   ];
 
   // js/engines/bara.js
@@ -4864,6 +5095,15 @@ var qrcode = function() {
         score(s);
         return ok2();
       }
+      case "redeal": {
+        if (!ctx2.isHost) return err2("هذا الإجراء للمضيف فقط");
+        if (s.phase !== "reveal") return err2("تغيير الكلمة قبل بدء الأسئلة فقط");
+        s.round--;
+        startRound(s, ctx2.rng);
+        s.deal = (s.deal || 0) + 1;
+        pushFx(s, { kind: "redeal" });
+        return ok2();
+      }
       case "next": {
         if (s.phase !== "result") return err2("الجولة لم تنتهِ");
         if (!ctx2.isHost) return err2("المضيف يبدأ الجولة التالية");
@@ -4945,6 +5185,7 @@ var qrcode = function() {
       guess: s.phase === "result" || s.phase === "over" ? s.guess : null,
       roundScores: s.roundScores,
       score: s.o.score,
+      deal: s.deal || 0,
       fx: viewFx(s, pid)
     };
   }
@@ -5316,6 +5557,14 @@ var qrcode = function() {
     const A = [], B = [];
     sh.forEach((id, k) => (k % 2 ? B : A).push(id));
     return { A, B };
+  }
+  // فرق اختارها اللاعبون/المضيف في الغرفة (إضافة). إن لم تكن صالحة بالكامل نرجع null فيُستخدم التقسيم العشوائي الأصلي
+  function fixedTeams(players, k, rng) {
+    if (!players.length || !players.every((p) => Number.isInteger(p.team) && p.team >= 0 && p.team < k)) return null;
+    const out = Array.from({ length: k }, () => []);
+    players.forEach((p) => out[p.team].push(p.id));
+    if (out.some((t) => !t.length)) return null;
+    return out.map((t) => rng.shuffle(t));
   }
   function nextAliveIdx(players, from, pred = (p) => p.alive) {
     const n = players.length;
@@ -5905,7 +6154,7 @@ var qrcode = function() {
       if (!Number.isInteger(k) || !me.cards[k] || me.cards[k].dead) return err4("اختر بطاقة حية");
       me.cards[k].dead = true;
       s.loseQ.shift();
-      afterLoseOne(s, i);
+      afterLoseOne(s, i, me.cards[k].c);
       return drainLose(s, ctx2);
     }
     if (a.type === "keep") {
@@ -6035,9 +6284,9 @@ var qrcode = function() {
     pushFx(s, { kind: s.lastChallenge.truthful ? "challenge-fail" : "challenge-win" });
     return drainLose(s, ctx2);
   }
-  function afterLoseOne(s, j) {
+  function afterLoseOne(s, j, card3) {
     const p = s.players[j];
-    pushFx(s, { kind: "lose", who: p.id });
+    pushFx(s, card3 ? { kind: "lose", who: p.id, card: card3 } : { kind: "lose", who: p.id });
     if (live(p).length === 0) {
       p.alive = false;
       pushFx(s, { kind: "out", who: p.id });
@@ -6055,7 +6304,7 @@ var qrcode = function() {
       if (lv.length === 1) {
         lv[0].dead = true;
         s.loseQ.shift();
-        afterLoseOne(s, j);
+        afterLoseOne(s, j, lv[0].c);
         continue;
       }
       s.phase = "lose";
@@ -6620,7 +6869,7 @@ var qrcode = function() {
       s.pending = { kind, actor: i, target: t, named: a.named || null, nopes: 0, cards };
       s.phase = "nope";
       s.deadline = ctx2.now + s.o.nopeSec * 1e3;
-      pushFx(s, { kind: "played", who: pid, card: kind });
+      pushFx(s, { kind: "played", who: pid, card: kind, cards: cards.slice(), target: t >= 0 ? s.players[t].id : null });
       return ok4();
     }
     return err4("إجراء غير معروف");
@@ -6763,6 +7012,7 @@ var qrcode = function() {
     normalizeOptions: () => normalizeOptions6,
     optionSchema: () => optionSchema4,
     points: () => points,
+    teamInfo: () => teamInfoWl,
     setup: () => setup9,
     summary: () => summary9,
     view: () => view9
@@ -6805,19 +7055,145 @@ var qrcode = function() {
     ["شيء مبالغ في تقديره", "شيء لا يُقدَّر حقه"],
     ["عادة سيئة", "عادة جيدة"],
     ["مكان للأطفال", "مكان للكبار"],
-    ["مخاطرة صغيرة", "مخاطرة كبيرة"]
+    ["مخاطرة صغيرة", "مخاطرة كبيرة"],
+    ["أكل صحي", "أكل دسم"],
+    ["مدينة صغيرة", "مدينة كبيرة"],
+    ["مهارة سهلة التعلّم", "مهارة صعبة التعلّم"],
+    ["شيء يدوم يوم", "شيء يدوم للأبد"],
+    ["حيوان أليف", "حيوان متوحش"],
+    ["مكان ممل", "مكان ممتع"],
+    ["شخصية خجولة", "شخصية جريئة"],
+    ["كلمة لطيفة", "كلمة قاسية"],
+    ["لعبة للأطفال", "لعبة للكبار"],
+    ["سهل الطبخ", "صعب الطبخ"],
+    ["مشروب حلو", "مشروب مر"],
+    ["ريحة خفيفة", "ريحة قوية"],
+    ["مكان آمن", "مكان خطير"],
+    ["نشاط مريح", "نشاط متعب"],
+    ["شيء مضحك", "شيء محزن"],
+    ["قرار سهل", "قرار مصيري"],
+    ["وجبة فطور", "وجبة عشاء"],
+    ["مهنة دخلها قليل", "مهنة دخلها عالي"],
+    ["تصرف طفولي", "تصرف ناضج"],
+    ["شيء طبيعي", "شيء صناعي"],
+    ["فكرة سيئة", "فكرة عبقرية"],
+    ["أكلة تنأكل بالشوكة", "أكلة تنأكل باليد"],
+    ["تطبيق مفيد", "تطبيق مضيعة وقت"],
+    ["شيء تحبه الأمهات", "شيء يزعج الأمهات"],
+    ["شيء يصير كل يوم", "شيء نادر الحدوث"],
+    ["مكان للهدوء", "مكان للحفلات"],
+    ["فاكهة حامضة", "فاكهة حلوة"],
+    ["لون هادئ", "لون صارخ"],
+    ["موضة قديمة", "آخر صيحة"],
+    ["سيارة عملية", "سيارة فخمة"],
+    ["شيء مبهج", "شيء كئيب"],
+    ["هواية رخيصة", "هواية مكلفة"],
+    ["ذكرى منسية", "ذكرى ما تنتسى"],
+    ["تصرف مهذب", "تصرف قليل أدب"],
+    ["موقف عادي", "موقف محرج جدًا"],
+    ["شيء نظيف", "شيء وسخ"],
+    ["سهل تحفظه", "صعب تحفظه"],
+    ["مكان بارد", "مكان حار"],
+    ["كلمة رسمية", "كلمة عامية"],
+    ["يحبه الكبار", "يحبه الصغار"],
+    ["مسلسل ممل", "مسلسل ما ينترك"],
+    ["إحساس سيء", "إحساس رائع"],
+    ["شيء خفيف", "شيء ثقيل"],
+    ["رخيص ويستاهل", "غالي وما يستاهل"],
+    ["أكلة محلية", "أكلة عالمية"],
+    ["أمر تافه", "أمر مهم جدًا"],
+    ["شيء ينسوى بسرعة", "شيء ياخذ وقت طويل"],
+    ["عذر مقنع", "عذر سخيف"],
+    ["أكلة طرية", "أكلة مقرمشة"],
+    ["شيء ضعيف", "شيء متين"],
+    ["حلم بسيط", "حلم مستحيل"],
+    ["عادة صباحية", "عادة ليلية"],
+    ["مخلوق خيالي لطيف", "مخلوق خيالي مرعب"],
+    ["مهارة بلا فائدة", "مهارة مفيدة جدًا"],
+    ["تجربة عادية", "تجربة لازم تجربها"],
+    ["شيء مستعمل", "شيء جديد"],
+    ["سؤال سهل", "سؤال صعب"],
+    ["شيء نادر", "شيء موجود في كل مكان"],
+    ["لعبة حظ", "لعبة مهارة"],
+    ["مزاج سيء", "مزاج رايق"],
+    ["كذبة بيضاء", "كذبة كبيرة"],
+    ["شيء مرن", "شيء صلب"],
+    ["ملابس كاجوال", "ملابس رسمية"],
+    ["مكان تزوره مرة", "مكان تزوره كل أسبوع"],
+    ["إنجاز صغير", "إنجاز عظيم"],
+    ["مخلوق صغير", "مخلوق ضخم"],
+    ["شيء مريح", "شيء مزعج"],
+    ["عمل فردي", "عمل جماعي"],
+    ["منظر عادي", "منظر يخطف الأنفاس"],
+    ["شيء يتعلمه الطفل بدري", "شيء يتعلمه الكبير متأخر"],
+    ["حزين", "سعيد"],
+    ["أكلة سهلة", "أكلة تبي طباخ محترف"],
+    ["شيء تشتريه كل يوم", "شيء تشتريه مرة بالعمر"],
+    ["شيء من الماضي", "شيء من المستقبل"],
+    ["هادئ الطباع", "عصبي"],
+    ["مهنة آمنة", "مهنة خطيرة"],
+    ["مكان مظلم", "مكان مضيء"],
+    ["شيء لذيذ", "شيء مقرف"],
+    ["مبلغ بسيط", "مبلغ ضخم"],
+    ["صديق جديد", "صديق عمر"],
+    ["مسافة مشي", "مسافة تبي طيارة"],
+    ["خطة فاشلة", "خطة محكمة"],
+    ["شيء يضحّك الأطفال", "شيء يضحّك الكبار"],
+    ["رياضة هادئة", "رياضة عنيفة"],
+    ["يناسب الصيف", "يناسب الشتاء"],
+    ["مشهور محليًا", "مشهور عالميًا"],
+    ["فيلم للأطفال", "فيلم للكبار"],
+    ["شيء يتنسى بسرعة", "شيء يعلق في الذاكرة"],
+    ["طعم خفيف", "طعم قوي"],
+    ["صديق مزعج", "صديق مريح"],
+    ["هوايات الأجداد", "هوايات الجيل الجديد"],
+    ["مكان ضيق", "مكان واسع"],
+    ["أغنية حزينة", "أغنية حماسية"],
+    ["يخرب بسرعة", "يعيش طويل"],
+    ["سهل التصليح", "مستحيل يتصلح"],
+    ["شخص كسول", "شخص نشيط"],
+    ["فكرة تقليدية", "فكرة مجنونة"],
+    ["لقب لطيف", "لقب محرج"],
+    ["ترفيه رخيص", "ترفيه فاخر"],
+    ["يحتاجه الكل", "يحتاجه القليل"],
+    ["وقت قصير", "وقت طويل"],
+    ["مكان للشباب", "مكان للعائلات"],
+    ["أكلة نية", "أكلة مستوية زيادة"],
+    ["إبداع بسيط", "تحفة فنية"],
+    ["سر بسيط", "سر خطير"],
+    ["لعبة هادئة", "لعبة تخلي الكل يصارخ"],
+    ["طلب سهل", "طلب مستحيل"],
+    ["مسموح للأطفال", "ممنوع على الأطفال"],
+    ["شيء معتاد", "شيء غريب"],
+    ["مشروب يصحّيك", "مشروب ينوّمك"],
+    ["تصرف أناني", "تصرف كريم"],
+    ["اختراع قديم", "اختراع حديث"],
+    ["هواية داخل البيت", "هواية خارج البيت"],
+    ["مكان سياحي مغمور", "مكان سياحي مشهور"],
+    ["شخص مقتصد", "شخص مبذّر"],
+    ["أكل البيت", "أكل المطاعم"],
+    ["حياة البر", "حياة المدينة"],
+    ["موهبة مفيدة", "موهبة استعراضية"],
+    ["صوت ناعم", "صوت خشن"],
+    ["لبس مريح", "لبس أنيق"],
+    ["شيء ممل في الطفولة", "شيء ممتع في الطفولة"],
+    ["يعجب الكل", "يختلف عليه الناس"],
+    ["تصرف شجاع", "تصرف جبان"],
+    ["أول موعد سيء", "أول موعد مثالي"]
   ];
 
   // js/engines/wavelength.js
   var meta9 = { id: "wavelength", minPlayers: 4, maxPlayers: 16, defaultOptions: { target: 10 } };
   var normalizeOptions6 = (o = {}) => ({ target: [7, 10, 15].includes(o.target) ? o.target : 10 });
+  var teamInfoWl = () => ({ count: 2, names: ["الفريق الأزرق", "الفريق الوردي"], colors: ["var(--team-a, #70d6ff)", "var(--team-b, #ff70a6)"], excludeHost: false, minPer: 2 });
   var optionSchema4 = () => [{ key: "target", type: "select", label: "نقاط الفوز", options: [[7, "٧"], [10, "١٠"], [15, "١٥"]] }];
   function points(dist) {
     return dist <= 4 ? 4 : dist <= 11 ? 3 : dist <= 18 ? 2 : 0;
   }
   function setup9(players, options, rng) {
     const o = normalizeOptions6(options);
-    const { A, B } = splitTeams(players.map((p) => p.id), rng);
+    const ft = fixedTeams(players, 2, rng);
+    const { A, B } = ft && ft.every((t) => t.length >= 2) ? { A: ft[0], B: ft[1] } : splitTeams(players.map((p) => p.id), rng);
     const s = { game: "wavelength", o, teams: { A, B }, score: { A: 0, B: 0 }, active: rng.pick(["A", "B"]), psychicIdx: { A: 0, B: 0 }, deck: rng.shuffle(SPECTRA.map((_, k) => k)), round: 0, players: players.map((p) => ({ id: p.id })), winner: null, fx: [], fxSeq: 0 };
     newRound2(s, rng);
     return s;
@@ -6885,6 +7261,16 @@ var qrcode = function() {
         }
         return ok4();
       }
+      case "skipCard":
+        if (s.phase !== "clue") return err4("تغيير البطاقة قبل التلميح فقط");
+        if (!ctx2.isHost && pid !== s.psychic) return err4("الوسيط أو المضيف فقط يغيّر البطاقة");
+        if (!s.deck.length) s.deck = ctx2.rng.shuffle(SPECTRA.map((_, k) => k));
+        s.card = s.deck.pop();
+        s.targetPos = 5 + ctx2.rng.int(91);
+        s.dial = 50;
+        s.skips = (s.skips || 0) + 1;
+        pushFx(s, { kind: "skip" });
+        return ok4();
       case "next":
         if (s.phase !== "reveal") return err4("ليست نهاية الجولة");
         if (!ctx2.isHost && pid !== s.psychic) return err4("الوسيط أو المضيف ينتقل للجولة التالية");
@@ -6914,6 +7300,7 @@ var qrcode = function() {
       targetPos: reveal || pid === s.psychic ? s.targetPos : null,
       result: reveal ? s.result : null,
       winner: s.winner,
+      skips: s.skips || 0,
       fx: viewFx(s, pid)
     };
   }
@@ -6975,7 +7362,216 @@ var qrcode = function() {
     "شيء تشربه بارد",
     "سبب للتأخر عن الدوام",
     "شيء تسويه في المطار",
-    "مسلسل أو برنامج قديم"
+    "مسلسل أو برنامج قديم",
+    "اذكر فاكهة",
+    "اذكر رقمًا من ١ إلى ٥",
+    "اذكر حيوانًا يعيش في البحر",
+    "اذكر اسم بنت",
+    "اذكر نوع قهوة",
+    "اذكر دولة خليجية",
+    "اذكر مدينة سعودية",
+    "اذكر لون سيارة",
+    "اذكر مشروبًا غازيًا",
+    "اذكر نوع جبن",
+    "اذكر عضوًا في جسم الإنسان",
+    "اذكر شهرًا هجريًا",
+    "اذكر يومًا من أيام الأسبوع",
+    "اذكر شيئًا تحطه في الشاي",
+    "اذكر ماركة جوالات",
+    "اذكر لاعب كرة مشهور",
+    "اذكر ناديًا سعوديًا",
+    "اذكر نوع حلويات",
+    "اذكر شيئًا تلبسه في رجلك",
+    "اذكر أداة تستخدمها في الأكل",
+    "اذكر نوع شجرة",
+    "اذكر طيرًا",
+    "اذكر حشرة",
+    "اذكر شيئًا مدوّرًا",
+    "اذكر شيئًا حارًا",
+    "اذكر شيئًا باردًا",
+    "اذكر شيئًا حلو الطعم",
+    "اذكر شيئًا مالحًا",
+    "اذكر نوع خبز",
+    "اذكر أكلة تحبها",
+    "اذكر عاصمة عربية",
+    "اذكر كوكبًا",
+    "اذكر آلة موسيقية",
+    "اذكر رياضة فردية",
+    "اذكر رياضة مائية",
+    "اذكر مكانًا للتنزه",
+    "اذكر جهازًا في المطبخ",
+    "اذكر شيئًا في غرفة النوم",
+    "اذكر ماركة ملابس",
+    "اذكر مطعم وجبات سريعة",
+    "اذكر نوع بهارات",
+    "اذكر شيئًا مصنوعًا من الزجاج",
+    "اذكر مادة دراسية",
+    "اذكر مهنة طبية",
+    "اذكر شيئًا يطير",
+    "اذكر حيوانًا مفترسًا",
+    "اذكر حيوانًا صغيرًا",
+    "اذكر حيوانًا في المزرعة",
+    "اذكر شيئًا تاخذه للسفر",
+    "اذكر دولة آسيوية",
+    "اذكر دولة أفريقية",
+    "اذكر شيئًا يكون في السيارة",
+    "اذكر لعبة فيديو",
+    "اذكر جهاز ألعاب",
+    "اذكر برنامج تواصل اجتماعي",
+    "اذكر شيئًا لونه أزرق",
+    "اذكر شيئًا لونه أخضر",
+    "اذكر شيئًا لونه أحمر",
+    "اذكر شيئًا لونه أسود",
+    "اذكر شيئًا لونه أصفر",
+    "اذكر نوع عصير",
+    "اذكر نكهة آيسكريم",
+    "اذكر نوع مكسرات",
+    "اذكر خضارًا",
+    "اذكر شيئًا تحطه في السلطة",
+    "اذكر شيئًا في المدرسة",
+    "اذكر شيئًا في المستشفى",
+    "اذكر شيئًا في المطار",
+    "اذكر شيئًا تسويه في العيد",
+    "اذكر شيئًا تسويه في رمضان",
+    "اذكر أكلة شعبية",
+    "اذكر أكلة إيطالية",
+    "اذكر أكلة هندية",
+    "اذكر صوت حيوان",
+    "اذكر شيئًا مخيفًا",
+    "اذكر شيئًا يسعدك",
+    "اذكر شيئًا يزعجك",
+    "اذكر صفة حلوة في الإنسان",
+    "اذكر هواية",
+    "اذكر شيئًا يجمعه الناس",
+    "اذكر سببًا للسهر",
+    "اذكر وقتًا من اليوم",
+    "اذكر شيئًا يكون في الجيب",
+    "اذكر شيئًا يحتاج كهرباء",
+    "اذكر شيئًا يشتغل ببطارية",
+    "اذكر شيئًا تفتحه بمفتاح",
+    "اذكر شيئًا له ريحة حلوة",
+    "اذكر نوع ورد",
+    "اذكر مكانًا فيه ماء",
+    "اذكر شيئًا تلقاه على البحر",
+    "اذكر حرفًا عربيًا",
+    "اذكر رقمًا زوجيًا",
+    "اذكر شكلًا هندسيًا",
+    "اذكر عملة",
+    "اذكر شيئًا ثقيلًا",
+    "اذكر شيئًا خفيفًا",
+    "اذكر شيئًا ناعمًا",
+    "اذكر شيئًا حادًا",
+    "اذكر شيئًا يلمع",
+    "اذكر اختراعًا مهمًا",
+    "اذكر شيئًا في الملعب",
+    "اذكر مركزًا في كرة القدم",
+    "اذكر شيئًا تلبسه على راسك",
+    "اذكر قطعة ملابس",
+    "اذكر نوع حذاء",
+    "اذكر شيئًا في الدولاب",
+    "اذكر نوع شاي",
+    "اذكر نوع لحم",
+    "اذكر طريقة طبخ",
+    "اذكر شيئًا يتقلى",
+    "اذكر شيئًا يتشوى",
+    "اذكر نوع مكرونة",
+    "اذكر نوع صوص",
+    "اذكر شيئًا تشتريه كل أسبوع",
+    "اذكر سببًا لزيارة الطبيب",
+    "اذكر مدينة سياحية",
+    "اذكر معلمًا سياحيًا في العالم",
+    "اذكر محلًا في المول",
+    "اذكر لعبة أطفال",
+    "اذكر شخصية كرتونية",
+    "اذكر برنامج أطفال قديم",
+    "اذكر شيئًا يحبه الأطفال",
+    "اذكر كلمة تقولها لما تعصّب",
+    "اذكر كلمة ترحيب",
+    "اذكر عادة صباحية",
+    "اذكر ظاهرة طبيعية",
+    "اذكر شيئًا يصير في الشتاء",
+    "اذكر شيئًا يصير في الصيف",
+    "اذكر شيئًا يذوب",
+    "اذكر شيئًا ينكسر",
+    "اذكر شيئًا يطفو على الماء",
+    "اذكر شيئًا يدور",
+    "اذكر شيئًا صوته عالي",
+    "اذكر شيئًا صغيرًا جدًا",
+    "اذكر شيئًا ضخمًا جدًا",
+    "اذكر شيئًا يكون في الفريزر",
+    "اذكر نوع سمك",
+    "اذكر شيئًا تاكله بيدك",
+    "اذكر شيئًا تاكله بالملعقة",
+    "اذكر شيئًا تشربه ساخن",
+    "اذكر قطعة أثاث",
+    "اذكر شيئًا في الحديقة",
+    "اذكر أداة في صندوق العدّة",
+    "اذكر قطعة في السيارة",
+    "اذكر شيئًا يحتاجه الطالب",
+    "اذكر شيئًا على مكتبك",
+    "اذكر مهنة تحتاج شجاعة",
+    "اذكر مهنة تشتغل بالليل",
+    "اذكر مكانًا تروح له مع العائلة",
+    "اذكر شيئًا في المسجد",
+    "اذكر شيئًا تقدّمه للضيف",
+    "اذكر نوع حلا بارد",
+    "اذكر لعبة ورق",
+    "اذكر لعبة جماعية",
+    "اذكر شيئًا يكون في العرس",
+    "اذكر هدية للعروس",
+    "اذكر حيوانًا يبيض",
+    "اذكر حيوانًا يعيش في الغابة",
+    "اذكر حيوانًا له قرون",
+    "اذكر حيوانًا له ذيل طويل",
+    "اذكر شيئًا فيه سكر كثير",
+    "اذكر شيئًا يضحّك",
+    "اذكر أكلة ما تحبها",
+    "اذكر شيئًا تسويه لما تملّ",
+    "اذكر شيئًا تشوفه في الطريق السريع",
+    "اذكر شيئًا يكون في محطة البنزين",
+    "اذكر نوع سيارة دفع رباعي",
+    "اذكر شيئًا يكون في الخيمة",
+    "اذكر نوع طيور الزينة",
+    "اذكر شيئًا في صالون البيت",
+    "اذكر شيئًا يحتاجه المولود",
+    "اذكر نوع فطائر",
+    "اذكر شيئًا تاكله في السينما",
+    "اذكر طبقًا جانبيًا",
+    "اذكر شيئًا مصنوعًا من الخشب",
+    "اذكر شيئًا مصنوعًا من الحديد",
+    "اذكر شيئًا مصنوعًا من البلاستيك",
+    "اذكر شيئًا مصنوعًا من الورق",
+    "اذكر شيئًا مصنوعًا من القماش",
+    "اذكر شيئًا تلقاه في الشنطة النسائية",
+    "اذكر سببًا للتأخر عن المدرسة",
+    "اذكر شيئًا يسويه الناس في المطر",
+    "اذكر مكانًا باردًا",
+    "اذكر مكانًا حارًا",
+    "اذكر بحرًا أو محيطًا",
+    "اذكر نهرًا مشهورًا",
+    "اذكر جبلًا مشهورًا",
+    "اذكر قارة",
+    "اذكر لغة",
+    "اذكر شيئًا تسويه في الصباح الباكر",
+    "اذكر كلمة إنجليزية يقولها الكل",
+    "اذكر شيئًا تكرهه في الزحمة",
+    "اذكر نوع زيت",
+    "اذكر شيئًا يتعلّق على الجدار",
+    "اذكر شيئًا تشوفه في الكشتة",
+    "اذكر نوع حلاوة للأطفال",
+    "اذكر نوع شيبس",
+    "اذكر شيئًا يكون في المقصف",
+    "اذكر نوع منظف",
+    "اذكر شيئًا يحتاج ماء",
+    "اذكر شيئًا تسويه مع أصحابك",
+    "اذكر طريقة تتواصل فيها مع أحد",
+    "اذكر شيئًا يتغير مع الوقت",
+    "اذكر شيئًا يكون في السماء بالنهار",
+    "اذكر شيئًا يدل على الفرح",
+    "اذكر شيئًا يدل على الحزن",
+    "اذكر مشروبًا يصحّيك",
+    "اذكر موسمًا تحبه",
+    "اذكر شيئًا يكون في الملاهي"
   ];
 
   // js/engines/herd.js
@@ -7076,6 +7672,11 @@ var qrcode = function() {
         if (s.phase !== "result" || !ctx2.isHost) return err4("المضيف ينتقل للسؤال التالي");
         newRound3(s, ctx2.rng);
         return ok4();
+      case "skipQ":
+        if (s.phase !== "answer" || !ctx2.isHost) return err4("المضيف فقط يتخطى السؤال قبل كشف الإجابات");
+        newRound3(s, ctx2.rng);
+        pushFx(s, { kind: "skip" });
+        return ok4();
       default:
         return err4("إجراء غير معروف");
     }
@@ -7114,6 +7715,7 @@ var qrcode = function() {
     neighbors: () => neighbors,
     normalizeOptions: () => normalizeOptions8,
     optionSchema: () => optionSchema6,
+    teamInfo: () => teamInfoLt,
     setup: () => setup11,
     summary: () => summary11,
     view: () => view11
@@ -7121,8 +7723,9 @@ var qrcode = function() {
   var meta11 = { id: "letters", minPlayers: 3, maxPlayers: 16, defaultOptions: { boards: 1 } };
   var normalizeOptions8 = (o = {}) => ({ boards: [1, 2].includes(o.boards) ? o.boards : 1 });
   var optionSchema6 = () => [{ key: "boards", type: "select", label: "طول المباراة", options: [[1, "لوحة واحدة"], [2, "الأفضل من ٣ لوحات"]] }];
+  var teamInfoLt = () => ({ count: 2, names: ["البرتقالي ↕", "الأخضر ↔"], colors: ["var(--team-a, #ff8800)", "var(--team-b, #2bb673)"], excludeHost: true, minPer: 1 });
   var LETTERS = "ابتثجحخدذرزسشصضطظعغفقكلمنهوي".split("");
-  var CATEGORIES = ["اسم ولد", "اسم بنت", "حيوان", "نبات أو فاكهة أو خضار", "جماد", "دولة", "مدينة", "أكلة", "مهنة", "شيء في البيت"];
+  var CATEGORIES = ["اسم ولد", "اسم بنت", "حيوان", "نبات أو فاكهة أو خضار", "جماد", "دولة", "مدينة", "أكلة", "مهنة", "شيء في البيت", "طير أو حشرة", "شيء في المطبخ", "قطعة ملابس", "شيء في المدرسة", "شيء من البقالة", "رياضة أو هواية", "صفة لشخص", "فعل (شيء تسويه)"];
   var N = 5;
   function neighbors(r, c) {
     const odd = r % 2 === 1;
@@ -7156,7 +7759,8 @@ var qrcode = function() {
     const o = normalizeOptions8(options);
     const host = players.find((p) => p.isHost) || players[0];
     const rest = players.filter((p) => p.id !== host.id).map((p) => p.id);
-    const { A, B } = splitTeams(rest, rng);
+    const ftL = fixedTeams(players.filter((p) => p.id !== host.id), 2, rng);
+    const { A, B } = ftL ? { A: ftL[0], B: ftL[1] } : splitTeams(rest, rng);
     const s = { game: "letters", o, host: host.id, teams: { A, B }, wins: { A: 0, B: 0 }, board: 0, players: players.map((p) => ({ id: p.id })), winner: null, fx: [], fxSeq: 0 };
     newBoard(s, rng);
     return s;
@@ -7294,6 +7898,7 @@ var qrcode = function() {
     setup: () => setup12,
     summary: () => summary12,
     tick: () => tick4,
+    teamInfo: () => teamInfoFf,
     view: () => view12
   });
 
@@ -7316,7 +7921,179 @@ var qrcode = function() {
     { q: "شيء يزعجك في الطيارة", a: [["بكاء الأطفال", 35], ["الكرسي الضيق", 25], ["ركلات من ورا", 15], ["المطبات", 13], ["الأكل", 7], ["الشخير", 5]] },
     { q: "هدية مناسبة للأم", a: [["عطر", 32], ["ذهب", 26], ["ورد", 16], ["عباية", 12], ["شنطة", 8], ["بخور", 6]] },
     { q: "رياضة تحتاج كرة", a: [["كرة قدم", 42], ["كرة سلة", 22], ["طائرة", 14], ["تنس", 10], ["بولينج", 7], ["جولف", 5]] },
-    { q: "شيء يسويه الطالب ليلة الاختبار", a: [["يذاكر", 35], ["يسهر", 25], ["يشرب قهوة", 15], ["يتوتر", 12], ["يدعي", 8], ["ينام بدري", 5]] }
+    { q: "شيء يسويه الطالب ليلة الاختبار", a: [["يذاكر", 35], ["يسهر", 25], ["يشرب قهوة", 15], ["يتوتر", 12], ["يدعي", 8], ["ينام بدري", 5]] },
+    { q: "شيء تسويه قبل النوم", a: [["تقلّب في الجوال", 34], ["تفرش أسنانك", 20], ["تقرأ الأذكار", 16], ["تطفي النور", 12], ["تشرب ماء", 10], ["تضبط المنبه", 8]] },
+    { q: "شيء تلقاه في شنطة المدرسة", a: [["دفاتر", 30], ["أقلام", 25], ["كتب", 18], ["مقلمة", 12], ["سندويشة", 9], ["ألوان", 6]] },
+    { q: "شيء يسويه الناس في المطار وهم ينتظرون", a: [["يتصفحون الجوال", 30], ["يشحنون الجوال", 20], ["يتسوقون في السوق الحرة", 18], ["ياكلون", 14], ["ينامون", 10], ["يصوّرون", 8]] },
+    { q: "أكلة تطبخها الأم يوم الجمعة", a: [["كبسة", 45], ["مندي", 15], ["مرقوق", 12], ["جريش", 10], ["سليق", 8], ["مكرونة", 6]] },
+    { q: "شيء يخليك تتأخر عن موعد", a: [["الزحمة", 38], ["النوم", 22], ["اللبس والتجهيز", 14], ["البحث عن موقف", 12], ["مكالمة", 8], ["نسيان المفتاح", 6]] },
+    { q: "شيء تسويه إذا انقطعت الكهرباء", a: [["تشغّل كشاف الجوال", 34], ["تفتح الشبابيك", 18], ["تتصل بالكهرباء", 16], ["تطلع برا", 14], ["تنام", 10], ["تشعل شمعة", 8]] },
+    { q: "شيء حار", a: [["الشاي", 28], ["الشمس", 26], ["الفلفل", 18], ["الصيف", 14], ["النار", 9], ["القهوة", 5]] },
+    { q: "حيوان أليف", a: [["قطة", 45], ["عصفور", 18], ["سمك زينة", 14], ["أرنب", 10], ["كلب", 8], ["سلحفاة", 5]] },
+    { q: "شيء تشتريه من الصيدلية", a: [["بنادول", 40], ["فيتامينات", 18], ["معجون أسنان", 14], ["كريم", 12], ["كمامات", 9], ["لاصق جروح", 7]] },
+    { q: "شيء تلقاه في الحمّام", a: [["صابون", 30], ["شامبو", 22], ["منشفة", 16], ["فرشاة أسنان", 14], ["مرآة", 10], ["مناديل", 8]] },
+    { q: "شيء يزعجك في الجيران", a: [["الإزعاج", 36], ["الوقوف قدام بيتك", 22], ["الأطفال", 14], ["الزبالة", 12], ["اللقافة", 10], ["الحفلات", 6]] },
+    { q: "وظيفة يحلم فيها الأطفال", a: [["طبيب", 34], ["طيار", 22], ["شرطي", 14], ["مهندس", 12], ["لاعب كرة", 10], ["معلم", 8]] },
+    { q: "شيء تسويه في الإجازة الصيفية", a: [["تسافر", 38], ["تنام كثير", 20], ["تطلع البحر", 14], ["تزور الأهل", 12], ["تلعب", 10], ["تدرس صيفي", 6]] },
+    { q: "فاكهة صيفية", a: [["بطيخ", 40], ["شمام", 18], ["عنب", 14], ["مانجو", 12], ["خوخ", 9], ["تين", 7]] },
+    { q: "شيء لازم يكون في السيارة", a: [["ماء", 28], ["مناديل", 22], ["شاحن", 18], ["نظارة شمسية", 14], ["عطر", 10], ["إطار احتياطي", 8]] },
+    { q: "سبب يخليك تزعل من صديقك", a: [["ما يرد على الاتصال", 30], ["الكذب", 24], ["ينسى مناسبتك", 16], ["التأخير", 12], ["يتكلم عنك", 10], ["يخلف وعده", 8]] },
+    { q: "شيء يسويه الناس في رمضان أكثر من غيره", a: [["الصلاة", 30], ["قراءة القرآن", 24], ["السهر", 18], ["الأكل", 12], ["الزيارات", 10], ["المسلسلات", 6]] },
+    { q: "أكلة سريعة", a: [["برجر", 38], ["بيتزا", 22], ["شاورما", 18], ["بروستد", 12], ["سندويش", 6], ["هوت دوق", 4]] },
+    { q: "شيء تسويه أول ما تصحى", a: [["تشيك الجوال", 40], ["تغسل وجهك", 22], ["تصلي", 16], ["تشرب قهوة", 12], ["تفطر", 6], ["ترجع تنام", 4]] },
+    { q: "مكان ما تحب تنتظر فيه", a: [["المستشفى", 34], ["البنك", 20], ["المطار", 16], ["الإشارة", 12], ["الدوائر الحكومية", 10], ["الحلاق", 8]] },
+    { q: "شيء تاخذه معك للبحر", a: [["مظلة", 28], ["منشفة", 22], ["كريم شمس", 18], ["ماء", 14], ["أكل", 10], ["كورة", 8]] },
+    { q: "مشروب بارد مشهور", a: [["ماء", 30], ["عصير", 24], ["بيبسي", 20], ["آيس كوفي", 14], ["ليمون بالنعناع", 7], ["لبن", 5]] },
+    { q: "شيء يخاف منه الأطفال", a: [["الظلام", 40], ["الإبرة", 20], ["الحيوانات", 14], ["الطبيب", 12], ["الأصوات العالية", 8], ["الوحوش", 6]] },
+    { q: "شيء تسويه وأنت زهقان", a: [["تتصفح الجوال", 38], ["تاكل", 18], ["تنام", 16], ["تطلع", 12], ["تكلم أحد", 10], ["تشوف تلفزيون", 6]] },
+    { q: "شيء ينحط على الرز", a: [["لحم", 34], ["دجاج", 30], ["صالونة", 14], ["سمك", 10], ["لبن", 7], ["مكسرات", 5]] },
+    { q: "شيء تسويه في العرس", a: [["تسلّم على المعازيم", 26], ["تاكل", 22], ["ترقص", 20], ["تصوّر", 14], ["تلبس أحلى لبس", 10], ["تعطي هدية", 8]] },
+    { q: "شيء يطلبه الأطفال من أهلهم", a: [["فلوس", 30], ["حلاوة", 24], ["ألعاب", 18], ["جوال", 14], ["طلعة", 9], ["سهر", 5]] },
+    { q: "ماركة سيارات مشهورة", a: [["تويوتا", 40], ["نيسان", 20], ["هيونداي", 14], ["لكزس", 12], ["مرسيدس", 9], ["فورد", 5]] },
+    { q: "شيء تسويه بالجوال غير الاتصال", a: [["سوشال ميديا", 36], ["تصوير", 22], ["ألعاب", 16], ["رسائل", 14], ["مقاطع فيديو", 8], ["البنك", 4]] },
+    { q: "شيء تلقاه في المكتب", a: [["كمبيوتر", 30], ["أوراق", 20], ["قلم", 18], ["كرسي", 14], ["طابعة", 10], ["دباسة", 8]] },
+    { q: "شيء يدل إن الشخص تعبان", a: [["يتثاوب", 36], ["عيونه حمر", 20], ["ساكت", 14], ["ينام بسرعة", 12], ["عصبي", 10], ["وجهه أصفر", 8]] },
+    { q: "شيء يحبه الكل", a: [["الفلوس", 30], ["الأكل", 24], ["الإجازة", 18], ["النوم", 12], ["السفر", 10], ["المدح", 6]] },
+    { q: "شيء تسويه لما يجيك ضيف", a: [["تقدّم القهوة", 40], ["ترحّب فيه", 20], ["تقدّم تمر", 14], ["تبخّره", 12], ["تعزمه على عشاء", 8], ["ترتّب المجلس", 6]] },
+    { q: "شيء أخضر", a: [["شجرة", 32], ["عشب", 22], ["خيار", 14], ["تفاح أخضر", 12], ["نعناع", 10], ["علم السعودية", 10]] },
+    { q: "شيء أصفر", a: [["موز", 30], ["ليمون", 22], ["الشمس", 20], ["ذهب", 12], ["تاكسي", 10], ["صفار البيض", 6]] },
+    { q: "شيء أحمر", a: [["طماطم", 28], ["دم", 20], ["تفاح", 18], ["ورد", 14], ["فراولة", 12], ["إشارة المرور", 8]] },
+    { q: "شيء أبيض", a: [["حليب", 30], ["ثلج", 20], ["ثوب", 18], ["سكر", 12], ["ورق", 12], ["غيوم", 8]] },
+    { q: "شيء أسود", a: [["الليل", 30], ["القهوة", 22], ["الفحم", 16], ["الشعر", 14], ["العباية", 12], ["الغراب", 6]] },
+    { q: "شيء تشوفه في البر", a: [["رمل", 30], ["جمال", 24], ["خيام", 18], ["شجر", 10], ["نجوم", 10], ["سيارات دفع رباعي", 8]] },
+    { q: "شيء يتكسر بسهولة", a: [["زجاج", 40], ["صحون", 20], ["جوال", 14], ["بيض", 12], ["قلب", 8], ["نظارة", 6]] },
+    { q: "سبب تروح فيه للمول", a: [["تتسوق", 40], ["تتمشى", 20], ["تاكل", 18], ["سينما", 12], ["تغيير جو", 6], ["تقابل أصحابك", 4]] },
+    { q: "شيء يسويه الناس في السينما", a: [["ياكلون فشار", 40], ["يشوفون الفيلم", 20], ["ينامون", 14], ["يسولفون", 12], ["يستخدمون الجوال", 8], ["يبكون", 6]] },
+    { q: "شيء لونه بني", a: [["قهوة", 26], ["شوكولاتة", 24], ["خشب", 20], ["تمر", 14], ["تراب", 10], ["خبز", 6]] },
+    { q: "هدية مناسبة لصديق", a: [["عطر", 34], ["ساعة", 22], ["بوكس شوكولاتة", 14], ["قلم", 10], ["ملابس", 10], ["بطاقة هدية", 10]] },
+    { q: "شيء يسويه الطفل إذا زعل", a: [["يبكي", 46], ["يصرخ", 18], ["يدخل غرفته", 12], ["ما يتكلم", 10], ["يكسر شيء", 8], ["يشتكي", 6]] },
+    { q: "لعبة شعبية مشهورة", a: [["بلوت", 30], ["كيرم", 22], ["دامة", 14], ["الغميضة", 12], ["شطرنج", 12], ["عظيم ساري", 10]] },
+    { q: "شيء تسويه في الطيارة", a: [["تنام", 38], ["تشوف أفلام", 24], ["تاكل", 16], ["تقرأ", 10], ["تسولف", 7], ["تتمشى", 5]] },
+    { q: "شيء تشوفه في الشارع", a: [["سيارات", 40], ["إشارات", 18], ["ناس", 16], ["محلات", 12], ["قطط", 8], ["لوحات إعلانات", 6]] },
+    { q: "أكلة تاكلها على الفطور", a: [["بيض", 34], ["فول", 24], ["تميس", 14], ["جبن", 12], ["شكشوكة", 10], ["فطاير", 6]] },
+    { q: "شيء يسويه الطالب في الفسحة", a: [["ياكل", 44], ["يلعب", 24], ["يسولف", 16], ["يشتري من المقصف", 10], ["يذاكر", 6]] },
+    { q: "كلمة تقولها إذا تفاجأت", a: [["يا الله", 30], ["ما شاء الله", 22], ["جد؟", 18], ["سبحان الله", 14], ["لا مستحيل", 10], ["واو", 6]] },
+    { q: "شيء تسويه لما تمطر", a: [["تطلع البر", 30], ["تصوّر المطر", 22], ["تشرب شاي", 18], ["تقعد في البيت", 12], ["تدعي", 10], ["تسوي قهوة", 8]] },
+    { q: "أكثر شيء تصرف عليه فلوس", a: [["الأكل", 36], ["البنزين", 18], ["الملابس", 16], ["الفواتير", 14], ["السفر", 10], ["القهوة", 6]] },
+    { q: "شيء يكون في محفظتك", a: [["فلوس", 34], ["بطاقة الهوية", 26], ["بطاقة البنك", 22], ["رخصة القيادة", 10], ["صور", 5], ["فواتير", 3]] },
+    { q: "شيء تلقاه في المستشفى", a: [["أطباء", 30], ["ممرضات", 22], ["مرضى", 18], ["أسرّة", 12], ["أدوية", 10], ["كراسي متحركة", 8]] },
+    { q: "شيء تسويه وأنت تسوق", a: [["تسمع أغاني أو بودكاست", 34], ["تتكلم بالجوال", 20], ["تسولف مع اللي معك", 18], ["تاكل", 12], ["تغني", 10], ["تعصّب", 6]] },
+    { q: "شيء يسبب الصداع", a: [["قلة النوم", 34], ["الإزعاج", 22], ["الجوع", 14], ["الشمس", 12], ["الشاشة", 10], ["التفكير", 8]] },
+    { q: "ريحة تعرفها فورًا", a: [["العود والبخور", 34], ["القهوة", 24], ["الأكل", 16], ["العطر", 14], ["المطر", 8], ["البنزين", 4]] },
+    { q: "مكان يكون زحمة دايم", a: [["المولات", 30], ["الطرق", 26], ["المستشفيات", 16], ["المطاعم", 12], ["المطار", 10], ["البنوك", 6]] },
+    { q: "شيء يسويه الشباب في الاستراحة", a: [["يلعبون بلوت", 36], ["يشربون شاي وقهوة", 24], ["يسولفون", 18], ["يشوفون مباراة", 12], ["يطبخون", 6], ["ينامون", 4]] },
+    { q: "أكثر شيء يضيع في البيت", a: [["ريموت التلفزيون", 40], ["المفاتيح", 22], ["الجوال", 16], ["الشاحن", 12], ["النظارة", 6], ["الجوارب", 4]] },
+    { q: "شيء يسويه الناس في الحدائق", a: [["يتمشون", 30], ["يجلسون مع العائلة", 24], ["الأطفال يلعبون", 20], ["يشوون", 12], ["يمارسون الرياضة", 8], ["يصوّرون", 6]] },
+    { q: "شيء تلبسه في الشتاء", a: [["جاكيت", 34], ["فروة", 22], ["شماغ", 14], ["جوارب", 12], ["قفازات", 10], ["طاقية", 8]] },
+    { q: "شيء ممكن تلقاه تحت السرير", a: [["غبار", 30], ["جوارب", 22], ["شنطة سفر", 16], ["ألعاب", 14], ["جوال", 10], ["فلوس", 8]] },
+    { q: "شيء يسويه الشخص لما يتوتر", a: [["يعرق", 28], ["يهز رجله", 22], ["يقضم أظافره", 18], ["يتلعثم", 14], ["يمشي رايح جاي", 10], ["ياكل", 8]] },
+    { q: "شيء تشوفه في السماء", a: [["شمس", 30], ["قمر", 24], ["نجوم", 18], ["غيوم", 14], ["طيارة", 10], ["طيور", 4]] },
+    { q: "عذر يقوله الطالب لما ما يحل الواجب", a: [["نسيت الدفتر", 36], ["ما فهمت", 22], ["كنت مريض", 16], ["ما كان فيه كهرباء", 10], ["عندنا ضيوف", 10], ["أخوي خرّبه", 6]] },
+    { q: "حلويات مشهورة", a: [["كنافة", 30], ["بسبوسة", 22], ["لقيمات", 16], ["كيك", 14], ["تشيز كيك", 10], ["معمول", 8]] },
+    { q: "شيء تسويه لما يرن جوالك وأنت مشغول", a: [["تقفله", 34], ["تحطه صامت", 26], ["ترد بسرعة", 18], ["تخليه يرن", 12], ["ترسل رسالة", 10]] },
+    { q: "شيء تلقاه عند الكاشير", a: [["جهاز الدفع", 30], ["فلوس", 24], ["أكياس", 18], ["علك وحلاوة", 14], ["فواتير", 9], ["ميزان", 5]] },
+    { q: "شيء تتمنى يكون عندك", a: [["فلوس كثير", 36], ["بيت كبير", 22], ["سيارة فخمة", 16], ["وقت فراغ", 12], ["صحة", 10], ["قوة خارقة", 4]] },
+    { q: "حيوان سريع", a: [["فهد", 40], ["حصان", 22], ["غزال", 16], ["أرنب", 10], ["صقر", 8], ["نعامة", 4]] },
+    { q: "حيوان ضخم", a: [["فيل", 46], ["حوت", 20], ["زرافة", 12], ["جمل", 10], ["وحيد القرن", 7], ["دب", 5]] },
+    { q: "شيء يسويه الناس في السوبرماركت", a: [["يتسوقون", 40], ["يقارنون الأسعار", 18], ["يتذوقون", 12], ["ينتظرون عند الكاشير", 12], ["يدفعون العربية", 10], ["ينسون غرض", 8]] },
+    { q: "شيء تسويه لما تشوف صرصور", a: [["تصارخ", 34], ["تقتله", 26], ["تهرب", 18], ["تنادي أحد", 12], ["ترشه بمبيد", 10]] },
+    { q: "شيء تسويه في يوم العطلة", a: [["تنام", 40], ["تطلع مع الأهل", 20], ["تشوف مسلسل", 14], ["تزور أحد", 12], ["ترتب البيت", 8], ["تتمرن", 6]] },
+    { q: "شيء يزعجك في المطاعم", a: [["التأخير", 34], ["الأسعار", 22], ["الأكل البارد", 14], ["الإزعاج", 12], ["الطلب غلط", 10], ["النظافة", 8]] },
+    { q: "شيء ينتظره الطلاب بفارغ الصبر", a: [["الإجازة", 46], ["نهاية الدوام", 20], ["الفسحة", 14], ["النتائج", 10], ["المكافأة", 6], ["الرحلة", 4]] },
+    { q: "شيء يسويه الأب لما يرجع من الدوام", a: [["ينام", 34], ["ياكل", 26], ["يغيّر ملابسه", 14], ["يشوف الأخبار", 12], ["يسأل عن العيال", 8], ["يشرب قهوة", 6]] },
+    { q: "مكان ما تقدر تستخدم فيه الجوال", a: [["المسجد", 34], ["قاعة الاختبار", 26], ["الطيارة", 14], ["المستشفى", 10], ["السينما", 10], ["الاجتماع", 6]] },
+    { q: "شيء تلقاه في المطبخ", a: [["ثلاجة", 26], ["فرن", 22], ["صحون", 18], ["ملاعق", 14], ["قدور", 12], ["غسالة صحون", 8]] },
+    { q: "شيء يسويه الشخص قبل المقابلة الشخصية", a: [["يلبس رسمي", 32], ["يتدرب على الأسئلة", 22], ["يتوتر", 16], ["يجهز السيرة الذاتية", 14], ["يتعطر", 10], ["يدعي", 6]] },
+    { q: "شيء يخاف منه الكبار", a: [["المرض", 30], ["الفقر", 22], ["الموت", 18], ["فقدان الوظيفة", 14], ["الحشرات", 10], ["المرتفعات", 6]] },
+    { q: "شيء يتأخر عليه الناس", a: [["المواعيد", 30], ["الدوام", 26], ["الصلاة", 14], ["الطيارة", 12], ["المدرسة", 10], ["الأعراس", 8]] },
+    { q: "شيء له أزرار", a: [["جوال", 26], ["ريموت", 24], ["ثوب", 18], ["كيبورد", 14], ["مصعد", 10], ["آلة حاسبة", 8]] },
+    { q: "جهاز تشغله في البيت كل يوم", a: [["المكيف", 38], ["التلفزيون", 20], ["الإضاءة", 16], ["الراوتر", 12], ["الغسالة", 8], ["المايكرويف", 6]] },
+    { q: "أكلة تحتاج وقت طويل تنطبخ", a: [["مندي", 30], ["مرقوق", 18], ["هريس", 16], ["جريش", 14], ["محشي", 12], ["قوزي", 10]] },
+    { q: "شيء تسويه لما تكون مريض", a: [["تنام", 38], ["تاخذ دواء", 24], ["تروح المستشفى", 16], ["تشرب سوائل", 10], ["تغيب عن الدوام", 8], ["تتدلع", 4]] },
+    { q: "شيء تحمّله في الجوال", a: [["ألعاب", 34], ["تطبيقات", 26], ["أفلام", 14], ["أغاني", 12], ["صور", 8], ["تحديثات", 6]] },
+    { q: "تطبيق مشهور", a: [["واتساب", 40], ["سناب شات", 20], ["تيك توك", 14], ["يوتيوب", 12], ["انستقرام", 9], ["إكس", 5]] },
+    { q: "شيء يسويه الشباب ليلة الويكند", a: [["يسهرون", 34], ["يطلعون الاستراحة", 24], ["يلعبون بلايستيشن", 16], ["يطلعون مطعم", 12], ["يتمشون", 8], ["يشوفون مباراة", 6]] },
+    { q: "شيء تلقاه في الخيمة", a: [["فرشة", 28], ["دلة", 22], ["فانوس", 16], ["حطب", 14], ["بطانيات", 12], ["مساند", 8]] },
+    { q: "شيء يدل إنك كبرت في السن", a: [["الشيب", 40], ["التعب", 20], ["النظارة", 14], ["تنام بدري", 12], ["الكرش", 8], ["ركبك توجعك", 6]] },
+    { q: "شيء يسويه الناس لما يشوفون مشهور", a: [["يصوّرونه", 46], ["يسلّمون عليه", 22], ["يطلبون توقيع", 14], ["يتجمعون", 10], ["يتجاهلونه", 5], ["يصارخون", 3]] },
+    { q: "شيء له ريحة حلوة", a: [["ورد", 30], ["عطر", 26], ["بخور", 18], ["قهوة", 12], ["خبز طازج", 8], ["المطر", 6]] },
+    { q: "شيء له ريحة كريهة", a: [["الزبالة", 40], ["البيض الخربان", 18], ["الجوارب", 16], ["السمك", 12], ["المجاري", 10], ["الثوم", 4]] },
+    { q: "شيء إذا انكسر صعب يتصلح", a: [["الجوال", 30], ["الزجاج", 22], ["القلب", 18], ["الثقة", 14], ["الصحون", 10], ["الساعة", 6]] },
+    { q: "شيء يسويه الطالب في الاختبار", a: [["يفكر", 26], ["يلتفت يمين ويسار", 22], ["يكتب", 20], ["يتوتر", 14], ["ينام", 10], ["يراجع إجاباته", 8]] },
+    { q: "شيء تلقاه في المسجد", a: [["سجاد", 30], ["مصاحف", 24], ["مكيفات", 14], ["ثلاجة ماء", 12], ["منبر", 12], ["رف أحذية", 8]] },
+    { q: "شيء تسويه لما تشوف حادث", a: [["توقف", 26], ["تتصل بالإسعاف", 24], ["تصوّر", 18], ["تدعي", 14], ["تخفف السرعة", 12], ["تساعد", 6]] },
+    { q: "شيء تسويه عند الحلاق", a: [["تقص شعرك", 40], ["تحلق لحيتك", 24], ["تسولف مع الحلاق", 14], ["تنتظر دورك", 12], ["تتصفح الجوال", 6], ["مساج", 4]] },
+    { q: "شيء يضايقك في الصيف", a: [["الحر", 46], ["الرطوبة", 20], ["العرق", 14], ["الغبار", 10], ["فاتورة الكهرباء", 6], ["الحشرات", 4]] },
+    { q: "شيء يضايقك في الشتاء", a: [["البرد", 40], ["المطر والطين", 18], ["الزكام", 16], ["الصحيان بدري", 12], ["الريح", 8], ["الماء البارد", 6]] },
+    { q: "شيء تلبسه في العرس", a: [["ثوب جديد", 30], ["بشت", 26], ["شماغ", 14], ["ساعة", 12], ["عطر", 10], ["فستان", 8]] },
+    { q: "شيء لازم يكون في العيد", a: [["العيدية", 34], ["الحلويات", 22], ["ملابس جديدة", 16], ["ذبيحة", 14], ["القهوة", 8], ["البخور", 6]] },
+    { q: "شيء تحطه في الشاهي", a: [["سكر", 46], ["نعناع", 24], ["حليب", 14], ["هيل", 8], ["زعفران", 4], ["ليمون", 4]] },
+    { q: "شيء تحطه في القهوة العربية", a: [["هيل", 46], ["زعفران", 24], ["قرنفل", 14], ["زنجبيل", 10], ["مستكة", 6]] },
+    { q: "شيء يسويه الشخص لما يكذب", a: [["يتلعثم", 30], ["يتجنب النظر", 26], ["يعرق", 16], ["يضحك", 12], ["يغير الموضوع", 10], ["يحك راسه", 6]] },
+    { q: "شيء ما تقدر تعيش بدونه", a: [["الجوال", 34], ["الأكل", 22], ["الماء", 18], ["الأهل", 14], ["النوم", 8], ["القهوة", 4]] },
+    { q: "شيء تلقاه في الصحراء", a: [["رمل", 40], ["جمال", 22], ["عقارب", 14], ["كثبان", 12], ["شجر سدر", 7], ["نخيل", 5]] },
+    { q: "حيوان تشوفه في حديقة الحيوانات", a: [["أسد", 32], ["زرافة", 22], ["فيل", 18], ["قرود", 14], ["نمر", 8], ["طاووس", 6]] },
+    { q: "شيء تسويه لما تتأخر طلبيتك", a: [["تتصل بالمطعم", 34], ["تعصّب", 24], ["تشيك التطبيق", 18], ["تلغي الطلب", 12], ["تاكل شيء ثاني", 8], ["تنام", 4]] },
+    { q: "شيء يضحكك", a: [["نكتة", 36], ["موقف محرج", 20], ["مقطع مضحك", 18], ["صديق", 14], ["طفل", 8], ["أحد يطيح", 4]] },
+    { q: "شيء يسويه الناس في اليوم الوطني", a: [["يلبسون أخضر", 34], ["يحتفلون", 24], ["يطلعون الشوارع", 16], ["يرفعون الأعلام", 14], ["يشوفون الألعاب النارية", 8], ["يتسوقون العروض", 4]] },
+    { q: "شيء موجود في كل غرفة نوم", a: [["سرير", 46], ["دولاب", 22], ["مخدة", 14], ["مرآة", 8], ["مكيف", 6], ["أباجورة", 4]] },
+    { q: "شيء تسويه لما تشتري جوال جديد", a: [["تحط له كفر", 30], ["تنقل البيانات", 26], ["تصوّره", 14], ["تحط لزقة شاشة", 14], ["تجرب الكاميرا", 10], ["تتباهى فيه", 6]] },
+    { q: "شيء يطير", a: [["طيارة", 34], ["طير", 30], ["بالون", 14], ["ورقة", 8], ["درون", 8], ["فلوسك", 6]] },
+    { q: "شيء يسويه الشخص لما يكون جوعان", a: [["يعصّب", 30], ["يطلب أكل", 26], ["يفتح الثلاجة", 18], ["ياكل أي شيء", 12], ["يسرح", 8], ["ينام", 6]] },
+    { q: "شيء تلقاه في شنطة اليد", a: [["جوال", 26], ["محفظة", 22], ["مفاتيح", 18], ["مناديل", 14], ["عطر", 10], ["مرطب", 10]] },
+    { q: "شيء تسويه على البحر", a: [["تسبح", 34], ["تتمشى", 22], ["تصيد سمك", 14], ["تلعب بالرمل", 12], ["تصوّر الغروب", 10], ["تشوي", 8]] },
+    { q: "شيء يسوي إزعاج", a: [["الأطفال", 30], ["السيارات", 20], ["المنبه", 16], ["البناء", 14], ["الجيران", 12], ["الشخير", 8]] },
+    { q: "شيء له عجلات", a: [["سيارة", 40], ["دراجة", 22], ["عربية التسوق", 12], ["شنطة سفر", 10], ["كرسي مكتب", 8], ["سكوتر", 8]] },
+    { q: "شيء تحطه في الثلاجة أول ما تشتريه", a: [["حليب", 30], ["ماء", 24], ["لحم ودجاج", 18], ["خضار", 12], ["عصير", 10], ["لبن", 6]] },
+    { q: "شيء تسويه في الكشتة", a: [["تشبّ النار", 30], ["تسوي قهوة", 24], ["تشوي", 18], ["تسولف", 14], ["تتمشى", 8], ["تنام", 6]] },
+    { q: "شيء ما تعيره لأحد", a: [["فرشاة الأسنان", 34], ["الجوال", 24], ["السيارة", 18], ["الفلوس", 12], ["الملابس", 8], ["المشط", 4]] },
+    { q: "شيء يسويه الشخص لما يكسب جائزة", a: [["يفرح", 34], ["يصارخ", 22], ["يشكر الناس", 16], ["يتصل بأهله", 12], ["يصوّر", 10], ["يعزم أصحابه", 6]] },
+    { q: "شيء تشوفه في الملعب", a: [["لاعبين", 30], ["جمهور", 26], ["كورة", 18], ["حكم", 12], ["مرمى", 8], ["أعلام", 6]] },
+    { q: "أكثر شيء تنساه", a: [["أسماء الناس", 30], ["مكان المفاتيح", 24], ["المواعيد", 18], ["الجوال", 12], ["الكلام اللي بتقوله", 10], ["الشاحن", 6]] },
+    { q: "شيء تسويه وأنت في الزحمة", a: [["تسمع شيء", 30], ["تتأفف", 22], ["تشيك الجوال", 18], ["تكلم أحد", 14], ["تغيّر الطريق", 10], ["تبوّق", 6]] },
+    { q: "شيء تشتريه للبيت الجديد", a: [["أثاث", 34], ["ستائر", 18], ["أجهزة كهربائية", 18], ["سجاد", 12], ["أدوات مطبخ", 10], ["نباتات", 8]] },
+    { q: "شيء يسويه الطفل في أول يوم مدرسة", a: [["يبكي", 50], ["يتمسك بأمه", 18], ["يخاف", 12], ["يتعرف على أصحاب", 10], ["يلعب", 6], ["ينام", 4]] },
+    { q: "شيء يحبه الأطفال في المطاعم", a: [["ألعاب الأطفال", 30], ["البطاطس", 26], ["الآيسكريم", 18], ["الهدية مع الوجبة", 14], ["العصير", 8], ["البيتزا", 4]] },
+    { q: "شيء تسويه لما تعطس", a: [["تقول الحمد لله", 50], ["تغطي فمك", 22], ["تاخذ منديل", 14], ["تعتذر", 8], ["تعطس مرة ثانية", 6]] },
+    { q: "شيء تلقاه في البقالة", a: [["خبز", 26], ["حليب", 22], ["مشروبات", 18], ["حلاوة", 14], ["شيبس", 12], ["منظفات", 8]] },
+    { q: "شيء تسويه لما تصحى متأخر", a: [["تركض", 30], ["تلبس بسرعة", 24], ["تتصل تعتذر", 16], ["ما تفطر", 14], ["تسوق بسرعة", 10], ["تغيب", 6]] },
+    { q: "شيء تحتاجه في رحلة طويلة بالسيارة", a: [["بنزين", 30], ["أكل وسناكات", 22], ["ماء", 18], ["أغاني", 14], ["نوم كافي", 10], ["شاحن", 6]] },
+    { q: "شيء يستخدمه الطباخ", a: [["سكين", 30], ["قدر", 22], ["ملعقة", 16], ["مريول", 12], ["بهارات", 12], ["لوح تقطيع", 8]] },
+    { q: "شيء تشوفه في المطار", a: [["طيارات", 30], ["شنط", 24], ["مسافرين", 18], ["شاشات الرحلات", 12], ["السوق الحرة", 10], ["جوازات", 6]] },
+    { q: "شيء تسويه بعد الأكل", a: [["تغسل يدك", 34], ["تشرب شاي", 24], ["تنام", 18], ["تحمد الله", 12], ["تتمشى", 8], ["تاكل حلا", 4]] },
+    { q: "شيء يلمع", a: [["ذهب", 34], ["ألماس", 24], ["نجوم", 16], ["زجاج", 12], ["سيارة جديدة", 8], ["ساعة", 6]] },
+    { q: "صوت تسمعه في البيت", a: [["التلفزيون", 26], ["الأطفال", 24], ["المكيف", 18], ["الجرس", 12], ["الغسالة", 10], ["المطبخ", 10]] },
+    { q: "شيء ثقيل", a: [["حديد", 30], ["فيل", 20], ["صخرة", 18], ["ثلاجة", 14], ["شنطة السفر", 10], ["دمبل", 8]] },
+    { q: "شيء تسويه قبل السفر", a: [["تجهز الشنطة", 34], ["تحجز التذاكر", 22], ["تودّع الأهل", 14], ["تشيك الجواز", 14], ["تطفي الأجهزة", 10], ["تشتري هدايا", 6]] },
+    { q: "شيء يحبه الناس في الشتاء", a: [["الكشتات", 30], ["الشاي والقهوة", 24], ["المطر", 18], ["الفروة", 12], ["الشوربة", 10], ["النار", 6]] },
+    { q: "شيء يخرب بسرعة", a: [["الجوال", 30], ["الأكل", 24], ["الشاحن", 18], ["المكيف", 12], ["الخضار", 10], ["السماعات", 6]] },
+    { q: "شيء تسويه لما تفوز في مباراة", a: [["تحتفل", 36], ["ترقص", 18], ["تصارخ", 16], ["تتطنز على الخصم", 14], ["تصوّر", 10], ["تعزم أصحابك", 6]] },
+    { q: "مهنة تحتاج صبر", a: [["معلم", 40], ["ممرض", 20], ["طبيب", 16], ["ربة بيت", 12], ["خدمة عملاء", 8], ["صياد", 4]] },
+    { q: "شيء تحطه على السلطة", a: [["زيت زيتون", 30], ["ليمون", 26], ["ملح", 18], ["خل", 12], ["صوص", 8], ["جبن", 6]] },
+    { q: "شيء تسويه لما يفتح مطعم جديد", a: [["تجربه", 46], ["تصوّره", 18], ["تشوف التقييمات", 16], ["تسأل عن الأسعار", 12], ["ترسله لأصحابك", 8]] },
+    { q: "شيء تشوفه في السماء بالليل", a: [["قمر", 44], ["نجوم", 34], ["طيارة", 12], ["غيوم", 6], ["شهب", 4]] },
+    { q: "شيء يسويه الأطفال في العيد", a: [["يجمعون العيدية", 40], ["يلبسون جديد", 22], ["ياكلون حلاوة", 16], ["يلعبون", 12], ["يروحون الملاهي", 6], ["يسهرون", 4]] },
+    { q: "نوع تمر مشهور", a: [["سكري", 40], ["خلاص", 22], ["عجوة", 16], ["مجدول", 10], ["صقعي", 7], ["برحي", 5]] },
+    { q: "شيء تسويه في النادي الرياضي", a: [["ترفع أثقال", 36], ["تجري على السير", 26], ["تتصور قدام المراية", 14], ["تتمطط", 10], ["تسولف", 8], ["تشرب بروتين", 6]] },
+    { q: "سبب تطلع فيه من البيت بالليل", a: [["تاكل برا", 30], ["تتمشى", 22], ["تزور أحد", 18], ["تشتري أغراض", 14], ["تتقهوى", 10], ["صلاة", 6]] },
+    { q: "شيء تشوفه في عرس سعودي", a: [["العروس", 26], ["الكوشة", 22], ["البوفيه", 18], ["الطقاقة", 14], ["الورد", 12], ["المصوّرة", 8]] },
+    { q: "شيء ينباع في سوق الخضار", a: [["طماطم", 30], ["بطاطس", 22], ["بصل", 18], ["خيار", 14], ["ليمون", 10], ["خس", 6]] },
+    { q: "شيء تسويه وأنت تنتظر الأكل في المطعم", a: [["تلعب بالجوال", 40], ["تسولف", 26], ["تاكل الخبز", 14], ["تشوف المنيو", 10], ["تصوّر المكان", 6], ["تتأفف", 4]] },
+    { q: "شيء تشتريه من المكتبة", a: [["دفاتر", 30], ["أقلام", 26], ["كتب", 18], ["ألوان", 12], ["ورق تغليف", 8], ["شنطة", 6]] },
+    { q: "شيء يدل إن الشخص مستعجل", a: [["يركض", 30], ["يشيك الساعة", 26], ["يتكلم بسرعة", 18], ["يسوق بسرعة", 12], ["ما يرد", 8], ["ينسى أغراضه", 6]] },
+    { q: "شيء تحطه في غرفة الضيوف", a: [["كنب", 30], ["طاولة", 22], ["مبخرة", 18], ["مناديل", 12], ["تلفزيون", 10], ["لوحة", 8]] },
+    { q: "شيء يسوونه الجدات", a: [["يحكون قصص", 34], ["يطبخون", 24], ["يدعون", 16], ["يعطون حلاوة", 12], ["يدلّعون الأحفاد", 10], ["ينصحون", 4]] },
+    { q: "شيء ينسى الناس يقفلونه", a: [["باب البيت", 34], ["السيارة", 22], ["النور", 18], ["المكيف", 12], ["الموية", 8], ["الفرن", 6]] },
+    { q: "شيء يسويه الشخص لما يشوف عنكبوت", a: [["يصارخ", 34], ["يقتله", 26], ["يهرب", 20], ["يتجاهله", 10], ["يصوّره", 6], ["يناديك", 4]] },
+    { q: "شيء يكون في حفلة عيد الميلاد", a: [["كيكة", 46], ["شموع", 20], ["هدايا", 16], ["بالونات", 10], ["أغنية", 6], ["قبعات", 2]] },
+    { q: "شيء تحسه لما ترجع من سفر", a: [["تعب", 34], ["شوق للبيت", 26], ["فرح", 16], ["حزن إن الإجازة خلصت", 12], ["جوع", 8], ["برد", 4]] },
+    { q: "شيء تسويه في المقهى", a: [["تشرب قهوة", 44], ["تسولف", 20], ["تشتغل على اللابتوب", 14], ["تقرأ", 10], ["تصوّر القهوة", 8], ["تذاكر", 4]] },
+    { q: "شيء تلقاه في صندوق العدّة", a: [["مفك", 34], ["مطرقة", 26], ["مفتاح ربط", 16], ["مسامير", 12], ["شريط قياس", 8], ["كماشة", 4]] },
+    { q: "شيء ممكن يخليك تصحى من النوم", a: [["المنبه", 40], ["الجوال", 20], ["الأطفال", 14], ["الجوع", 10], ["الإزعاج", 10], ["الضوء", 6]] },
+    { q: "شيء تشوفه في المزرعة", a: [["نخيل", 30], ["غنم", 22], ["دجاج", 18], ["بقر", 12], ["مسبح", 10], ["تراكتور", 8]] },
+    { q: "شيء يحطه الناس في السيارة للزينة", a: [["معطر", 40], ["مسبحة", 20], ["ميدالية", 14], ["دمية", 10], ["إضاءة", 10], ["صور", 6]] },
+    { q: "مكان تتمنى تسافر له", a: [["جزر المالديف", 26], ["سويسرا", 22], ["اليابان", 18], ["تركيا", 14], ["باريس", 12], ["لندن", 8]] },
+    { q: "شيء يسويه الناس قبل العيد", a: [["يشترون ملابس", 36], ["ينظفون البيت", 22], ["يشترون حلويات", 18], ["يحلقون", 12], ["يجهزون العيدية", 8], ["يسافرون", 4]] }
   ];
 
   // js/engines/familyfeud.js
@@ -7330,10 +8107,12 @@ var qrcode = function() {
     { key: "rounds", type: "select", label: "عدد الجولات", options: [[3, "٣"], [5, "٥"], [7, "٧"]] },
     { key: "answerSec", type: "select", label: "وقت الإجابة", options: [[0, "بدون وقت"], [10, "١٠ ثوانٍ"], [15, "١٥ ثانية"], [20, "٢٠ ثانية"], [30, "٣٠ ثانية"]] }
   ];
+  var teamInfoFf = () => ({ count: 2, names: ["الفريق الأحمر", "الفريق الأزرق"], colors: ["var(--team-a, #e63946)", "var(--team-b, #1e88e5)"], excludeHost: true, minPer: 1 });
   function setup12(players, options, rng) {
     const o = normalizeOptions9(options);
     const host = players.find((p) => p.isHost) || players[0];
-    const { A, B } = splitTeams(players.filter((p) => p.id !== host.id).map((p) => p.id), rng);
+    const ftF = fixedTeams(players.filter((p) => p.id !== host.id), 2, rng);
+    const { A, B } = ftF ? { A: ftF[0], B: ftF[1] } : splitTeams(players.filter((p) => p.id !== host.id).map((p) => p.id), rng);
     const s = { game: "familyfeud", o, host: host.id, teams: { A, B }, score: { A: 0, B: 0 }, rot: { A: 0, B: 0 }, deck: rng.shuffle(FEUD_QUESTIONS.map((_, k) => k)), round: 0, players: players.map((p) => ({ id: p.id })), winner: null, fx: [], fxSeq: 0 };
     newRound4(s);
     return s;
@@ -7343,7 +8122,7 @@ var qrcode = function() {
   var pick = (s, t) => s.teams[t][s.rot[t]++ % s.teams[t].length];
   function newRound4(s) {
     s.round++;
-    s.q = s.deck[(s.round - 1) % s.deck.length];
+    s.q = s.deck[(s.round - 1 + (s.skips || 0)) % s.deck.length];
     s.revealed = FEUD_QUESTIONS[s.q].a.map(() => false);
     s.bank = 0;
     s.strikes = 0;
@@ -7417,6 +8196,24 @@ var qrcode = function() {
         nextAnswerer(s);
         arm(s, now);
         pushFx(s, { kind: "phase" });
+        return ok4();
+      }
+      case "skipQ": {
+        if (!isMod) return err4("المقدم فقط يتخطى السؤال");
+        if (!["faceoff", "choose", "play", "steal"].includes(s.phase)) return err4("لا يمكن تخطي السؤال الآن");
+        if (s.revealed.some(Boolean)) return err4("لا يمكن تخطي سؤال بعد كشف إجابات منه");
+        s.skips = (s.skips || 0) + 1;
+        s.q = s.deck[(s.round - 1 + s.skips) % s.deck.length];
+        s.revealed = FEUD_QUESTIONS[s.q].a.map(() => false);
+        s.bank = 0;
+        s.strikes = 0;
+        s.control = null;
+        s.face = { A: s.face.A, B: s.face.B, buzz: null, buzzBy: null, first: null, firstIdx: null };
+        s.answerer = null;
+        s.result = null;
+        disarm(s);
+        s.phase = "faceoff";
+        pushFx(s, { kind: "skip" });
         return ok4();
       }
       case "revealAll":
@@ -7547,6 +8344,7 @@ var qrcode = function() {
       deadline: s.deadline || null,
       clockStopped: !!s.clockStopped,
       answerSec: s.o.answerSec,
+      skips: s.skips || 0,
       fx: viewFx(s, pid)
     };
   }
@@ -7567,6 +8365,7 @@ var qrcode = function() {
     setup: () => setup13,
     summary: () => summary13,
     tick: () => tick5,
+    teamInfo: () => teamInfoKm,
     view: () => view13
   });
 
@@ -7581,7 +8380,12 @@ var qrcode = function() {
     { cat: "فاكهة أو خضار", letters: "ب ت ج ح خ ر ز ش ع ف ق ك ل م ن" },
     { cat: "مهنة", letters: "ا ب ت ج ح خ د ر س ش ص ط ع ف ق ك م ن" },
     { cat: "جماد في البيت", letters: "ب ت ث ج ح خ د ر س ش ص ط ف ق ك م ن و" },
-    { cat: "شيء تلبسه", letters: "ب ت ج ح خ د ر س ش ع ف ق ك م ن" }
+    { cat: "شيء تلبسه", letters: "ب ت ج ح خ د ر س ش ع ف ق ك م ن" },
+    { cat: "طير أو حشرة", letters: "ب ج ح د ذ ص ع غ ف ق ن ه" },
+    { cat: "شيء في المطبخ", letters: "ب ث خ د ر س ش ص ط ف ق ك م" },
+    { cat: "رياضة", letters: "ب ت ج ر س ش ك م ه" },
+    { cat: "شيء في السيارة", letters: "ب د ر ش ف ك م" },
+    { cat: "نبات أو زهرة", letters: "ب ت ج ر ز س ف ن و ي" }
   ];
   var RAPID = [
     "فواكه",
@@ -7618,7 +8422,77 @@ var qrcode = function() {
     "أشياء في الحمام",
     "أشياء تأخذها في السفر",
     "أشياء باردة",
-    "أشياء مستديرة"
+    "أشياء مستديرة",
+    "أسماء أولاد",
+    "أسماء بنات",
+    "دول آسيوية",
+    "دول أوروبية",
+    "دول أفريقية",
+    "مدن سعودية",
+    "مدن خليجية",
+    "أكلات إيطالية",
+    "أنواع خبز",
+    "أنواع جبن",
+    "أنواع عصائر",
+    "بهارات وتوابل",
+    "أشياء في السيارة",
+    "أشياء في غرفة النوم",
+    "أشياء في المجلس",
+    "أشياء في المستشفى",
+    "أشياء في المطار",
+    "أشياء على الشاطئ",
+    "أشياء في الكشتة",
+    "أدوات النجارة والعدّة",
+    "أجهزة إلكترونية",
+    "تطبيقات جوال",
+    "ماركات ملابس",
+    "ماركات جوالات",
+    "مطاعم مشهورة",
+    "ألعاب فيديو",
+    "ألعاب شعبية",
+    "أندية كرة قدم",
+    "مراكز في كرة القدم",
+    "أشياء لونها أزرق",
+    "أشياء لونها أخضر",
+    "أشياء لونها أصفر",
+    "أشياء لونها أبيض",
+    "أشياء حارة",
+    "أشياء حلوة الطعم",
+    "أشياء مالحة",
+    "حيوانات المزرعة",
+    "حيوانات مفترسة",
+    "حيوانات لها قرون",
+    "أشياء لها عجلات",
+    "أشياء تحتاج كهرباء",
+    "أشياء مصنوعة من الزجاج",
+    "أشياء مصنوعة من الحديد",
+    "أشياء تلبسها في الشتاء",
+    "أشياء في الحقيبة المدرسية",
+    "مواد دراسية",
+    "مهن طبية",
+    "أماكن في البيت",
+    "ألعاب الملاهي",
+    "ظواهر طبيعية",
+    "أشكال هندسية",
+    "أنواع زهور",
+    "أنواع مكسرات",
+    "أشياء تنكسر بسهولة",
+    "أشياء يحبها الأطفال",
+    "كلمات ترحيب",
+    "حلويات شرقية",
+    "حلويات غربية",
+    "مشروبات ساخنة",
+    "أنواع قهوة",
+    "أشياء في حديقة الحيوان",
+    "الأشهر الهجرية",
+    "أشياء في السوبرماركت",
+    "أشياء تطفو على الماء",
+    "مهن تحتاج زي رسمي",
+    "أشياء في العرس",
+    "أشياء في المكتب",
+    "قطع غيار سيارات",
+    "شخصيات كرتونية",
+    "أشياء ناعمة الملمس"
   ];
   var SCRAMBLE = [
     ["قلم"],
@@ -7665,7 +8539,95 @@ var qrcode = function() {
     ["سفينة", "سفينه"],
     ["مظلة", "مظله"],
     ["شاطئ", "شاطي"],
-    ["ممحاة", "ممحاه", "مساحة"]
+    ["ممحاة", "ممحاه", "مساحة"],
+    ["مكتب"],
+    ["حصان"],
+    ["غزال"],
+    ["صقر"],
+    ["دجاجة", "دجاجه"],
+    ["ثعلب"],
+    ["نمر"],
+    ["أسد", "اسد"],
+    ["قارب"],
+    ["قطار"],
+    ["دراجة", "دراجه"],
+    ["حاسوب"],
+    ["شاشة", "شاشه"],
+    ["مرآة", "مراه", "مرايه", "مراية"],
+    ["مخدة", "مخده"],
+    ["بطانية", "بطانيه"],
+    ["صابون"],
+    ["فرشاة", "فرشاه"],
+    ["مشط"],
+    ["عطر"],
+    ["بخور"],
+    ["زيتون"],
+    ["ليمون"],
+    ["رمان"],
+    ["عنب"],
+    ["موز"],
+    ["بطيخ"],
+    ["خيار"],
+    ["جزر"],
+    ["بصل"],
+    ["طماطم"],
+    ["فلفل"],
+    ["أرز", "ارز", "رز"],
+    ["خبز"],
+    ["عسل"],
+    ["حليب"],
+    ["جبن", "جبنة", "جبنه"],
+    ["كعكة", "كعكه", "كعك"],
+    ["عصير"],
+    ["دلفين"],
+    ["سمكة", "سمكه"],
+    ["حوت"],
+    ["قرش"],
+    ["نحلة", "نحله"],
+    ["نملة", "نمله"],
+    ["عنكبوت"],
+    ["ديك"],
+    ["بطة", "بطه"],
+    ["حمامة", "حمامه"],
+    ["غيمة", "غيمه"],
+    ["ثلج"],
+    ["رعد"],
+    ["برق"],
+    ["جبل"],
+    ["نهر"],
+    ["صخرة", "صخره"],
+    ["رمل"],
+    ["شارع"],
+    ["جسر"],
+    ["برج"],
+    ["مطار"],
+    ["سوق"],
+    ["مطعم"],
+    ["فندق"],
+    ["متحف"],
+    ["مخبز"],
+    ["صيدلية", "صيدليه"],
+    ["ملعقة", "ملعقه"],
+    ["شوكة", "شوكه"],
+    ["سكين"],
+    ["صحن"],
+    ["كوب"],
+    ["إبريق", "ابريق"],
+    ["مروحة", "مروحه"],
+    ["مصباح"],
+    ["هاتف", "تلفون"],
+    ["كاميرا"],
+    ["نظارة", "نظاره"],
+    ["خاتم"],
+    ["قلادة", "قلاده"],
+    ["حذاء", "حذا", "جزمة", "جزمه"],
+    ["قميص"],
+    ["معطف"],
+    ["قبعة", "قبعه"],
+    ["ثوب"],
+    ["عباءة", "عباءه", "عباية", "عبايه"],
+    ["شماغ"],
+    ["غترة", "غتره"]
   ];
   var TABOO = [
     ["سيارة", ["محرك", "طريق", "سواقة", "عجلات"], ["سياره", "موتر", "عربية"]],
@@ -7702,7 +8664,56 @@ var qrcode = function() {
     ["مفتاح", ["باب", "قفل", "فتح", "سيارة"], []],
     ["إطفائي", ["حريق", "نار", "ماء", "خرطوم"], ["اطفائي", "رجل اطفاء", "مطافي"]],
     ["مسجد", ["صلاة", "أذان", "إمام", "مئذنة"], ["جامع"]],
-    ["جبل", ["قمة", "صخور", "عالي", "تسلق"], []]
+    ["جبل", ["قمة", "صخور", "عالي", "تسلق"], []],
+    ["معلم", ["مدرسة", "طلاب", "درس", "فصل"], ["مدرس", "استاذ", "أستاذ"]],
+    ["شرطي", ["أمن", "جريمة", "مخالفة", "دورية"], ["شرطه", "شرطة", "عسكري"]],
+    ["طيار", ["طائرة", "سماء", "مطار", "قيادة"], ["كابتن"]],
+    ["مهندس", ["بناء", "تصميم", "جامعة", "مشروع"], []],
+    ["خباز", ["خبز", "فرن", "عجين", "تميس"], ["فران"]],
+    ["حلاق", ["شعر", "مقص", "لحية", "قص"], []],
+    ["فيل", ["ضخم", "خرطوم", "أنياب", "حيوان"], []],
+    ["زرافة", ["رقبة", "طويلة", "حيوان", "بقع"], ["زرافه"]],
+    ["أسد", ["ملك", "غابة", "زئير", "مفترس"], ["اسد"]],
+    ["جمل", ["صحراء", "سنام", "ناقة", "حليب"], ["بعير", "ناقه", "ناقة"]],
+    ["صقر", ["طير", "مقناص", "جارح", "هواية"], ["شاهين"]],
+    ["بطيخ", ["فاكهة", "أحمر", "صيف", "بذور"], ["حبحب"]],
+    ["تفاح", ["فاكهة", "أحمر", "أخضر", "شجرة"], ["تفاحه", "تفاحة"]],
+    ["شاي", ["مشروب", "كوب", "سكر", "نعناع"], ["شاهي"]],
+    ["كبسة", ["رز", "لحم", "دجاج", "غداء"], ["كبسه"]],
+    ["شاورما", ["لفة", "دجاج", "خبز", "مطعم"], ["شاورمه", "شاورمة"]],
+    ["بيتزا", ["جبن", "إيطاليا", "عجينة", "فرن"], ["بيتزه"]],
+    ["آيسكريم", ["بارد", "حلا", "كون", "صيف"], ["ايسكريم", "آيس كريم", "ايس كريم", "بوظة", "بوظه"]],
+    ["مكنسة", ["تنظيف", "غبار", "كهرباء", "أرض"], ["مكنسه"]],
+    ["غسالة", ["ملابس", "ماء", "تنظيف", "صابون"], ["غساله"]],
+    ["تلفزيون", ["شاشة", "مسلسل", "قنوات", "ريموت"], ["تلفاز"]],
+    ["كمبيوتر", ["جهاز", "شاشة", "لابتوب", "كيبورد"], ["حاسوب", "حاسب", "لابتوب"]],
+    ["كاميرا", ["تصوير", "صورة", "عدسة", "فلاش"], ["كاميره"]],
+    ["مظلة", ["مطر", "شمس", "تحمي", "تفتح"], ["مظله", "شمسية", "شمسيه"]],
+    ["حذاء", ["رجل", "لبس", "جزمة", "مشي"], ["جزمة", "جزمه", "كندرة"]],
+    ["عطر", ["ريحة", "زجاجة", "رش", "عود"], ["برفان"]],
+    ["بخور", ["دخان", "عود", "مبخرة", "ريحة"], ["عود"]],
+    ["دلة", ["قهوة", "فناجين", "صب", "هيل"], ["دله"]],
+    ["فنجان", ["قهوة", "دلة", "صغير", "صب"], ["فنجال"]],
+    ["كشتة", ["بر", "خيمة", "نار", "طلعة"], ["كشته", "طلعة بر"]],
+    ["شتاء", ["برد", "مطر", "فروة", "موسم"], ["شتا"]],
+    ["صيف", ["حر", "شمس", "إجازة", "موسم"], []],
+    ["قمر", ["ليل", "سماء", "بدر", "هلال"], []],
+    ["نجمة", ["سماء", "ليل", "تلمع", "خمس"], ["نجمه", "نجم"]],
+    ["سمك", ["بحر", "يسبح", "صيد", "زعانف"], ["سمكة", "سمكه"]],
+    ["سماعة", ["أذن", "صوت", "أغاني", "بلوتوث"], ["سماعه", "سماعات"]],
+    ["شاحن", ["جوال", "بطارية", "كهرباء", "سلك"], []],
+    ["ملعب", ["كورة", "مباراة", "جمهور", "عشب"], ["استاد", "ستاد"]],
+    ["سينما", ["فيلم", "شاشة", "فشار", "تذكرة"], ["سنما"]],
+    ["عروس", ["زواج", "فستان", "عرس", "معرس"], []],
+    ["هدية", ["مناسبة", "تغليف", "تعطي", "مفاجأة"], ["هديه"]],
+    ["صيدلية", ["دواء", "صيدلي", "وصفة", "علاج"], ["صيدليه"]],
+    ["بنك", ["فلوس", "حساب", "صراف", "قرض"], ["مصرف"]],
+    ["مدير", ["شركة", "موظف", "عمل", "مسؤول"], []],
+    ["امتحان", ["اختبار", "مدرسة", "أسئلة", "درجات"], ["اختبار"]],
+    ["إجازة", ["عطلة", "سفر", "دوام", "راحة"], ["اجازه", "اجازة", "عطلة", "عطله"]],
+    ["بطارية", ["شحن", "طاقة", "ريموت", "جوال"], ["بطاريه"]],
+    ["ريموت", ["تلفزيون", "أزرار", "قنوات", "تحكم"], ["جهاز تحكم"]],
+    ["مصعد", ["عمارة", "أدوار", "زر", "درج"], ["اسانسير", "أسانسير"]]
   ];
   var DOUBLE_LETTERS = [
     ["حيوان", "ف", "ل", "فيل"],
@@ -7724,7 +8735,45 @@ var qrcode = function() {
     ["فاكهة", "م", "ز", "موز"],
     ["حيوان", "ح", "ن", "حصان"],
     ["مهنة", "م", "س", "مهندس"],
-    ["جماد", "ك", "ي", "كرسي"]
+    ["جماد", "ك", "ي", "كرسي"],
+    ["حيوان", "ق", "د", "قرد"],
+    ["حيوان", "ن", "ر", "نمر"],
+    ["حيوان", "ذ", "ب", "ذئب"],
+    ["حيوان", "ب", "ة", "بطة"],
+    ["طير", "ص", "ر", "صقر"],
+    ["دولة", "ق", "ر", "قطر"],
+    ["دولة", "ت", "س", "تونس"],
+    ["دولة", "ف", "ا", "فرنسا"],
+    ["دولة", "ك", "ت", "الكويت"],
+    ["دولة", "إ", "ا", "إيطاليا"],
+    ["مدينة", "ر", "ض", "الرياض"],
+    ["مدينة", "م", "ة", "مكة"],
+    ["مدينة", "ت", "ك", "تبوك"],
+    ["مدينة", "ط", "ف", "الطائف"],
+    ["مدينة", "ب", "س", "باريس"],
+    ["مدينة", "ل", "ن", "لندن"],
+    ["أكلة", "ج", "ش", "جريش"],
+    ["أكلة", "ه", "س", "هريس"],
+    ["أكلة", "ف", "ل", "فول"],
+    ["أكلة", "ب", "ر", "برجر"],
+    ["فاكهة", "ع", "ب", "عنب"],
+    ["فاكهة", "ر", "ن", "رمان"],
+    ["فاكهة", "ب", "خ", "بطيخ"],
+    ["فاكهة", "ل", "ن", "ليمون"],
+    ["اسم ولد", "ع", "ي", "علي"],
+    ["اسم ولد", "خ", "د", "خالد"],
+    ["اسم ولد", "ف", "د", "فهد"],
+    ["اسم بنت", "ن", "ة", "نورة"],
+    ["اسم بنت", "ر", "م", "ريم"],
+    ["اسم بنت", "ل", "ى", "ليلى"],
+    ["مهنة", "ن", "ر", "نجار"],
+    ["مهنة", "ط", "خ", "طباخ"],
+    ["مهنة", "م", "ض", "ممرض"],
+    ["جماد", "ب", "ب", "باب"],
+    ["جماد", "س", "ر", "سرير"],
+    ["جماد", "م", "ح", "مفتاح"],
+    ["لون", "أ", "ق", "أزرق"],
+    ["لون", "ب", "ي", "بني"]
   ];
   var DOUBLE_SCRAMBLE = [
     ["تلفزيون", "تلفزيون"],
@@ -7741,7 +8790,32 @@ var qrcode = function() {
     ["كهرباء", "كهربا"],
     ["سلحفاة", "سلحفاه"],
     ["بطاريات"],
-    ["مستطيل"]
+    ["مستطيل"],
+    ["كرواسون"],
+    ["ديناصور"],
+    ["تمساح"],
+    ["أخطبوط", "اخطبوط"],
+    ["طاووس"],
+    ["مثلجات"],
+    ["رياضيات"],
+    ["جغرافيا"],
+    ["كيمياء", "كيميا"],
+    ["فيزياء", "فيزيا"],
+    ["تلسكوب"],
+    ["بلايستيشن"],
+    ["سندويشة", "سندويشه"],
+    ["مايكروويف", "مايكرويف"],
+    ["زنجبيل"],
+    ["مكرونة", "مكرونه", "معكرونة", "معكرونه"],
+    ["شاورما", "شاورمه", "شاورمة"],
+    ["بقدونس"],
+    ["فاصوليا"],
+    ["ملوخية", "ملوخيه"],
+    ["سبانخ"],
+    ["مستودع"],
+    ["هليكوبتر"],
+    ["غواصة", "غواصه"],
+    ["كنغر", "كنقر", "كانجارو"]
   ];
 
   // js/engines/kalim.js
@@ -7779,6 +8853,11 @@ var qrcode = function() {
     }
     if (!TYPES.some((t) => n["t_" + t])) TYPES.forEach((t) => n["t_" + t] = true);
     return n;
+  }
+  function teamInfoKm(o) {
+    const n = normalizeOptions10(o);
+    if (n.mode === "solo") return null;
+    return { count: n.teams, names: TEAM_STYLE.slice(0, n.teams).map((x) => x[0]), colors: TEAM_STYLE.slice(0, n.teams).map((x) => x[1]), excludeHost: n.hostRole === "mod", minPer: 1 };
   }
   var TL = { letters: "بطاقة الحروف", rapid: "التحدي السريع", scramble: "فك الكلمة", taboo: "ممنوع تقول", double: "التحدي المضاعف" };
   function optionSchema8() {
@@ -7868,9 +8947,15 @@ var qrcode = function() {
     if (solo) teams = ids.map((id, k) => ({ id: "t" + k, name: "", solo: true, color: TEAM_STYLE[k % TEAM_STYLE.length][1], members: [id] }));
     else {
       const k = Math.max(2, Math.min(o.teams, ids.length));
-      const sh = rng.shuffle(ids);
+      const ftK = fixedTeams(players.filter((p) => ids.includes(p.id)), k, rng);
       teams = Array.from({ length: k }, (_, i) => ({ id: "t" + i, name: TEAM_STYLE[i][0], solo: false, color: TEAM_STYLE[i][1], members: [] }));
-      sh.forEach((id, i) => teams[i % k].members.push(id));
+      if (ftK) ftK.forEach((m, i) => {
+        teams[i].members = m;
+      });
+      else {
+        const sh = rng.shuffle(ids);
+        sh.forEach((id, i) => teams[i % k].members.push(id));
+      }
     }
     const s = {
       game: "kalim",
@@ -7959,8 +9044,24 @@ var qrcode = function() {
         s.foul = null;
         s.outcome = null;
         s.judgeWhy = null;
+        s.skipUsed = false;
         s.phase = "ready";
         pushFx2(s, { kind: "draw" });
+        return ok4();
+      }
+      case "skipCard": {
+        if (s.phase !== "ready") return err4("تغيير البطاقة قبل بدء المؤقت فقط");
+        if (!isActive && !isHost) return err4("لصاحب الدور أو المقدم");
+        if (!isHost && s.skipUsed) return err4("استخدمت تخطي البطاقة في هذا الدور");
+        if (!isHost) s.skipUsed = true;
+        s.card = drawCard(s, ctx2.rng);
+        s.subs = [];
+        s.tabooOk = false;
+        s.foul = null;
+        s.outcome = null;
+        s.judgeWhy = null;
+        s.cardNo = (s.cardNo || 0) + 1;
+        pushFx2(s, { kind: "skip" });
         return ok4();
       }
       case "start": {
@@ -8152,12 +9253,566 @@ var qrcode = function() {
       winners: s.winners,
       pts: TYPES.reduce((m, t) => (m[t] = s.o["p_" + t], m), {}),
       types: enabledTypes(s),
-      me: display ? null : { isHost, team: ti, isActive: pid === s.active, seeSecret },
+      me: display ? null : { isHost, team: ti, isActive: pid === s.active, seeSecret, canSkip: s.phase === "ready" && (isHost || pid === s.active && !s.skipUsed) },
+      cardNo: s.cardNo || 0,
       fx: s.fx
     };
   }
   function summary13(s) {
     return { totals: s.totals, winners: s.winners, history: s.history };
+  }
+
+  // js/engines/abdea.js — لعبة «أَبْدِع»: أكمل الكلمة الناقصة ببطاقة حرف (إضافة)
+  var abdea_exports = {};
+  __export(abdea_exports, {
+    AB_LETTERS: () => AB_LETTERS,
+    abNorm: () => abNorm,
+    act: () => actAb,
+    meta: () => metaAb,
+    normalizeOptions: () => normalizeOptionsAb,
+    optionSchema: () => optionSchemaAb,
+    setup: () => setupAb,
+    startCheck: () => startCheckAb,
+    summary: () => summaryAb,
+    teamInfo: () => teamInfoAb,
+    tick: () => tickAb,
+    view: () => viewAb
+  });
+
+  // js/data/abdea-cards.js — بيانات قابلة للتوسعة: أضف كلمات أو عبارات جديدة هنا فقط
+  // تكرار كل حرف في كومة البطاقات (الحروف الشائعة أكثر)
+  var AB_FREQ = { "ا": 10, "ل": 8, "م": 7, "ي": 7, "و": 6, "ن": 6, "ر": 6, "ب": 6, "ت": 6, "ه": 3, "ة": 4, "ع": 5, "د": 5, "س": 5, "ف": 4, "ك": 4, "ق": 4, "ح": 4, "ج": 3, "ش": 3, "ص": 3, "خ": 3, "ط": 3, "ز": 2, "ث": 2, "ض": 2, "غ": 2, "ذ": 2, "ظ": 1 };
+  var AB_LETTERS = Object.keys(AB_FREQ);
+  var AB_RARE = "ثذظضغخزصط";
+  // كلمات التحدي مصنفة (التصنيف يظهر تلميحًا إن فُعّل)
+  var AB_WORDS = {
+    "حيوان": "أسد جمل قطة فيل نمر ذئب قرد حصان غزال أرنب ثعلب ديك بطة نحلة نملة فراشة حمار بقرة خروف ماعز صقر نسر حوت سمكة دلفين تمساح ضفدع زرافة فأر عصفور حمامة غراب بومة ثعبان عقرب جرادة كلب فهد ضبع",
+    "أكل وشرب": "خبز لحم تمر عسل حليب جبن زيت ملح سكر بيض فول كبسة تفاح موز عنب رمان بطيخ ليمون برتقال خيار جزر بصل ثوم فلفل طماطم زبدة شاي قهوة كعك عصير مندي",
+    "في البيت": "باب بيت سرير كرسي طاولة مفتاح مصباح ستارة سجادة مرآة ثلاجة فرن صحن كوب ملعقة سكين قدر شمعة مخدة مروحة مكيف غرفة مطبخ نافذة",
+    "طبيعة": "شمس قمر نجم بحر نهر جبل رمل مطر ثلج ريح غيمة برق رعد شجرة وردة نخلة صحراء ماء نار سماء أرض تراب حجر موج زهرة غابة",
+    "جسم الإنسان": "رأس يد عين أذن أنف فم قلب رجل شعر ظهر بطن إصبع كتف وجه لسان ركبة",
+    "مكان": "مدرسة سوق مسجد ملعب مطار بنك مطعم شارع مدينة قرية حديقة مكتب فندق متحف مكتبة مزرعة",
+    "شيء": "قلم كتاب دفتر ورقة ساعة هاتف سيارة قطار طائرة سفينة دراجة كرة حقيبة نظارة خاتم ثوب حذاء سلم جرس علم طبل هدية صورة لعبة رسالة",
+    "صفة": "كبير صغير جميل طويل قصير سريع حار بارد جديد قديم سعيد حزين قوي ذكي شجاع كريم نظيف ثقيل خفيف بعيد قريب",
+    "فعل": "كتب قرأ لعب أكل شرب نام جلس مشى ركض سبح ضحك فتح رسم سمع ذهب رجع دخل خرج طار قفز طبخ غسل حمل"
+  };
+  // عبارات: الكلمة المسبوقة بـ * هي الناقصة
+  var AB_PHRASES = [
+    "فنجان *قهوة", "رمضان *كريم", "جمعة *مباركة", "يوم *سعيد", "ليلة *سعيدة", "ألف *مبروك", "عيد *سعيد", "تصبح على *خير",
+    "كل عام وأنتم *بخير", "ماء *بارد", "شاي *حار", "سيارة *سريعة", "قلب *طيب", "طريق *طويل", "بحر *واسع", "ورد *أحمر",
+    "ثلج *أبيض", "عشب *أخضر", "سماء *زرقاء", "قهوة *عربية", "خبز *طازج", "كتاب *مفيد", "درس *صعب", "سؤال *سهل",
+    "أهلا *وسهلا", "صباح *الخير", "مساء *النور", "بيت *جديد", "صديق *وفي", "وجه *جميل", "قمر *منير", "نجم *لامع",
+    "*حياك الله", "الله *يسلمك", "على *راسي", "*شكرا جزيلا", "مع *السلامة", "يوم *الجمعة", "*كأس العالم", "*فاز الفريق"
+  ];
+  // قاموس إضافي للتحقق (كلمات صحيحة أخرى قد يكوّنها اللاعب بحرفه)
+  var AB_DICT_EXTRA = "بيت باب سقف جدار غرفة مطبخ حمام شباك درج بئر حوض بحيرة جزيرة شاطئ ساحل طين صخر صخرة تل وادي سهل شجر ورق غصن جذر زهر عشب نبات ثمر ثمرة حب حبة بذر بذرة قمح شعير ذرة أرز رز عيش دجاج سمك لبن زبد خل رطب تين خوخ مشمش كرز توت شمام فجل خس كرنب ملفوف بطاطس باذنجان كوسا نعناع بقدونس كزبرة كمون هيل قرفة زعتر وجه شفة سن خد جبين رقبة ذراع ظفر صدر ساق قدم كبد دم عظم جلد عقل نفس روح أب أم أخ أخت ابن بنت جد جدة عم عمة خال خالة زوج زوجة طفل ولد امرأة شاب شيخ صديق صاحب جار ضيف معلم طالب طبيب ممرض مهندس عامل تاجر بائع سائق طيار شرطي جندي ملك أمير وزير قائد بطل لاعب فنان شاعر كاتب رسام حبر مسطرة ممحاة شنطة جوال تلفاز راديو حاسوب لحاف بطانية فانوس قفل صندوق علبة كيس زجاجة كأس فنجان إبريق دلة طبق شوكة مقلاة موقد غسالة مكنسة حافلة قارب عجلة جسر نفق محطة ميناء دكان محل مقهى جامعة مستشفى صيدلية مصنع دولة وطن بلد عاصمة قميص سروال فستان عباءة شماغ عقال طاقية قبعة نعل جورب حزام سوار عقد قرط كوكب نجمة هواء نور ضوء ظل ظلام ليل نهار صبح صباح مساء ظهر عصر فجر يوم أسبوع شهر سنة عام دقيقة وقت صيف شتاء ربيع خريف برد حر غيم سحاب قوس هر ضبع دب وعل ظبي ناقة بعير فرس مهر بغل ثور عجل كبش نعجة تيس دجاجة إوزة ببغاء طاووس نعامة قرش أخطبوط سلطعون سرطان سلحفاة أفعى ذبابة بعوضة دودة عنكبوت جرذ سنجاب خفاش ضب عريض ضيق بطيء ضعيف قبيح حلو مر مالح حامض دافئ وسخ سهل صعب غني فقير فرح غاضب هادئ غبي جبان بخيل صادق كاذب طيب شرير أبيض أسود أحمر أخضر أزرق أصفر بني رمادي وردي مفيد ممتع واسع عالي عميق كثير قليل أول آخر صحا قام جرى بكى غلق عاد جاء وصل سافر رأى نظر شاف عرف فهم حفظ درس علم عمل صنع بنى هدم زرع حصد نظف لبس خلع ركب نزل صعد رفع وضع أخذ أعطى باع دفع سرق كسر صلح لمس شم ذاق مسك ترك سأل قال حكى صرخ نادى غنى رقص صلى صام حج زار سكن فاز خسر نجح رسب بدأ سحب رمى قطع ربط جمع فرق حسب عد وزن قاس لون مزج كلمة حرف جملة اسم فعل سؤال جواب قصة فكرة حلم أمل خبر صوت كلام مال ذهب فضة حديد خشب قماش زجاج حق خير شر سلام حرب نصر فوز جائزة عيد عرس حفلة رحلة سفر نزهة إجازة دوام امتحان اختبار نجاح ألم ظلم حلم سلم كلم قلب كلب ملك ملح لحم حمل رحم برد درب رحل حلب حبل لعب علب بلع عبد بعد دبس سبع سمع عسل لسع علم عمل لمع مال لام دار راد ورد درو زار راز نار ران نهر هرم مهر رهن سار راس سر بر جر مر در كر فر قر حر سد صد ند جد عد حد رد مد هد شد بد ود قد كد عم دم كم لم ثم حم سم جمل حلم غلب قلب كتب بنت تين بيع عين غين سين شين جين دين زين لين طين حين نوم يوم قوم صوم لوم دوم ثوم حوم كوم حال قال مال نال سال دال طال جال هال زال بال فال خال ميل نيل ليل سيل خيل كيل فيل ذيل بئر بيض بيت ثوب نوب صوت موت حوت توت قوت فوت بحر سحر نحر زهر شهر قهر طهر ظهر نهر دهر مهر شعر بعر قعر ذعر سعر نمل جمل حمل رمل كمل عمل شمل نمر عمر قمر خمر تمر سمر حمر غمر بنك نبك عنب كتب قلب سلب حلب جلب طلب غلب ثعلب حبر خبر جبر صبر قبر كبر عبر وبر ضرب شرب هرب قرب حرب غرب جرب كرب صحن طحن سجن عجن بطن وطن ثمن يمن سمن فرن قرن جرن مرن لون عون كون هون صون ريش عيش جيش طيش كيس قيس ريم غيم ضيم نسيم صقر بقر نقر فقر سكر شكر ذكر فكر بكر نكر مكر حرق برق شرق غرق زرق ورق عرق طرق فرق سرق نار فار جار دار سار طار غار حار ثار بار زار عار قار كار خار مار";
+
+  // js/engines/abdea.js
+  var metaAb = { id: "abdea", minPlayers: 1, maxPlayers: 8, defaultOptions: {} };
+  var AB_TEAM_STYLE = [["الفريق الأحمر", "#ff5e7e"], ["الفريق الأزرق", "#3fa7ff"], ["الفريق الأخضر", "#2ec4b6"], ["الفريق البنفسجي", "#a78bfa"]];
+  var AB_BOTS = [["فصيح", "🤖"], ["حروفي", "🦾"], ["لبيب", "🧠"], ["نبيه", "👾"], ["بليغ", "🎩"], ["فطين", "🦉"], ["ذكي", "🛸"], ["نجيب", "🎯"]];
+  function normalizeOptionsAb(o = {}) {
+    const pick2 = (v, list, d) => list.includes(v) ? v : d;
+    return {
+      mode: pick2(o.mode, ["solo", "teams"], "solo"),
+      teams: pick2(o.teams, [2, 3, 4], 2),
+      target: pick2(o.target, [5, 10, 15, 20], 10),
+      turnSec: pick2(o.turnSec, [0, 20, 30, 45, 60], 30),
+      hand: pick2(o.hand, [5, 6, 7, 8], 7),
+      bots: pick2(o.bots, [0, 1, 2, 3, 4, 5, 6, 7], 0),
+      botLevel: pick2(o.botLevel, ["easy", "normal", "hard"], "normal"),
+      hint: pick2(o.hint, ["region", "exact"], "region"),
+      judge: pick2(o.judge, ["vote", "host", "auto"], "vote"),
+      refill: typeof o.refill === "boolean" ? o.refill : true,
+      rotate: pick2(o.rotate, ["stay", "each"], "stay"),
+      scoring: pick2(o.scoring, ["classic", "rare"], "classic"),
+      content: pick2(o.content, ["all", "words", "phrases"], "all"),
+      catHint: typeof o.catHint === "boolean" ? o.catHint : true
+    };
+  }
+  function optionSchemaAb(n, cur) {
+    const a2 = (x) => String(x).replace(/\d/g, (d) => "٠١٢٣٤٥٦٧٨٩"[d]);
+    const o = normalizeOptionsAb(cur || {});
+    return [
+      { key: "mode", type: "select", label: "نمط اللعب", options: [["solo", "فردي (كل لاعب لنفسه)"], ["teams", "فرق"]] },
+      { key: "teams", type: "select", label: "عدد الفرق (في نمط الفرق)", options: [[2, "فريقان"], [3, "٣ فرق"], [4, "٤ فرق"]] },
+      { key: "target", type: "select", label: "نقاط الفوز", options: [5, 10, 15, 20].map((x) => [x, a2(x) + " نقاط"]) },
+      { key: "turnSec", type: "select", label: "مدة التفكير في كل دور", options: [[0, "بدون مؤقت"], [20, "٢٠ ثانية"], [30, "٣٠ ثانية"], [45, "٤٥ ثانية"], [60, "دقيقة"]] },
+      { key: "hand", type: "select", label: "عدد البطاقات الابتدائية", options: [5, 6, 7, 8].map((x) => [x, a2(x) + " بطاقات"]) },
+      { key: "bots", type: "select", label: "لاعبو الذكاء الاصطناعي 🤖", options: [0, 1, 2, 3, 4, 5, 6, 7].map((x) => [x, x ? a2(x) : "بدون"]) },
+      { key: "botLevel", type: "select", label: "مستوى الذكاء الاصطناعي", options: [["easy", "سهل"], ["normal", "متوسط"], ["hard", "محترف"]] },
+      { key: "hint", type: "select", label: "تلميح مكان الحرف", options: [["region", "عادي: الجزء فقط"], ["exact", "سهل: المكان بالضبط"]] },
+      { key: "judge", type: "select", label: "كلمة ليست في قاموس اللعبة", options: [["vote", "تصويت اللاعبين"], ["host", "المضيف يحكم"], ["auto", "تُرفض تلقائيًا"]] },
+      { key: "rotate", type: "select", label: "التحدي الناقص", options: [["stay", "يبقى حتى يُحل"], ["each", "جديد لكل دور"]] },
+      { key: "scoring", type: "select", label: "النقاط", options: [["classic", "كلاسيكي: +١ للصحيحة"], ["rare", "+٢ للحروف النادرة"]] },
+      { key: "content", type: "select", label: "نوع التحديات", options: [["all", "كلمات وعبارات"], ["words", "كلمات فقط"], ["phrases", "عبارات فقط"]] },
+      { key: "refill", type: "switch", label: "سحب بطاقة بديلة بعد الإجابة الصحيحة" },
+      { key: "catHint", type: "switch", label: "إظهار تصنيف الكلمة كتلميح" }
+    ].filter((f) => !(f.key === "teams" && o.mode !== "teams") && !(f.key === "botLevel" && !o.bots));
+  }
+  function startCheckAb(nHumans, options) {
+    const o = normalizeOptionsAb(options);
+    const total = nHumans + o.bots;
+    if (nHumans < 1) return { ok: false, error: "لا يوجد لاعبون" };
+    if (total < 2) return { ok: false, error: "تحتاج لاعبَين على الأقل — أضف لاعبًا أو لاعبًا آليًا 🤖 من الإعدادات" };
+    if (total > 8) return { ok: false, error: "الحد الأقصى ٨ لاعبين (مع الآليين)" };
+    if (o.mode === "teams" && total < o.teams) return { ok: false, error: "عدد اللاعبين أقل من عدد الفرق" };
+    return { ok: true };
+  }
+  function teamInfoAb(o) {
+    const n = normalizeOptionsAb(o);
+    if (n.mode !== "teams") return null;
+    return { count: n.teams, names: AB_TEAM_STYLE.slice(0, n.teams).map((x) => x[0]), colors: AB_TEAM_STYLE.slice(0, n.teams).map((x) => x[1]), excludeHost: false, minPer: 0, fixedK: true };
+  }
+  function abNorm(t) {
+    return String(t || "").replace(/[ً-ْٰـ]/g, "").replace(/[أإآٱ]/g, "ا").replace(/ى/g, "ي").replace(/ة/g, "ه").replace(/ؤ/g, "و").replace(/ئ/g, "ي").replace(/[^\p{L}]+/gu, "");
+  }
+  // تطبيع «ناعم» للمقارنة بالقاموس: يتجاهل التشكيل والتاء المربوطة/الهاء والألف المقصورة، ويحافظ على الهمزات
+  function abSoft(t) {
+    return String(t || "").replace(/[\u064B-\u0652\u0670\u0640]/g, "").replace(/ى/g, "ي").replace(/ة/g, "ه").replace(/[^\p{L}]+/gu, "");
+  }
+  // الحرف الذي يضعه اللاعب بلا همزة يُقبل عن صورته المهموزة (لا توجد بطاقات همزة)
+  var AB_VAR = { "ا": ["ا", "أ", "إ", "آ"], "ي": ["ي", "ئ"], "و": ["و", "ؤ"] };
+  function abKnown(frag, k, X, map) {
+    for (const v of AB_VAR[X] || [X]) {
+      const key = abSoft([...frag.slice(0, k), v, ...frag.slice(k)].join(""));
+      if (map.has(key)) return map.get(key);
+    }
+    return null;
+  }
+  var abEntries = null;
+  var abDict = null;
+  function abData() {
+    if (abEntries) return;
+    abEntries = [];
+    for (const [cat2, list] of Object.entries(AB_WORDS)) for (const w of list.split(/\s+/).filter(Boolean)) abEntries.push({ w, h: cat2, ph: null });
+    for (const p of AB_PHRASES) {
+      const parts = p.split(" ");
+      const ti = parts.findIndex((x) => x.startsWith("*"));
+      const words = parts.map((x) => x.replace(/^\*/, ""));
+      abEntries.push({ w: words[ti], h: "عبارة", ph: { before: words.slice(0, ti).join(" "), after: words.slice(ti + 1).join(" ") } });
+    }
+    abDict = /* @__PURE__ */ new Map();
+    for (const w of AB_DICT_EXTRA.split(/\s+/)) if (w) abDict.set(abSoft(w), w);
+    for (const e of abEntries) abDict.set(abSoft(e.w), e.w);
+  }
+  function setupAb(players, options, rng) {
+    abData();
+    const o = normalizeOptionsAb(options);
+    const humans = players.map((p) => ({ id: p.id, team: Number.isInteger(p.team) ? p.team : null }));
+    const bots = Array.from({ length: Math.min(o.bots, Math.max(0, 8 - humans.length)) }, (_, k) => ({ id: "b" + (k + 1), name: AB_BOTS[k][0], emoji: AB_BOTS[k][1] }));
+    const all = [...humans.map((h) => h.id), ...bots.map((b) => b.id)];
+    let teams = null;
+    let order;
+    if (o.mode === "teams" && all.length >= 2) {
+      const k = Math.max(2, Math.min(o.teams, all.length));
+      const cols = Array.from({ length: k }, () => []);
+      const free = [];
+      for (const h of humans) {
+        if (h.team !== null && h.team < k) cols[h.team].push(h.id);
+        else free.push(h.id);
+      }
+      for (const id of [...rng.shuffle(free), ...bots.map((b) => b.id)]) {
+        const min = Math.min(...cols.map((c) => c.length));
+        const cands = cols.map((c, j) => c.length === min ? j : -1).filter((j) => j >= 0);
+        cols[rng.pick(cands)].push(id);
+      }
+      const filled = cols.map((c) => rng.shuffle(c)).filter((c) => c.length);
+      teams = filled.map((m, i) => ({ id: "t" + i, name: AB_TEAM_STYLE[i][0], color: AB_TEAM_STYLE[i][1], members: m }));
+      const sh = rng.shuffle(teams.map((_, i) => i));
+      order = [];
+      const maxLen = Math.max(...teams.map((t) => t.members.length));
+      for (let r = 0; r < maxLen; r++) for (const ti of sh) if (teams[ti].members[r]) order.push(teams[ti].members[r]);
+    } else order = rng.shuffle(all);
+    const deck = [];
+    let cid = 0;
+    for (const [l, n] of Object.entries(AB_FREQ)) for (let k = 0; k < n; k++) deck.push({ id: "c" + ++cid, l });
+    const s = {
+      game: "abdea",
+      o,
+      host: (players.find((p) => p.isHost) || players[0]).id,
+      humans: humans.map((h) => h.id),
+      bots,
+      teams,
+      order,
+      ps: {},
+      deck: rng.shuffle(deck),
+      discard: [],
+      turn: 0,
+      turnNo: 0,
+      phase: "play",
+      ch: null,
+      chNo: 0,
+      chDeck: [],
+      missStreak: 0,
+      pending: null,
+      last: null,
+      learned: [],
+      deadline: null,
+      needArm: !!o.turnSec,
+      botAt: null,
+      winners: null,
+      reshuffles: 0,
+      fx: [],
+      fxSeq: 0
+    };
+    for (const id of order) {
+      s.ps[id] = { hand: [], score: 0, correct: 0, wrong: 0, skips: 0, streak: 0, best: "", newCard: null };
+      for (let k = 0; k < o.hand; k++) {
+        const c = drawAb(s, rng);
+        if (c) s.ps[id].hand.push(c);
+      }
+    }
+    newChallengeAb(s, rng);
+    s.turnNo = 1;
+    pushFx(s, { kind: "turn", who: order[0] });
+    return s;
+  }
+  function drawAb(s, rng) {
+    if (!s.deck.length && s.discard.length) {
+      s.deck = rng.shuffle(s.discard);
+      s.discard = [];
+      s.reshuffles++;
+      pushFx(s, { kind: "reshuffle" });
+    }
+    return s.deck.length ? s.deck.pop() : null;
+  }
+  function newChallengeAb(s, rng) {
+    abData();
+    const allowEntry = (e) => s.o.content === "all" || (s.o.content === "phrases" ? !!e.ph : !e.ph);
+    for (let tries = 0; tries < 60; tries++) {
+      if (!s.chDeck.length) s.chDeck = rng.shuffle(abEntries.map((_, k) => k).filter((k) => allowEntry(abEntries[k])));
+      const ei = s.chDeck.pop();
+      const e = abEntries[ei];
+      const letters = [...e.w];
+      const cands = letters.map((l, i) => AB_FREQ[l] ? i : -1).filter((i) => i >= 0);
+      if (!cands.length || letters.length < 2) continue;
+      const weights = cands.map((i) => AB_FREQ[letters[i]]);
+      let r = rng.next() * weights.reduce((a, b) => a + b, 0), idx = cands[0];
+      for (let k = 0; k < cands.length; k++) {
+        r -= weights[k];
+        if (r <= 0) {
+          idx = cands[k];
+          break;
+        }
+      }
+      const frag = letters.filter((_, i) => i !== idx);
+      const region = idx === 0 ? "start" : idx === letters.length - 1 ? "end" : "middle";
+      let slots;
+      if (s.o.hint === "exact") slots = [idx];
+      else if (region === "start") slots = [0];
+      else if (region === "end") slots = [frag.length];
+      else slots = Array.from({ length: frag.length - 1 }, (_, k) => k + 1);
+      const tmap = /* @__PURE__ */ new Map([[abSoft(e.w), e.w]]);
+      const acc = {};
+      for (const k of slots) for (const X of AB_LETTERS) {
+        const hit = abKnown(frag, k, X, tmap) || (!e.ph ? abKnown(frag, k, X, abDict) : null);
+        if (hit) acc[k + "|" + X] = hit;
+      }
+      s.ch = { ei, word: e.w, frag, idx, region, slots, acc, hint: e.h, ph: e.ph, no: ++s.chNo, letter: letters[idx] };
+      s.missStreak = 0;
+      return;
+    }
+  }
+  var curIdAb = (s) => s.order[s.turn];
+  var isBotAb = (s, id) => s.bots.some((b) => b.id === id);
+  var teamOfAb = (s, id) => s.teams ? s.teams.findIndex((t) => t.members.includes(id)) : -1;
+  function scoreOfAb(s, id) {
+    if (!s.teams) return s.ps[id].score;
+    const t = s.teams[teamOfAb(s, id)];
+    return t ? t.members.reduce((a, m) => a + s.ps[m].score, 0) : 0;
+  }
+  function armTurnAb(s, now) {
+    if (s.o.turnSec && Number.isFinite(now)) {
+      s.deadline = now + s.o.turnSec * 1e3;
+      s.needArm = false;
+    } else {
+      s.deadline = null;
+      s.needArm = !!s.o.turnSec;
+    }
+  }
+  function nextTurnAb(s, now, rng) {
+    if (s.phase === "over") return;
+    s.turn = (s.turn + 1) % s.order.length;
+    s.turnNo++;
+    s.botAt = null;
+    if (s.o.rotate === "each") newChallengeAb(s, rng);
+    else if (s.missStreak >= s.order.length) {
+      newChallengeAb(s, rng);
+      pushFx(s, { kind: "newChallenge", auto: true });
+    }
+    s.phase = "play";
+    armTurnAb(s, now);
+    pushFx(s, { kind: "turn", who: curIdAb(s) });
+  }
+  function pointsForAb(s, letter) {
+    return s.o.scoring === "rare" && AB_RARE.includes(letter) ? 2 : 1;
+  }
+  function checkWinAb(s) {
+    const scores = s.teams ? s.teams.map((t) => ({ id: t.id, sc: t.members.reduce((a, m) => a + s.ps[m].score, 0) })) : s.order.map((id) => ({ id, sc: s.ps[id].score }));
+    const top = Math.max(...scores.map((x) => x.sc));
+    return { top, ids: scores.filter((x) => x.sc === top).map((x) => x.id) };
+  }
+  function endGameAb(s, reason) {
+    const w = checkWinAb(s);
+    s.winners = w.ids;
+    s.endReason = reason;
+    s.phase = "over";
+    s.deadline = null;
+    s.pending = null;
+    pushFx(s, { kind: "game-over", winners: w.ids });
+  }
+  // نتيجة صحيحة: تُستهلك البطاقة، نقطة، تأثير احتفالي، تحدٍّ جديد، الدور للتالي
+  function resolveCorrectAb(s, id, card3, slot, word, rng, now) {
+    const p = s.ps[id];
+    const pts = pointsForAb(s, card3.l);
+    p.score += pts;
+    p.correct++;
+    p.streak++;
+    if ([...abNorm(word)].length > [...abNorm(p.best)].length) p.best = word;
+    s.discard.push(card3);
+    let drew = null;
+    if (s.o.refill) {
+      drew = drawAb(s, rng);
+      if (drew) {
+        p.hand.push(drew);
+        p.newCard = drew.id;
+      }
+    }
+    s.last = { type: "correct", by: id, letter: card3.l, word, slot, pts, frag: s.ch.frag.slice(), ph: s.ch.ph };
+    pushFx(s, { kind: "correct", who: id, letter: card3.l, word, slot, pts, streak: p.streak, frag: s.ch.frag.slice(), ph: s.ch.ph });
+    if (scoreOfAb(s, id) >= s.o.target) return endGameAb(s, "target");
+    if (!s.o.refill && p.hand.length === 0) return endGameAb(s, "empty");
+    newChallengeAb(s, rng);
+    nextTurnAb(s, now, rng);
+  }
+  // نتيجة خاطئة: تُزال البطاقة نهائيًا لمنطقة المستخدمة، ثم تُسحب بطاقة بديلة، لا نقطة، ويخسر الدور
+  function resolveWrongAb(s, id, card3, slot, word, rng, now) {
+    const p = s.ps[id];
+    p.wrong++;
+    p.streak = 0;
+    s.discard.push(card3);
+    const drew = drawAb(s, rng);
+    if (drew) {
+      p.hand.push(drew);
+      p.newCard = drew.id;
+    }
+    s.missStreak++;
+    s.last = { type: "wrong", by: id, letter: card3.l, word, slot, drew: !!drew, frag: s.ch.frag.slice(), ph: s.ch.ph };
+    pushFx(s, { kind: "wrong", who: id, letter: card3.l, word, slot, drew: !!drew, frag: s.ch.frag.slice(), ph: s.ch.ph });
+    if (!s.o.refill && p.hand.length === 0) return endGameAb(s, "empty");
+    nextTurnAb(s, now, rng);
+  }
+  function doSkipAb(s, id, kind, rng, now) {
+    const p = s.ps[id];
+    p.skips++;
+    p.streak = 0;
+    s.missStreak++;
+    s.last = { type: kind, by: id };
+    pushFx(s, { kind, who: id });
+    nextTurnAb(s, now, rng);
+  }
+  function voterIdsAb(s, by) {
+    const others = s.humans.filter((h) => h !== by);
+    if (s.o.judge === "host" && by !== s.host) return [s.host];
+    if (s.o.judge === "auto") return [];
+    return others;
+  }
+  function evaluatePlayAb(s, id, card3, slot, rng, now, fromBot) {
+    const ch = s.ch;
+    const W = [...ch.frag.slice(0, slot), card3.l, ...ch.frag.slice(slot)].join("");
+    const key = slot + "|" + card3.l;
+    if (ch.acc[key]) return resolveCorrectAb(s, id, card3, slot, ch.acc[key], rng, now);
+    const n = abSoft(W);
+    if (!ch.ph && s.learned.includes(n)) return resolveCorrectAb(s, id, card3, slot, W, rng, now);
+    const voters = fromBot ? [] : voterIdsAb(s, id);
+    if (!voters.length) return resolveWrongAb(s, id, card3, slot, W, rng, now);
+    const shown = ch.ph ? [ch.ph.before, W, ch.ph.after].filter(Boolean).join(" ") : W;
+    s.pending = { by: id, card: card3, slot, word: W, shown, voters, votes: {}, deadline: Number.isFinite(now) ? now + 2e4 : null };
+    s.phase = "vote";
+    s.deadline = null;
+    pushFx(s, { kind: "vote", who: id, word: shown, letter: card3.l });
+  }
+  function resolveVoteAb(s, ok5, rng, now, by = "vote") {
+    const pd = s.pending;
+    s.pending = null;
+    s.phase = "play";
+    if (ok5) {
+      const n = abSoft(pd.word);
+      if (!s.ch.ph && !s.learned.includes(n)) s.learned.push(n);
+      pushFx(s, { kind: "accepted", by });
+      return resolveCorrectAb(s, pd.by, pd.card, pd.slot, pd.word, rng, now);
+    }
+    pushFx(s, { kind: "rejected", by });
+    return resolveWrongAb(s, pd.by, pd.card, pd.slot, pd.word, rng, now);
+  }
+  function tallyVoteAb(s, rng, now, force = false) {
+    const pd = s.pending;
+    const cast = Object.values(pd.votes);
+    if (!force && cast.length < pd.voters.length) return false;
+    const yes = cast.filter(Boolean).length, no = cast.length - yes;
+    resolveVoteAb(s, yes > no, rng, now);
+    return true;
+  }
+  function actAb(s, pid, a, ctx2 = {}) {
+    if (!a || typeof a.type !== "string") return err4("إجراء غير صالح");
+    if (s.phase === "over") return err4("انتهت اللعبة");
+    if (!s.humans.includes(pid)) return err4("لست ضمن هذه اللعبة");
+    const now = Number.isFinite(ctx2.now) ? ctx2.now : NaN;
+    const rng = ctx2.rng;
+    const isHost = pid === s.host;
+    switch (a.type) {
+      case "play": {
+        if (s.phase !== "play") return err4("ليس وقت اللعب");
+        if (curIdAb(s) !== pid) return err4("ليس دورك");
+        const p = s.ps[pid];
+        const ci = p.hand.findIndex((c) => c.id === a.card);
+        if (ci < 0) return err4("اختر بطاقة من يدك");
+        if (!Number.isInteger(a.slot) || !s.ch.slots.includes(a.slot)) return err4("ضع الحرف في المكان المسموح");
+        const card3 = p.hand.splice(ci, 1)[0];
+        p.newCard = null;
+        evaluatePlayAb(s, pid, card3, a.slot, rng, now, false);
+        return ok4();
+      }
+      case "skip": {
+        if (s.phase !== "play") return err4("ليس وقت اللعب");
+        if (curIdAb(s) !== pid) return err4("ليس دورك");
+        s.ps[pid].newCard = null;
+        doSkipAb(s, pid, "skip", rng, now);
+        return ok4();
+      }
+      case "forceSkip": {
+        if (!isHost) return err4("للمضيف فقط");
+        if (s.phase !== "play") return err4("ليس وقتها");
+        doSkipAb(s, curIdAb(s), "skip", rng, now);
+        return ok4();
+      }
+      case "vote": {
+        if (s.phase !== "vote" || !s.pending) return err4("لا يوجد تصويت");
+        if (!s.pending.voters.includes(pid)) return err4("التصويت لغير صاحب الحرف");
+        s.pending.votes[pid] = !!a.ok;
+        pushFx(s, { kind: "voted", who: pid });
+        tallyVoteAb(s, rng, now);
+        return ok4();
+      }
+      case "judge": {
+        if (!isHost) return err4("الحكم للمضيف فقط");
+        if (s.phase !== "vote" || !s.pending) return err4("لا يوجد ما يُحكم عليه");
+        if (s.pending.by === pid && s.pending.voters.length) return err4("لا تحكم على حرفك — انتظر تصويت البقية");
+        resolveVoteAb(s, !!a.ok, rng, now, "host");
+        return ok4();
+      }
+      case "newChallenge": {
+        if (!isHost) return err4("للمضيف فقط");
+        if (s.phase !== "play") return err4("ليس وقتها");
+        newChallengeAb(s, rng);
+        pushFx(s, { kind: "newChallenge", auto: false });
+        return ok4();
+      }
+      default:
+        return err4("إجراء غير معروف");
+    }
+  }
+  // الذكاء الاصطناعي: يختار حرفًا يكوّن كلمة معروفة، أو يتخطى، وأحيانًا يخطئ حسب المستوى
+  function botMoveAb(s, rng, now) {
+    const id = curIdAb(s);
+    const p = s.ps[id];
+    const ch = s.ch;
+    const opts = [];
+    for (const c of p.hand) for (const k of ch.slots) if (ch.acc[k + "|" + c.l]) opts.push({ c, k, w: ch.acc[k + "|" + c.l] });
+    const lvl = s.o.botLevel;
+    const pSolve = lvl === "hard" ? 1 : lvl === "normal" ? 0.8 : 0.5;
+    const pBlunder = lvl === "hard" ? 0.02 : lvl === "normal" ? 0.12 : 0.25;
+    const take = (c, k) => {
+      p.hand.splice(p.hand.indexOf(c), 1);
+      p.newCard = null;
+      evaluatePlayAb(s, id, c, k, rng, now, true);
+    };
+    if (opts.length && rng.next() < pSolve) {
+      const best = opts.sort((x, y) => pointsForAb(s, y.c.l) - pointsForAb(s, x.c.l) || [...y.w].length - [...x.w].length)[0];
+      return take(best.c, best.k);
+    }
+    if (p.hand.length && rng.next() < pBlunder) return take(rng.pick(p.hand), rng.pick(ch.slots));
+    doSkipAb(s, id, "skip", rng, now);
+  }
+  function tickAb(s, now, rng) {
+    if (s.phase === "over") return false;
+    if (s.phase === "play") {
+      if (s.needArm && s.o.turnSec) {
+        armTurnAb(s, now);
+        return true;
+      }
+      const id = curIdAb(s);
+      if (isBotAb(s, id)) {
+        if (!s.botAt) {
+          s.botAt = now + 1500 + (rng ? rng.int(1600) : 800);
+          return false;
+        }
+        if (now >= s.botAt) {
+          s.botAt = null;
+          botMoveAb(s, rng, now);
+          return true;
+        }
+        return false;
+      }
+      if (s.deadline && now >= s.deadline) {
+        s.ps[id].newCard = null;
+        doSkipAb(s, id, "timeout", rng, now);
+        return true;
+      }
+      return false;
+    }
+    if (s.phase === "vote" && s.pending) {
+      if (!s.pending.deadline) {
+        s.pending.deadline = now + 2e4;
+        return true;
+      }
+      if (now >= s.pending.deadline) {
+        pushFx(s, { kind: "voteTimeUp" });
+        tallyVoteAb(s, rng, now, true);
+        return true;
+      }
+    }
+    return false;
+  }
+  function viewAb(s, pid) {
+    const me = s.ps[pid];
+    const ch = s.ch;
+    const showSlot = s.o.hint === "exact";
+    const pd = s.pending;
+    return {
+      game: "abdea",
+      phase: s.phase,
+      turnNo: s.turnNo,
+      target: s.o.target,
+      turnSec: s.o.turnSec,
+      mode: s.teams ? "teams" : "solo",
+      host: s.host,
+      bots: s.bots.map((b) => ({ id: b.id, name: b.name, emoji: b.emoji })),
+      teams: s.teams ? s.teams.map((t) => ({ id: t.id, name: t.name, color: t.color, members: t.members, score: t.members.reduce((a, m) => a + s.ps[m].score, 0) })) : null,
+      order: s.order.map((id) => ({ id, bot: isBotAb(s, id), team: teamOfAb(s, id), score: s.ps[id].score, correct: s.ps[id].correct, wrong: s.ps[id].wrong, skips: s.ps[id].skips, streak: s.ps[id].streak, count: s.ps[id].hand.length, best: s.ps[id].best })),
+      turn: curIdAb(s),
+      deadline: s.phase === "play" ? s.deadline : pd ? pd.deadline : null,
+      ch: ch ? { no: ch.no, frag: ch.frag, region: ch.region, slots: ch.slots, exact: showSlot ? ch.idx : null, hint: s.o.catHint || ch.ph ? ch.hint : null, ph: ch.ph, len: ch.frag.length + 1 } : null,
+      answer: s.phase === "over" && ch ? ch.word : null,
+      deck: s.deck.length,
+      discard: s.discard.length,
+      discardTop: s.discard.length ? s.discard[s.discard.length - 1].l : null,
+      pending: pd ? { by: pd.by, word: pd.word, shown: pd.shown, letter: pd.card.l, slot: pd.slot, voters: pd.voters, cast: Object.keys(pd.votes).length, myVote: pid in pd.votes ? pd.votes[pid] : null, canVote: pd.voters.includes(pid) && !(pid in pd.votes) } : null,
+      last: s.last,
+      learned: s.learned.length,
+      winners: s.winners,
+      endReason: s.endReason || null,
+      judge: s.o.judge,
+      scoring: s.o.scoring,
+      refill: s.o.refill,
+      me: me ? { hand: me.hand.map((c) => ({ id: c.id, l: c.l })), newCard: me.newCard, isTurn: curIdAb(s) === pid && s.phase === "play" } : null,
+      fx: viewFx(s, pid)
+    };
+  }
+  function summaryAb(s) {
+    const rows = s.order.map((id) => ({ id, score: s.ps[id].score, correct: s.ps[id].correct, wrong: s.ps[id].wrong }));
+    return { winners: s.teams ? s.teams.filter((t) => (s.winners || []).includes(t.id)).flatMap((t) => t.members) : s.winners || [], ranking: rows.sort((a, b) => b.score - a.score) };
   }
 
   // js/engines/deception.js
@@ -9342,7 +10997,7 @@ var qrcode = function() {
   }
 
   // js/engines/index.js
-  var ENGINES = { skull: skull_exports, bara: bara_exports, mafia: mafia_exports, avalon: avalon_exports, werewolf: werewolf_exports, coup: coup_exports, secret: secret_exports, kittens: kittens_exports, wavelength: wavelength_exports, herd: herd_exports, letters: letters_exports, familyfeud: familyfeud_exports, deception: deception_exports, shareef: shareef_exports, monopoly: monopoly_exports, kalim: kalim_exports };
+  var ENGINES = { skull: skull_exports, bara: bara_exports, mafia: mafia_exports, avalon: avalon_exports, werewolf: werewolf_exports, coup: coup_exports, secret: secret_exports, kittens: kittens_exports, wavelength: wavelength_exports, herd: herd_exports, letters: letters_exports, familyfeud: familyfeud_exports, deception: deception_exports, shareef: shareef_exports, monopoly: monopoly_exports, kalim: kalim_exports, abdea: abdea_exports };
 
   // js/core/rng.js
   function createRng(seed) {
@@ -9396,6 +11051,41 @@ var qrcode = function() {
       } catch {
       }
     }, ms);
+  }
+  // ===== اختيار أعضاء الفرق (إضافة): خطة الفرق من اختيارات اللاعبين/المضيف =====
+  function teamInfoFor(eng, options) {
+    try {
+      return eng && eng.teamInfo ? eng.teamInfo(options || {}) : null;
+    } catch {
+      return null;
+    }
+  }
+  function planTeams(info, players, picks = {}) {
+    const parts = players.filter((p) => !(info.excludeHost && p.isHost));
+    const k = info.fixedK ? info.count : Math.max(2, Math.min(info.count, parts.length || 2));
+    const cols = Array.from({ length: k }, () => []);
+    const free = [];
+    for (const p of parts) {
+      const t = picks ? picks[p.id] : null;
+      if (Number.isInteger(t) && t >= 0 && t < k) cols[t].push(p.id);
+      else free.push(p.id);
+    }
+    const sizes = cols.map((c) => c.length);
+    for (let i = 0; i < free.length; i++) {
+      let m = 0;
+      sizes.forEach((v, j) => {
+        if (v < sizes[m]) m = j;
+      });
+      sizes[m]++;
+    }
+    const minPer = info.minPer || 1;
+    let error = null;
+    if (parts.length < k * minPer) error = `تحتاج ${ar(k * minPer)} لاعبين على الأقل لتكوين ${ar(k)} فرق`;
+    else {
+      const bad = sizes.findIndex((v) => v < minPer);
+      if (bad >= 0) error = `«${(info.names || [])[bad] || "فريق " + ar(bad + 1)}» ${minPer > 1 ? `يحتاج ${ar(minPer)} لاعبين على الأقل` : "بلا لاعبين"} — عدّل توزيع الفرق`;
+    }
+    return { k, cols, free, sizes, parts: parts.map((p) => p.id), error };
   }
   var HostSession = class {
     constructor({ engines, code, gameId, now = () => Date.now(), onSave = null, restored = null }) {
@@ -9651,6 +11341,20 @@ var qrcode = function() {
           closeSoon(conn);
           return;
         }
+        case "team": {
+          if (r.status !== "lobby") return reply(false, "اللعبة بدأت");
+          const info = teamInfoFor(this.engines[r.gameId], r.options);
+          if (!info) return reply(false, "هذه اللعبة بلا فرق بالإعدادات الحالية");
+          if (r.teamMode !== "manual") return reply(false, "المضيف لم يفعّل اختيار الفرق");
+          if (info.excludeHost && p.isHost) return reply(false, "المقدم لا ينضم لفريق");
+          const t = msg.team;
+          r.teams || (r.teams = {});
+          if (t === null || t === void 0) delete r.teams[pid];
+          else if (Number.isInteger(t) && t >= 0 && t < info.count) r.teams[pid] = t;
+          else return reply(false, "فريق غير صالح");
+          reply(true);
+          return this._changed();
+        }
         case "act": {
           if (r.status !== "playing" || !r.game) return reply(false, "لا توجد لعبة جارية");
           const eng = this.engines[r.gameId];
@@ -9694,6 +11398,39 @@ var qrcode = function() {
           this._removeOrDisconnect(t, true);
           return { ok: true };
         }
+        case "teamMode": {
+          if (r.status !== "lobby") return { ok: false, error: "اللعبة بدأت" };
+          if (msg.mode !== "manual" && msg.mode !== "random") return { ok: false, error: "نمط غير صالح" };
+          r.teamMode = msg.mode;
+          r.teams || (r.teams = {});
+          return { ok: true };
+        }
+        case "setTeam": {
+          if (r.status !== "lobby") return { ok: false, error: "اللعبة بدأت" };
+          const info = teamInfoFor(this.engines[r.gameId], r.options);
+          if (!info) return { ok: false, error: "هذه اللعبة بلا فرق بالإعدادات الحالية" };
+          const t = this._player(msg.target);
+          if (!t) return { ok: false, error: "لاعب غير صالح" };
+          if (info.excludeHost && t.isHost) return { ok: false, error: "المقدم لا ينضم لفريق" };
+          r.teams || (r.teams = {});
+          r.teamMode = "manual";
+          if (msg.team === null || msg.team === void 0) delete r.teams[t.id];
+          else if (Number.isInteger(msg.team) && msg.team >= 0 && msg.team < info.count) r.teams[t.id] = msg.team;
+          else return { ok: false, error: "فريق غير صالح" };
+          return { ok: true };
+        }
+        case "shuffleTeams": {
+          if (r.status !== "lobby") return { ok: false, error: "اللعبة بدأت" };
+          const info = teamInfoFor(this.engines[r.gameId], r.options);
+          if (!info) return { ok: false, error: "هذه اللعبة بلا فرق بالإعدادات الحالية" };
+          const plan = planTeams(info, r.players, {});
+          r.teams = {};
+          this.rng.shuffle(plan.parts).forEach((id, i) => {
+            r.teams[id] = i % plan.k;
+          });
+          r.teamMode = "manual";
+          return { ok: true };
+        }
         case "start":
           return this._start();
         case "rematch": {
@@ -9705,6 +11442,7 @@ var qrcode = function() {
           r.game = null;
           for (const p of r.players) p.ready = p.isHost;
           r.players = r.players.filter((p) => p.connected || p.isHost);
+          if (r.teams) for (const id of Object.keys(r.teams)) if (!r.players.some((p) => p.id === id)) delete r.teams[id];
           return { ok: true };
         }
         case "close": {
@@ -9733,25 +11471,60 @@ var qrcode = function() {
       const eng = this.engines[r.gameId];
       const n = r.players.length;
       if (!eng) return { ok: false, error: "اللعبة غير متاحة" };
-      if (n < eng.meta.minPlayers) return { ok: false, error: `تحتاج ${eng.meta.minPlayers} لاعبين على الأقل` };
-      if (n > eng.meta.maxPlayers) return { ok: false, error: `الحد الأقصى ${eng.meta.maxPlayers} لاعبين` };
+      if (eng.startCheck) {
+        const c = eng.startCheck(n, r.options || {});
+        if (c && !c.ok) return c;
+      } else {
+        if (n < eng.meta.minPlayers) return { ok: false, error: `تحتاج ${eng.meta.minPlayers} لاعبين على الأقل` };
+        if (n > eng.meta.maxPlayers) return { ok: false, error: `الحد الأقصى ${eng.meta.maxPlayers} لاعبين` };
+      }
       if (r.players.some((p) => !p.connected)) return { ok: false, error: "بعض اللاعبين غير متصلين" };
       if (r.players.some((p) => !p.isHost && !p.ready)) return { ok: false, error: "بانتظار جاهزية جميع اللاعبين" };
+      if (r.teamMode === "manual") {
+        const info = teamInfoFor(eng, r.options);
+        if (info) {
+          const plan = planTeams(info, r.players, r.teams || {});
+          if (plan.error) return { ok: false, error: plan.error };
+        }
+      }
       return { ok: true };
+    }
+    // توزيع نهائي للفرق: اختيارات اللاعبين تُحترم، ومن لم يختر يُضاف للفريق الأصغر
+    _resolveTeams(info) {
+      const r = this.room;
+      const plan = planTeams(info, r.players, r.teams || {});
+      const sizes = plan.cols.map((c) => c.length);
+      const map = {};
+      plan.cols.forEach((c, i) => c.forEach((id) => {
+        map[id] = i;
+      }));
+      for (const id of this.rng.shuffle(plan.free)) {
+        const min = Math.min(...sizes);
+        const m = this.rng.pick(sizes.map((v, j) => v === min ? j : -1).filter((j) => j >= 0));
+        map[id] = m;
+        sizes[m]++;
+      }
+      return map;
     }
     _start(rematch = false) {
       const r = this.room;
       if (!rematch && r.status !== "lobby") return { ok: false, error: "اللعبة بدأت" };
       if (rematch) {
         const eng2 = this.engines[r.gameId];
-        if (r.players.length < eng2.meta.minPlayers) return { ok: false, error: "عدد اللاعبين لا يكفي" };
+        if (eng2.startCheck) {
+          const c2 = eng2.startCheck(r.players.length, r.options || {});
+          if (c2 && !c2.ok) return { ok: false, error: "عدد اللاعبين لا يكفي" };
+        } else if (r.players.length < eng2.meta.minPlayers) return { ok: false, error: "عدد اللاعبين لا يكفي" };
       } else {
         const c = this.startCheck();
         if (!c.ok) return c;
       }
       const eng = this.engines[r.gameId];
       const order = this.rng.shuffle(r.players);
-      const state = eng.setup(order.map((p) => ({ id: p.id, isHost: p.isHost })), r.options, this.rng);
+      const tinfo = r.teamMode === "manual" ? teamInfoFor(eng, r.options) : null;
+      let tmap = null;
+      if (tinfo && !planTeams(tinfo, r.players, r.teams || {}).error) tmap = this._resolveTeams(tinfo);
+      const state = eng.setup(order.map((p) => tmap && tmap[p.id] !== void 0 ? { id: p.id, isHost: p.isHost, team: tmap[p.id] } : { id: p.id, isHost: p.isHost }), r.options, this.rng);
       r.game = { state };
       r.status = "playing";
       r.matchNo++;
@@ -9763,6 +11536,7 @@ var qrcode = function() {
       this.conns.delete(p.id);
       if (r.status === "lobby" || force) {
         r.players = r.players.filter((x) => x.id !== p.id);
+        if (r.teams) delete r.teams[p.id];
       } else {
         p.connected = false;
       }
@@ -9804,6 +11578,9 @@ var qrcode = function() {
         matchNo: r.matchNo,
         players: r.players.map((p) => ({ id: p.id, name: p.name, emoji: p.emoji, ready: p.ready, connected: p.connected, isHost: p.isHost })),
         roomFx: this.lastRoomFx || null,
+        teamMode: r.teamMode === "manual" ? "manual" : "random",
+        offline: !!r.offline,
+        teams: r.teams || {},
         displays: this.displays ? this.displays.size : 0,
         canStart: r.status === "lobby" ? this.startCheck() : null
       };
@@ -10102,6 +11879,9 @@ var qrcode = function() {
     setProfile(p) {
       this.profile = p;
       return this._send({ t: "profile", name: p.name, emoji: p.emoji });
+    }
+    setTeam(team) {
+      return this._send({ t: "team", team });
     }
     hostCmd(cmd, extra = {}) {
       return this._send({ t: "host", cmd, ...extra });
@@ -10918,6 +12698,7 @@ var qrcode = function() {
     if (v.phase === "ready") {
       if (c.type === "taboo" && me.isActive) h += `<p class="center soft">أنت الشارح: لا تقل الكلمة ولا المحظورات.</p>`;
       h += me.isActive || mod ? btn(`▶️ ابدأ (${ar(v.timer)} ثانية)`, { type: "start" }, "block") : wait("اقرأوا التحدي… سيبدأ الوقت");
+      if (me.canSkip) h += `<div style="margin-top:8px">${btn(mod ? "⏭ تخطي البطاقة (بطاقة أخرى)" : "⏭ تخطي البطاقة (مرة واحدة في الدور)", { type: "skipCard" }, "ghost block small")}</div>`;
       return h;
     }
     if (v.phase === "answer") {
@@ -10984,8 +12765,9 @@ var qrcode = function() {
     <button class="btn soft block" style="margin-top:10px" data-sheet-close>إغلاق</button>`, { label: "دليل البطاقات" });
   }
   function onFx2(e, ctx2) {
-    const m = { draw: "flip", start: "phase", correct: "correct", reject: "wrong", submit: "tap", foul: "buzz", timeUp: "timeUp", "win-card": "win", "lose-card": "lose", "round-end": "round", "round-start": "round", "game-over": "win" };
+    const m = { draw: "flip", start: "phase", correct: "correct", reject: "wrong", submit: "tap", foul: "buzz", timeUp: "timeUp", "win-card": "win", "lose-card": "lose", "round-end": "round", "round-start": "round", "game-over": "win", skip: "flip" };
     if (m[e.kind]) ctx2.sfx(m[e.kind]);
+    if (e.kind === "skip") toast("⏭ تم تخطي البطاقة — بطاقة جديدة");
     if (e.kind === "timeUp") {
       vibrate([60, 40, 60]);
       flash("#ff3b3b");
@@ -11278,6 +13060,7 @@ var qrcode = function() {
         html += `<div class="big-status"><p class="h2">بانتظار البقية<span class="waiting-dots"></span></p><p class="soft">${ar(seenN)} من ${ar(v.players.length)} شافوا بطاقاتهم</p></div>`;
       }
       if (ctx2.isHost && seenN < v.players.length) html += `<button class="btn ghost block" style="margin-top:12px" data-act='{"type":"advance"}'>ابدأ الأسئلة الآن (تجاوز المتأخرين)</button>`;
+      if (ctx2.isHost) html += `<button class="btn ghost block small" style="margin-top:8px" data-act='{"type":"redeal"}'>⏭ تخطي الكلمة (توزيع جديد)</button>`;
       return html;
     }
     if (v.phase === "questions") {
@@ -11360,7 +13143,7 @@ var qrcode = function() {
     <td class="num">${v.roundScores && v.roundScores[p.id] ? `<span class="badge ok">+${ar(v.roundScores[p.id])}</span> ` : ""}${ar(p.score)}</td></tr>`).join("")}</tbody></table></div>`;
   }
   function screenKey4(v) {
-    return [v.phase, v.round, v.pair?.index].join(":");
+    return [v.phase, v.round, v.pair?.index, v.deal || 0].join(":");
   }
   function onUi4(name, el, ctx2, rerender) {
     if (name === "reveal" && !ctx2.ui.revealed) {
@@ -11382,6 +13165,9 @@ var qrcode = function() {
       case "round-start":
         ctx2.sfx("reveal");
         ctx2.ui.revealed = false;
+        break;
+      case "redeal":
+        toast("🔄 تم تغيير الكلمة — اكشفوا بطاقاتكم من جديد");
         break;
       case "phase":
       case "tick":
@@ -12462,7 +14248,7 @@ var qrcode = function() {
     <line x1="160" y1="160" x2="${nx}" y2="${ny}" stroke="#fff" stroke-width="6" stroke-linecap="round"/><circle cx="160" cy="160" r="14" fill="#ff70a6"/></svg>
     <div class="row spread wl-ends"><span>${esc(v.card[0])} ←</span><span>→ ${esc(v.card[1])}</span></div>`;
   }
-  var screenKey10 = (v) => [v.phase, v.round].join(":");
+  var screenKey10 = (v) => [v.phase, v.round, v.skips || 0].join(":");
   function render10(ctx2) {
     const v = ctx2.view;
     const isPsy = v.psychic === ctx2.me;
@@ -12473,10 +14259,12 @@ var qrcode = function() {
     h += dial(v, reveal || isPsy && v.phase !== "over");
     if (v.clue) h += `<p class="h2 center wl-clue">«${esc(v.clue)}»</p>`;
     if (v.phase === "clue") {
+      const wid = "wclue" + (v.skips || "");
       if (isPsy) h += `<p class="center">أنت الوسيط: الهدف ظاهر لك فقط. أعطِ تلميحًا يضع فريقك في المكان الصحيح.</p>
-      <div class="field"><input id="wclue" maxlength="40" placeholder="اكتب التلميح (أو قله بصوتك)"></div>
-      <div class="row">${`<button class="btn grow-btn" data-act='{"type":"clue"}' data-input='{"text":"#wclue"}'>أرسل التلميح</button>`}${btn("قلته شفهيًا", { type: "clue", text: "" }, "soft grow-btn")}</div>`;
+      <div class="field"><input id="${wid}" maxlength="40" placeholder="اكتب التلميح (أو قله بصوتك)"></div>
+      <div class="row">${`<button class="btn grow-btn" data-act='{"type":"clue"}' data-input='{"text":"#${wid}"}'>أرسل التلميح</button>`}${btn("قلته شفهيًا", { type: "clue", text: "" }, "soft grow-btn")}</div>`;
       else h += wait(`${nm(ctx2, v.psychic)} يفكر بتلميح`);
+      if (isPsy || ctx2.isHost) h += `<div style="margin-top:8px">${btn("🔄 بطاقة أخرى (تخطي)", { type: "skipCard" }, "ghost block small")}</div>`;
     } else if (v.phase === "dial") {
       if (myTeamActive && !isPsy) h += `<p class="center">حرّكوا المؤشر ثم ثبّتوه:</p><input type="range" id="wdial" min="0" max="100" value="${v.dial}" class="wl-range" onchange="document.getElementById('wsend').click()">
       <button id="wsend" hidden data-act='{"type":"dial"}' data-input='{"value":"#wdial"}'></button>${btn("ثبّت المؤشر 🔒", { type: "lock" }, "block")}`;
@@ -12495,8 +14283,9 @@ var qrcode = function() {
     return h;
   }
   function onFx10(e, ctx2) {
-    const m = { "round-start": "round", clue: "secret", lock: "tap", bullseye: "correct", score: "point", miss: "wrong" };
+    const m = { "round-start": "round", clue: "secret", lock: "tap", bullseye: "correct", score: "point", miss: "wrong", skip: "round" };
     if (m[e.kind]) ctx2.sfx(m[e.kind]);
+    if (e.kind === "skip") toast("🔄 بطاقة جديدة");
     if (e.kind === "bullseye") burst(["#e63946", "#ffd166", "#70d6ff"]);
     if (e.kind === "game-over") {
       if (ctx2.view.winner === ctx2.view.myTeam) {
@@ -12540,10 +14329,11 @@ var qrcode = function() {
     const v = ctx2.view;
     let h = `<p class="center muted" style="margin:0">السؤال ${ar(v.round)} • الهدف ${ar(v.target)} أبقار</p><div class="herd-q pop-in"><p class="h2" style="margin:0">${esc(v.question)}</p></div>`;
     if (v.phase === "answer") {
-      if (v.me && !v.me.answer) h += `<div class="field"><input id="hans" maxlength="30" placeholder="اكتب إجابة الأغلبية" autocomplete="off"></div><button class="btn block" data-act='{"type":"answer"}' data-input='{"text":"#hans"}'>أرسل</button>`;
+      if (v.me && !v.me.answer) h += `<div class="field"><input id="hans${v.round}" maxlength="30" placeholder="اكتب إجابة الأغلبية" autocomplete="off"></div><button class="btn block" data-act='{"type":"answer"}' data-input='{"text":"#hans${v.round}"}'>أرسل</button>`;
       else h += wait(`إجابتك: «${esc(v.me?.answer || "")}» — بانتظار البقية`);
       h += `<div class="row wrap" style="justify-content:center;gap:6px;margin-top:12px">${v.players.map((p) => chip(ctx2, p.id, p.answered ? " ✓" : " …", p.answered ? "ok" : "")).join("")}</div>`;
       if (ctx2.isHost && v.players.some((p) => p.answered)) h += `<div style="margin-top:10px">${btn("اكشف الإجابات الآن", { type: "close" }, "soft block")}</div>`;
+      if (ctx2.isHost) h += `<div style="margin-top:8px">${btn("⏭ تخطي السؤال", { type: "skipQ" }, "ghost block small")}</div>`;
     } else if (v.phase === "group") {
       h += `<p class="center">الإجابات المتشابهة جُمعت تلقائيًا${ctx2.isHost ? ". ادمج المجموعات التي تعني نفس الشيء:" : ". المضيف يراجع الدمج:"}</p>`;
       const sel = ctx2.ui.mergeFrom;
@@ -12577,6 +14367,7 @@ var qrcode = function() {
   function onFx11(e, ctx2) {
     const m = { "round-start": "round", answered: "tap", herd: "correct", "no-herd": "wrong", cow: "buzz", phase: "flip" };
     if (m[e.kind]) ctx2.sfx(m[e.kind]);
+    if (e.kind === "skip") toast("⏭ تم تخطي السؤال — سؤال جديد");
     if (e.kind === "game-over") {
       if ((ctx2.view.winner || []).includes(ctx2.me)) {
         ctx2.sfx("win");
@@ -12716,7 +14507,7 @@ var qrcode = function() {
   var bankBox = (v) => `<span class="ff-bank" title="رصيد الجولة"><small>رصيد الجولة</small>${ar(v.bank)}</span>`;
   var totals = (ctx2, v) => `<p class="ff-tot-l">المجموع الكلي</p>${teamsBlock(ctx2, v.teams, LBL3, v.score)}`;
   var strikes = (n) => `<div class="ff-strikes">${Array.from({ length: 3 }, (_, k) => `<span class="${k < n ? "on" : ""}">✕</span>`).join("")}</div>`;
-  var screenKey13 = (v) => [v.phase, v.round].join(":");
+  var screenKey13 = (v) => [v.phase, v.round, v.skips || 0].join(":");
   function render13(ctx2) {
     const v = ctx2.view;
     const isMod = v.isMod;
@@ -12754,11 +14545,13 @@ var qrcode = function() {
     } else if (v.phase === "over") {
       h = winnerBanner(v.winner === "tie" ? "تعادل!" : `فاز ${LBL3[v.winner]}`, `${ar(v.score.A)} — ${ar(v.score.B)}`) + h;
     }
+    if (isMod && ["faceoff", "choose", "play", "steal"].includes(v.phase) && !v.answers.some((a) => a.shown)) h += `<div style="margin-top:10px">${btn("⏭ تخطي السؤال (سؤال آخر)", { type: "skipQ" }, "ghost block small")}</div>`;
     return h;
   }
   function onFx13(e, ctx2) {
-    const m = { buzz: "buzz", reveal: "correct", strike: "wrong", award: "coin", phase: "phase", "round-start": "round", timeUp: "timeUp" };
+    const m = { buzz: "buzz", reveal: "correct", strike: "wrong", award: "coin", phase: "phase", "round-start": "round", timeUp: "timeUp", skip: "round" };
     if (m[e.kind]) ctx2.sfx(m[e.kind]);
+    if (e.kind === "skip") toast("⏭ تم تخطي السؤال — سؤال جديد");
     if (e.kind === "timeUp") vibrate([60, 40, 60]);
     if (e.kind === "strike") {
       flash("#c62828");
@@ -13316,8 +15109,484 @@ var qrcode = function() {
     return head + `<div class="disp-cols"><div class="mono-disp">${boardHtml(ctx2, v)}</div><div>${panel(list)}${st}${logBlock((v.log || []).slice(-5))}</div></div>`;
   }
 
+  // js/ui/games/abdea-ui.js — واجهة «أَبْدِع» (إضافة)
+  var abdea_ui_exports = {};
+  __export(abdea_ui_exports, {
+    abCard: () => abCard,
+    abLogo: () => abLogo,
+    after: () => afterAb,
+    ambient: () => ambientAb,
+    headerExtra: () => headerExtraAb,
+    kit: () => kitAb,
+    onAct: () => onActAb,
+    onFx: () => onFxAb,
+    onUi: () => onUiAb,
+    render: () => renderAb,
+    renderDisplay: () => renderDisplayAb,
+    screenKey: () => screenKeyAb,
+    theme: () => themeAb
+  });
+  var themeAb = "abdea";
+  var kitAb = "pop";
+  var AB_FLOAT = "أبجدهوزحطيكلمنسعفصقرشتثخذضظغ";
+  var ambientAb = () => `<div class="ab-amb">${Array.from({ length: 18 }, (_, k) => `<span style="--x:${k * 53 % 100}%;--d:${16 + k * 7 % 12}s;--s:${(0.7 + k % 5 * 0.25).toFixed(2)};--delay:-${(k * 3.7 % 14).toFixed(1)}s">${AB_FLOAT[k * 5 % AB_FLOAT.length]}</span>`).join("")}</div>`;
+  var abLogo = (cls = "") => `<div class="ab-logo ${cls}" role="img" aria-label="أبدع"><span class="ab-lw">أَبْدِ</span><span class="ab-lc">ع</span><small>ABDEع</small></div>`;
+  function abP(ctx2, v, id) {
+    const b = (v.bots || []).find((x) => x.id === id);
+    if (b) return { name: b.name, emoji: b.emoji, bot: true };
+    return ctx2.player(id) || { name: "؟", emoji: "❔" };
+  }
+  var abN = (ctx2, v, id) => esc(abP(ctx2, v, id).name) + ((v.bots || []).some((x) => x.id === id) ? " 🤖" : "");
+  var abNr = (ctx2, v, id) => abP(ctx2, v, id).name;
+  var abAv = (ctx2, v, id, size2 = "sm") => avatar(abP(ctx2, v, id), size2);
+  function abCard(l, { cls = "", attrs = "", tag = "button" } = {}) {
+    const rare = AB_RARE.includes(l);
+    return `<${tag} class="ab-card ${rare ? "rare" : ""} ${cls}" ${attrs}><span class="ab-cc">${esc(l)}</span><span class="ab-cl">${esc(l)}</span>${rare ? '<span class="ab-star" aria-hidden="true">★</span>' : ""}</${tag}>`;
+  }
+  var REGION = { start: "الحرف الناقص في البداية", middle: "الحرف الناقص في الوسط", end: "الحرف الناقص في النهاية" };
+  var screenKeyAb = (v) => [v.phase, v.turnNo, v.ch ? v.ch.no : 0].join(":");
+  var headerExtraAb = () => `<button class="icon-btn" data-ui="abhelp" aria-label="طريقة اللعب">📖</button>`;
+  function wordWith(frag, slot, l) {
+    return esc(frag.slice(0, slot).join("")) + `<em>${esc(l)}</em>` + esc(frag.slice(slot).join(""));
+  }
+  function abBoard(ctx2, v, { interactive = false } = {}) {
+    const ch = v.ch;
+    if (!ch) return "";
+    const ui = ctx2.ui;
+    const selCard = interactive && ui.abCard ? v.me.hand.find((c) => c.id === ui.abCard) : null;
+    const selSlot = interactive && Number.isInteger(ui.abSlot) && ch.slots.includes(ui.abSlot) ? ui.abSlot : null;
+    let tiles = "";
+    for (let k = 0; k <= ch.frag.length; k++) {
+      const allowed = ch.slots.includes(k);
+      if (allowed) {
+        if (interactive) {
+          const filled = selCard && selSlot === k;
+          tiles += `<button class="ab-slot ${filled ? "filled" : ""} ${selCard && !filled ? "ready" : ""}" data-ui="abslot" data-k="${k}" aria-label="ضع الحرف هنا">${filled ? `<span class="ab-tile ab-new">${esc(selCard.l)}</span>` : '<span class="ab-plus">+</span>'}</button>`;
+        } else if (ch.slots.length === 1 || ch.exact != null) tiles += `<span class="ab-slot show"><span class="ab-q">؟</span></span>`;
+        else tiles += `<span class="ab-dot" aria-hidden="true"></span>`;
+      }
+      if (k < ch.frag.length) tiles += `<span class="ab-tile">${esc(ch.frag[k])}</span>`;
+    }
+    const before = ch.ph && ch.ph.before ? `<span class="ab-ctx">${esc(ch.ph.before)}</span>` : "";
+    const after9 = ch.ph && ch.ph.after ? `<span class="ab-ctx">${esc(ch.ph.after)}</span>` : "";
+    let preview = "";
+    if (selCard && selSlot != null) preview = `<p class="ab-preview">${ch.ph && ch.ph.before ? esc(ch.ph.before) + " " : ""}<b>${wordWith(ch.frag, selSlot, selCard.l)}</b>${ch.ph && ch.ph.after ? " " + esc(ch.ph.after) : ""}</p>`;
+    return `<section class="ab-board ${ch.ph ? "phrase" : ""}">
+      <div class="ab-board-top">${ch.hint ? `<span class="ab-chip">${ch.ph ? "💬 عبارة" : "💡 " + esc(ch.hint)}</span>` : "<span></span>"}<span class="ab-chip region">${REGION[ch.region]}</span></div>
+      <div class="ab-line">${before}<div class="ab-tiles" style="--n:${ch.frag.length + 1}">${tiles}</div>${after9}</div>
+      ${preview}
+    </section>`;
+  }
+  function abScores(ctx2, v, big = false) {
+    if (v.teams) {
+      return `<div class="ab-teams ${big ? "big" : ""}">${v.teams.map((t) => `<div class="ab-team ${t.members.includes(v.turn) && v.phase !== "over" ? "turn" : ""}" style="--tc:${t.color}">
+        <div class="ab-tn">${esc(t.name)}</div>
+        <div class="ab-tm">${t.members.map((id) => `<span class="${id === v.turn ? "act" : ""}" title="${abN(ctx2, v, id)}">${abAv(ctx2, v, id)}</span>`).join("")}</div>
+        <div class="ab-ts"><b>${ar(t.score)}</b><small>/ ${ar(v.target)}</small></div></div>`).join("")}</div>`;
+    }
+    return `<div class="ab-scores ${big ? "big" : ""}">${v.order.map((p) => `<div class="ab-sc ${p.id === v.turn && v.phase !== "over" ? "turn" : ""} ${p.id === ctx2.me ? "me" : ""}">
+      ${abAv(ctx2, v, p.id, big ? "lg" : "sm")}<span class="ab-sn">${abN(ctx2, v, p.id)}${p.id === ctx2.me ? " (أنت)" : ""}</span>
+      <span class="ab-sp" title="النقاط"><b>${ar(p.score)}</b><small>نقطة</small></span>${p.streak >= 2 ? `<i class="ab-streak">🔥${ar(p.streak)}</i>` : ""}<span class="ab-cnt" title="بطاقات في اليد">🃏${ar(p.count)}</span></div>`).join("")}</div>`;
+  }
+  function abPiles(v, big = false) {
+    return `<div class="ab-piles ${big ? "big" : ""}">
+      <div class="ab-pile"><div class="ab-stack">${v.deck ? '<span class="ab-back"></span><span class="ab-back"></span><span class="ab-back"></span>' : '<span class="ab-empty">فارغة</span>'}</div><small>كومة السحب</small><b>${ar(v.deck)}</b></div>
+      <div class="ab-pile used"><div class="ab-stack">${v.discardTop ? abCard(v.discardTop, { tag: "span", cls: "mini" }) : '<span class="ab-empty">—</span>'}</div><small>المستخدمة</small><b>${ar(v.discard)}</b></div>
+    </div>`;
+  }
+  function lastLine(ctx2, v) {
+    const L = v.last;
+    if (!L) return "";
+    const n = abN(ctx2, v, L.by);
+    if (L.type === "correct") return `<p class="ab-last ok">✨ ${n}: أبدعت! «<b>${esc(L.word)}</b>» +${ar(L.pts)}</p>`;
+    if (L.type === "wrong") return `<p class="ab-last no">😅 ${n}: حرفك ما ضبط! «${esc(L.word)}» — ${L.drew ? "بطاقة بديلة من الكومة" : "الكومة فارغة: بلا بديل"}</p>`;
+    if (L.type === "timeout") return `<p class="ab-last">⏰ انتهى وقت ${n}</p>`;
+    return `<p class="ab-last">⏭ ${n}: تخطٍّ بدون خسارة</p>`;
+  }
+  function turnBanner(ctx2, v, big = false) {
+    if (v.phase === "over") return "";
+    if (v.phase === "vote") return `<div class="ab-turn vote ${big ? "big" : ""}"><b>🗳️ تصويت على كلمة ${abN(ctx2, v, v.pending.by)}</b>${timerHtml(v.deadline)}</div>`;
+    const mine = v.turn === ctx2.me;
+    return `<div class="ab-turn ${mine ? "mine" : ""} ${big ? "big" : ""}">${abAv(ctx2, v, v.turn, big ? "lg" : "sm")}<b>${mine ? "الدور عليك! ✨" : `الدور على: ${abN(ctx2, v, v.turn)}`}</b>${timerHtml(v.deadline)}</div>`;
+  }
+  function votePanel(ctx2, v) {
+    const pd = v.pending;
+    if (!pd) return "";
+    let h = `<div class="panel ab-vote pop-in"><p class="center" style="margin:0">كلمة ${abN(ctx2, v, pd.by)} بحرف «${esc(pd.letter)}»:</p><p class="ab-vword">${esc(pd.shown)}</p>
+    <p class="center soft" style="margin:0 0 8px;font-size:15px">${v.judge === "host" ? "المضيف يحكم: هل الكلمة صحيحة ومفهومة؟" : "الكلمة ليست في قاموس اللعبة — هل هي صحيحة ومفهومة؟"}</p>`;
+    if (pd.canVote) h += `<div class="row">${btn("✓ صحيحة", { type: "vote", ok: true }, "grow-btn")}${btn("✕ خاطئة", { type: "vote", ok: false }, "danger grow-btn")}</div>`;
+    else if (pd.myVote !== null && pd.myVote !== void 0) h += wait(`صوّتّ: ${pd.myVote ? "صحيحة" : "غير صحيحة"} — بانتظار البقية`);
+    else if (pd.by === ctx2.me) h += wait("بانتظار حكم اللاعبين على كلمتك");
+    else h += wait("بانتظار التصويت");
+    h += `<p class="center muted" style="margin:6px 0 0;font-size:14px">الأصوات: ${ar(pd.cast)} من ${ar(pd.voters.length)}</p>`;
+    if (ctx2.isHost && pd.by !== ctx2.me && !(pd.voters.length === 1 && pd.canVote)) h += `<div class="row" style="margin-top:8px">${btn("اعتمدها (حكم المضيف)", { type: "judge", ok: true }, "soft grow-btn small")}${btn("ارفضها", { type: "judge", ok: false }, "soft grow-btn small")}</div>`;
+    return h + "</div>";
+  }
+  function overHtml(ctx2, v, big = false) {
+    const ws = v.winners || [];
+    let title;
+    if (v.teams) {
+      const names = v.teams.filter((t) => ws.includes(t.id)).map((t) => esc(t.name));
+      title = names.length > 1 ? `تعادل: ${names.join(" و")}` : `🏆 فاز ${names[0] || ""}`;
+    } else {
+      const names = ws.map((id) => abN(ctx2, v, id));
+      title = names.length > 1 ? `تعادل: ${names.join(" و")}` : ws[0] === ctx2.me ? "🏆 أبدعت! أنت الفائز" : `🏆 فاز ${names[0] || ""}`;
+    }
+    const rows = v.order.slice().sort((a, b) => b.score - a.score || b.correct - a.correct);
+    const table = `<div class="panel ab-final"><table class="ab-table"><thead><tr><th>#</th><th>اللاعب</th><th>النقاط</th><th>✓ صحيحة</th><th>✕ خاطئة</th><th>أطول كلمة</th></tr></thead><tbody>
+    ${rows.map((p, k) => `<tr class="${p.id === ctx2.me ? "me" : ""}"><td><span class="rank ${k === 0 ? "first" : ""}">${ar(k + 1)}</span></td><td>${abAv(ctx2, v, p.id)} ${abN(ctx2, v, p.id)}${v.teams && p.team >= 0 ? ` <span class="ab-dot2" style="--tc:${v.teams[p.team].color}"></span>` : ""}</td><td><b>${ar(p.score)}</b></td><td>${ar(p.correct)}</td><td>${ar(p.wrong)}</td><td>${p.best ? esc(p.best) : "—"}</td></tr>`).join("")}</tbody></table></div>`;
+    return `<div class="ab-win pop-in">${abLogo("sm")}<p class="h1 ab-wtitle">${title}</p><p class="soft" style="margin:0">${v.endReason === "empty" ? "نفدت بطاقات أحد اللاعبين — الفوز لصاحب أعلى نقاط" : `وصل إلى ${ar(v.target)} نقاط`}</p><div class="ab-trophy" aria-hidden="true">🏆</div></div>` + (v.teams && !big ? abScores(ctx2, v) : "") + table;
+  }
+  function renderAb(ctx2) {
+    const v = ctx2.view, me = v.me;
+    const ui = ctx2.ui;
+    if (v.ch && ui.abChNo !== v.ch.no) {
+      ui.abChNo = v.ch.no;
+      ui.abCard = null;
+      ui.abSlot = null;
+    }
+    if (me && ui.abCard && !me.hand.some((c) => c.id === ui.abCard)) {
+      ui.abCard = null;
+      ui.abSlot = null;
+    }
+    if (v.phase === "over") return overHtml(ctx2, v) + `<div style="margin-top:12px">${`<button class="btn ghost block" data-cmd="leave">الصفحة الرئيسية</button>`}</div>`;
+    const myTurn = !!(me && me.isTurn);
+    let h = `<div class="ab-head">${abLogo("sm")}${turnBanner(ctx2, v)}</div>`;
+    h += abScores(ctx2, v);
+    h += abBoard(ctx2, v, { interactive: myTurn });
+    h += lastLine(ctx2, v);
+    if (v.phase === "vote") h += votePanel(ctx2, v);
+    if (me) {
+      const sel = ui.abCard;
+      h += `<div class="ab-hand-wrap"><div class="row spread" style="margin:4px 2px 6px"><b>بطاقاتك</b><span class="muted" style="font-size:14px">${myTurn ? sel ? ui.abSlot != null ? "اضغط «تأكيد الإجابة»" : "اضغط مكان الحرف (+) أو اسحب البطاقة إليه" : "اختر بطاقة أو اسحبها إلى الكلمة" : "انتظر دورك"}</span></div>
+      <div class="ab-hand ${myTurn ? "live" : ""}">${me.hand.map((c) => abCard(c.l, { cls: `${sel === c.id ? "sel" : ""} ${me.newCard === c.id ? "fresh" : ""}`, attrs: `data-ui="abcard" data-id="${c.id}" aria-pressed="${sel === c.id}" aria-label="حرف ${esc(c.l)}"` })).join("") || '<p class="muted">لا بطاقات في يدك</p>'}</div></div>`;
+      if (myTurn) {
+        const can = sel && Number.isInteger(ui.abSlot) && v.ch.slots.includes(ui.abSlot);
+        h += `<div class="ab-actions">${btn("تأكيد الإجابة ✓", { type: "play", card: sel || "", slot: can ? ui.abSlot : -1 }, "ab-confirm grow-btn", can ? "" : "disabled")}${btn("تخطي الدور ⏭", { type: "skip" }, "soft grow-btn")}</div>
+        <p class="center muted" style="font-size:13px;margin:6px 0 0">ما عندك حرف مناسب؟ تخطَّ بدون خسارة أي بطاقة.</p>`;
+      }
+    }
+    h += abPiles(v);
+    if (ctx2.isHost && v.phase === "play") h += `<details class="panel ab-host"><summary class="soft">أدوات المضيف</summary><div class="row wrap" style="gap:8px;margin-top:8px">${btn("🔄 تحدٍّ جديد", { type: "newChallenge" }, "soft small")}${v.turn !== ctx2.me ? btn(`⏭ تخطَّ دور ${abN(ctx2, v, v.turn)}`, { type: "forceSkip" }, "soft small") : ""}</div></details>`;
+    return h;
+  }
+  function renderDisplayAb(ctx2) {
+    const v = ctx2.view;
+    if (v.phase === "over") return `<div class="ab-disp">${overHtml(ctx2, v, true)}</div>`;
+    let main = abBoard(ctx2, v) + lastLine(ctx2, v);
+    if (v.phase === "vote" && v.pending) main += `<div class="panel ab-vote"><p class="center h2" style="margin:0">🗳️ هل «${esc(v.pending.shown)}» صحيحة؟</p><p class="center soft">صوّتوا من جوالاتكم — الأصوات ${ar(v.pending.cast)} من ${ar(v.pending.voters.length)}</p></div>`;
+    const side = turnBanner(ctx2, v, true) + abScores(ctx2, v, true) + abPiles(v, true);
+    return `<div class="ab-disp"><div class="disp-head ab-dhead">${abLogo("disp")}<p class="soft h2">الهدف ${ar(v.target)} نقاط${v.ch && v.ch.hint ? " • " + (v.ch.ph ? "عبارة" : esc(v.ch.hint)) : ""}</p></div><div class="disp-cols"><div>${main}</div><div>${side}</div></div></div>`;
+  }
+  function abPop(text, tone = "") {
+    if (typeof document === "undefined") return;
+    const el = document.createElement("div");
+    el.className = "ab-pop " + tone;
+    el.innerHTML = `<span>${text}</span>`;
+    document.body.appendChild(el);
+    const short = tone === "turn";
+    setTimeout(() => el.classList.add("out"), short ? 850 : 1300);
+    setTimeout(() => el.remove(), short ? 1300 : 1750);
+  }
+  function abHelpHtml() {
+    return `<h2>طريقة لعب أَبْدِع</h2>
+    <p class="soft" style="margin-top:0">حرف منك… وإبداع من الجميع!</p>
+    <ol style="padding-inline-start:20px;line-height:1.8">
+      <li>في منتصف الشاشة كلمة أو عبارة ينقصها حرف واحد، ومكتوب أين ينقص: البداية أو الوسط أو النهاية.</li>
+      <li>في دورك اختر بطاقة حرف من يدك (أو اسحبها) وضعها في مكان <b>+</b> ثم اضغط «تأكيد الإجابة».</li>
+      <li>إجابة صحيحة: تُستهلك البطاقة وتأخذ نقطة <b>+١</b> ويظهر تحدٍّ جديد.</li>
+      <li>إجابة خاطئة: تخسر البطاقة نهائيًا وتسحب بطاقة بديلة، بلا نقاط، ويذهب الدور للتالي.</li>
+      <li>ما عندك حرف مناسب؟ تخطَّ دورك بلا خسارة.</li>
+      <li>أي كلمة صحيحة تتكون بحرفك في المكان المطلوب تُقبل — حتى لو غير الكلمة المقصودة. الكلمة غير الموجودة في قاموس اللعبة يحكم فيها اللاعبون بالتصويت أو المضيف (حسب الإعداد).</li>
+      <li>الفائز أول من يصل لنقاط الفوز.</li>
+    </ol>
+    <button class="btn soft block" data-sheet-close>فهمت</button>`;
+  }
+  function onUiAb(name, el, ctx2, rerender) {
+    const v = ctx2.view;
+    if (name === "abhelp") {
+      openSheet(abHelpHtml(), { label: "طريقة اللعب" });
+      return;
+    }
+    if (!v.me) return;
+    if (name === "abcard") {
+      if (ctx2.ui.abDragAt && Date.now() - ctx2.ui.abDragAt < 450) return;
+      if (!v.me.isTurn) {
+        toast(v.phase === "vote" ? "انتظر نتيجة التصويت" : "انتظر دورك");
+        return;
+      }
+      const id = el.dataset.id;
+      ctx2.ui.abCard = ctx2.ui.abCard === id ? null : id;
+      if (ctx2.ui.abCard && v.ch.slots.length === 1) ctx2.ui.abSlot = v.ch.slots[0];
+      if (!ctx2.ui.abCard) ctx2.ui.abSlot = null;
+      ctx2.sfx("tap");
+      rerender();
+      return;
+    }
+    if (name === "abslot") {
+      if (!v.me.isTurn) return;
+      if (!ctx2.ui.abCard) {
+        toast("اختر بطاقة حرف أولًا ثم ضعها هنا");
+        return;
+      }
+      ctx2.ui.abSlot = Number(el.dataset.k);
+      ctx2.sfx("flip");
+      vibrate(15);
+      rerender();
+    }
+  }
+  function onActAb(a, ctx2) {
+    if (a.type === "play" || a.type === "skip") {
+      ctx2.ui.abCard = null;
+      ctx2.ui.abSlot = null;
+    }
+  }
+  function afterAb(root2, ctx2) {
+    const v = ctx2.view;
+    if (!v.me || !v.me.isTurn) return;
+    root2.querySelectorAll(".ab-hand .ab-card[data-id]").forEach((el) => {
+      el.addEventListener("pointerdown", (ev) => abStartDrag(ev, el, ctx2));
+    });
+  }
+  function abStartDrag(ev, el, ctx2) {
+    if (ev.button != null && ev.button !== 0) return;
+    const id = el.dataset.id;
+    const sx = ev.clientX, sy = ev.clientY;
+    let ghost = null, over = null, moved = false;
+    const move = (e) => {
+      if (!moved && Math.hypot(e.clientX - sx, e.clientY - sy) < 10) return;
+      if (!moved) {
+        moved = true;
+        ghost = el.cloneNode(true);
+        ghost.classList.add("ab-ghost");
+        ghost.removeAttribute("data-ui");
+        document.body.appendChild(ghost);
+        el.classList.add("dragging");
+      }
+      e.preventDefault();
+      ghost.style.left = e.clientX + "px";
+      ghost.style.top = e.clientY + "px";
+      const hit = document.elementFromPoint(e.clientX, e.clientY);
+      const t = hit && hit.closest ? hit.closest(".ab-slot[data-k]") : null;
+      if (over !== t) {
+        over?.classList.remove("hot");
+        over = t;
+        over?.classList.add("hot");
+      }
+    };
+    const up = () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      window.removeEventListener("pointercancel", up);
+      if (!moved) return;
+      ghost?.remove();
+      el.classList.remove("dragging");
+      ctx2.ui.abDragAt = Date.now();
+      if (over) {
+        ctx2.ui.abCard = id;
+        over.classList.remove("hot");
+        over.click();
+      }
+    };
+    window.addEventListener("pointermove", move, { passive: false });
+    window.addEventListener("pointerup", up);
+    window.addEventListener("pointercancel", up);
+  }
+  function onFxAb(e, ctx2, root2) {
+    const v = ctx2.view;
+    const mine = e.who === ctx2.me;
+    const N = (id) => abN(ctx2, v, id);
+    switch (e.kind) {
+      case "turn":
+        if (mine && !ctx2.isDisplay) {
+          ctx2.sfx("next");
+          vibrate(40);
+          abPop("الدور عليك! ✨", "turn");
+        }
+        break;
+      case "correct":
+        ctx2.sfx("correct");
+        if (mine) {
+          abPop(`أبدعت! +${ar(e.pts)} 🔥`, "good");
+          burst(["#ffcf3f", "#ff5e7e", "#2ec4b6", "#fff"], 50);
+        } else if (!ctx2.isDisplay) {
+          toast(`✨ ${abNr(ctx2, v, e.who)}: أبدعت! «${e.word}»`);
+          burst(["#ffcf3f", "#2ec4b6"], 18);
+        } else burst(["#ffcf3f", "#ff5e7e", "#2ec4b6", "#fff"], 70);
+        if (e.streak === 3 && mine) setTimeout(() => toast("🔥 ثلاث إجابات متتالية! يا سلام عليك!"), 900);
+        break;
+      case "wrong":
+        ctx2.sfx("wrong");
+        shake(root2?.querySelector(".ab-board") || root2);
+        if (mine) {
+          vibrate([60, 40, 60]);
+          abPop("حرفك ما ضبط! 😅", "bad");
+          setTimeout(() => toast(e.drew ? "سحبت بطاقة جديدة، الدور على اللاعب التالي!" : "الكومة فارغة — الدور على اللاعب التالي!"), 1100);
+        }
+        break;
+      case "skip":
+        ctx2.sfx("tap");
+        break;
+      case "timeout":
+        ctx2.sfx("timeUp");
+        if (mine) toast("⏰ انتهى وقتك — الدور للتالي", "err");
+        break;
+      case "vote":
+        ctx2.sfx("vote");
+        if (!ctx2.isDisplay && !mine && v.pending && v.pending.canVote) {
+          vibrate(50);
+          toast(`🗳️ صوّت: هل «${e.word}» صحيحة؟`);
+        }
+        break;
+      case "accepted":
+        toast(e.by === "host" ? "✓ اعتمد المضيف الكلمة" : "✓ قبل اللاعبون الكلمة وأُضيفت للقاموس");
+        break;
+      case "rejected":
+        toast(e.by === "host" ? "✕ رفض المضيف الكلمة" : "✕ رفض اللاعبون الكلمة");
+        break;
+      case "voteTimeUp":
+        ctx2.sfx("timeUp");
+        break;
+      case "newChallenge":
+        ctx2.sfx("flip");
+        toast(e.auto ? "🔄 ما أحد قدر يحلها — تحدٍّ جديد!" : "🔄 تحدٍّ جديد!");
+        break;
+      case "reshuffle":
+        toast("🔀 انتهت كومة السحب — خُلطت البطاقات المستخدمة من جديد");
+        break;
+      case "game-over": {
+        ctx2.sfx("win");
+        burst(["#ffcf3f", "#ff5e7e", "#2ec4b6", "#a78bfa", "#fff"], 90);
+        setTimeout(() => burst(["#ffcf3f", "#ff5e7e", "#2ec4b6", "#fff"], 60), 700);
+        break;
+      }
+    }
+  }
+  // للعرض على الشاشة الكبيرة: البطاقة المرمية تظهر في المنتصف
+  function abdeaCenter(e, ctx2) {
+    const v = ctx2.view;
+    const N = (id) => abN(ctx2, v, id);
+    const wordHtml = (x) => {
+      if (!x.frag || !Number.isInteger(x.slot)) return esc(x.word || "");
+      const w = wordWith(x.frag, x.slot, x.letter);
+      return (x.ph && x.ph.before ? esc(x.ph.before) + " " : "") + w + (x.ph && x.ph.after ? " " + esc(x.ph.after) : "");
+    };
+    if (e.kind === "correct") throwCenter(abCard(e.letter, { tag: "div", cls: "tc-ab" }) + `<div class="tc-abword ok">${wordHtml(e)}</div>`, { caption: `أبدعت يا ${N(e.who)}! +${ar(e.pts)} 🔥`, sub: "يا سلام عليك!", tone: "good", hold: 2600 });
+    else if (e.kind === "wrong") throwCenter(`<div class="tc-x">${abCard(e.letter, { tag: "div", cls: "tc-ab" })}<span>✕</span></div><div class="tc-abword no">${wordHtml(e)}</div>`, { caption: "حرفك ما ضبط! 😅", sub: `${N(e.who)}: البطاقة راحت للمستخدمة${e.drew ? " وبطاقة بديلة من الكومة" : ""}`, tone: "danger", hold: 2400 });
+    else if (e.kind === "vote") throwCenter(abCard(e.letter, { tag: "div", cls: "tc-ab" }) + `<div class="tc-abword">${esc(e.word || "")}</div>`, { caption: "🗳️ تصويت!", sub: "هل الكلمة صحيحة؟ صوّتوا من جوالاتكم", hold: 2200 });
+  }
+
+  // js/ui/center-throw.js — إضافة: البطاقة المرمية تظهر في منتصف شاشة العرض
+  var centerQ = [];
+  var centerBusy = false;
+  function throwCenter(html, { caption = "", sub = "", hold = 2600, tone = "" } = {}) {
+    if (typeof document === "undefined" || !html) return;
+    centerQ.push({ html, caption, sub, hold, tone });
+    if (centerQ.length > 4) centerQ.splice(0, centerQ.length - 4);
+    if (!centerBusy) nextCenter();
+  }
+  function nextCenter() {
+    const it = centerQ.shift();
+    if (!it) {
+      centerBusy = false;
+      return;
+    }
+    centerBusy = true;
+    const el = document.createElement("div");
+    el.className = "throw-center " + (it.tone || "");
+    el.setAttribute("role", "status");
+    el.innerHTML = `<div class="tc-glow"></div><div class="tc-cards">${it.html}</div>${it.caption ? `<p class="tc-cap">${it.caption}</p>` : ""}${it.sub ? `<p class="tc-sub">${it.sub}</p>` : ""}`;
+    const flips = [...el.querySelectorAll(".card.is-flipped, .disc.is-flipped")];
+    flips.forEach((c) => c.classList.remove("is-flipped"));
+    document.body.appendChild(el);
+    const reduce = settings.get().reduceMotion;
+    flips.forEach((c, k) => setTimeout(() => c.classList.add("is-flipped"), reduce ? 0 : 420 + k * 260));
+    const hold = (centerQ.length ? Math.min(it.hold, 1500) : it.hold) + flips.length * 120;
+    setTimeout(() => el.classList.add("out"), hold);
+    setTimeout(() => {
+      el.remove();
+      nextCenter();
+    }, hold + 480);
+  }
+  function clearCenter() {
+    centerQ.length = 0;
+    document.querySelectorAll(".throw-center").forEach((x) => x.remove());
+    centerBusy = false;
+  }
+  var tcWord = (top, main, cls = "") => `<div class="tc-word ${cls}"><small>${top}</small><b>${main}</b></div>`;
+  function centerFx(g, e, ctx2) {
+    try {
+      const v = ctx2.view;
+      if (!v) return;
+      const N = (id) => nm(ctx2, id);
+      if (g === "kittens") {
+        if (e.kind === "played") {
+          const cards = Array.isArray(e.cards) && e.cards.length ? e.cards : KCARDS[e.card] ? [e.card] : null;
+          if (!cards) return;
+          const label = cards.length === 1 ? CARDS2[cards[0]]?.[0] || "" : comboLabel(cards) || "";
+          throwCenter(cards.map((c) => kcard(c, { size: "" })).join(""), { caption: `بطاقة ${N(e.who)}: ${esc(label)}`, sub: e.target ? `على ${N(e.target)}` : "" });
+        } else if (e.kind === "nope") throwCenter(kcard("nope", { size: "" }), { caption: `${N(e.who)}: لا! ✋`, tone: "danger", hold: 2e3 });
+        else if (e.kind === "bomb") throwCenter(kcard("bomb", { size: "" }), { caption: `القطة المتفجرة عند ${N(e.who)}! 💣`, tone: "danger" });
+        else if (e.kind === "defused") throwCenter(kcard("defuse", { size: "" }), { caption: "أُبطلت القطة! 😮‍💨", sub: "وعادت سرًّا إلى الكومة", tone: "good" });
+        return;
+      }
+      if (g === "secret" && (e.kind === "policy-l" || e.kind === "policy-f")) {
+        const L = e.kind === "policy-l";
+        throwCenter(`<div class="tc-policy ${L ? "lib" : "fas"}"><span>📜</span><b>قانون ${L ? "ليبرالي" : "فاشي"}</b><small>شُرِّع الآن</small></div>`, { caption: L ? "شُرِّع قانون ليبرالي" : "شُرِّع قانون فاشي", tone: L ? "good" : "danger" });
+        return;
+      }
+      if (g === "coup") {
+        if (e.kind === "lose" && e.card && CARD[e.card]) throwCenter(infl(e.card, { size: "" }), { caption: `${N(e.who)}: خسارة نفوذ ${CARD[e.card][0]}`, sub: "البطاقة مكشوفة للجميع", tone: "danger" });
+        else if ((e.kind === "challenge-fail" || e.kind === "challenge-win") && v.lastChallenge && CARD[v.lastChallenge.card]) {
+          const c = v.lastChallenge;
+          if (c.truthful) throwCenter(infl(c.card, { size: "" }), { caption: `${N(c.claimant)} كان صادقًا ✓`, sub: `يملك ${CARD[c.card][0]} — خسر ${N(c.challenger)} التحدي`, tone: "good" });
+          else throwCenter(`<div class="tc-x">${infl(null, { size: "" })}<span>✕</span></div>`, { caption: `${N(c.claimant)} كان يخادع!`, sub: `لا يملك ${CARD[c.card][0]} — نجح تحدي ${N(c.challenger)}`, tone: "danger" });
+        }
+        return;
+      }
+      if (g === "skull" && (e.kind === "flip-rose" || e.kind === "flip-skull")) {
+        const sk = e.kind === "flip-skull";
+        throwCenter(disc(sk ? "skull" : "rose", { size: "tc-disc", attrs: 'tabindex="-1"' }), { caption: `قرص ${N(e.owner)}: ${sk ? "جمجمة 💀" : "وردة 🌹"}`, sub: e.who !== e.owner ? `الكشف بيد ${N(e.who)}` : "", tone: sk ? "danger" : "good", hold: sk ? 2800 : 1700 });
+        return;
+      }
+      if (g === "avalon" && (e.kind === "mission-success" || e.kind === "mission-fail") && v.lastMission) {
+        const m = v.lastMission;
+        const n = (m.team || []).length || m.fails;
+        const cards = Array.from({ length: n }, (_, k) => k < n - m.fails ? "s" : "f");
+        for (let k = cards.length - 1; k > 0; k--) {
+          const j = Math.floor(Math.random() * (k + 1));
+          [cards[k], cards[j]] = [cards[j], cards[k]];
+        }
+        throwCenter(cards.map((c) => card({ cls: "tc-mission", back: '<div class="tc-mback">⚔️</div>', front: `<div class="tc-mface ${c === "s" ? "ok" : "no"}">${c === "s" ? "✓<small>نجاح</small>" : "✕<small>فشل</small>"}</div>`, flipped: true })).join(""), { caption: `المهمة ${ar(m.n)}: ${m.success ? "نجحت ✓" : "فشلت ✕"}`, sub: `بطاقات الفشل: ${ar(m.fails)}`, tone: m.success ? "good" : "danger", hold: 3200 });
+        return;
+      }
+      if (g === "monopoly" && e.kind === "card" && v.lastCard) {
+        const c = v.lastCard;
+        throwCenter(`<div class="tc-mono ${c.kind}"><small>${c.kind === "chance" ? "❓ فرصة" : "🎁 صندوق المجتمع"}</small><b>${esc(c.text)}</b></div>`, { caption: `بطاقة ${N(c.who)}`, hold: 3400 });
+        return;
+      }
+      if (g === "shareef" && (e.kind === "honest" || e.kind === "caught") && v.lastInspect && v.lastInspect.bag) {
+        const li = v.lastInspect;
+        throwCenter(li.bag.map((x) => G[x] ? good(x, { size: "" }) : "").join(""), { caption: `الشريف فتّش حقيبة ${N(li.merchant)}`, sub: li.honest ? "كان صادقًا ✓" : "ضُبط مهرّبًا! ✕", tone: li.honest ? "good" : "danger", hold: 3200 });
+        return;
+      }
+      if (g === "deception" && (e.kind === "solved" || e.kind === "wrong-guess") && v.guesses && v.guesses.length) {
+        const q = v.guesses[v.guesses.length - 1];
+        const tp = (v.players || []).find((p) => p.id === q.target);
+        const mt = tp && tp.means && tp.meansIdx ? tp.means[tp.meansIdx.indexOf(q.means)] : null;
+        const ct = tp && tp.clues && tp.cluesIdx ? tp.clues[tp.cluesIdx.indexOf(q.clue)] : null;
+        if (mt == null || ct == null) return;
+        throwCenter(tcWord("الوسيلة", esc(mt), "means") + tcWord("الدليل", esc(ct), "clue"), { caption: `${N(q.by)} يتهم ${N(q.target)}`, sub: e.kind === "solved" ? "اتهام صحيح! 🎯" : "اتهام خاطئ ✕", tone: e.kind === "solved" ? "good" : "danger", hold: 3200 });
+        return;
+      }
+      if (g === "abdea" && typeof abdeaCenter === "function") abdeaCenter(e, ctx2);
+    } catch (err) {
+      if (typeof console !== "undefined") console.warn("centerFx", err);
+    }
+  }
+
   // js/ui/play.js
-  var GAME_UI = { mafia: mafia_ui_exports, skull: skull_ui_exports, bara: bara_ui_exports, avalon: avalon_ui_exports, werewolf: werewolf_ui_exports, coup: coup_ui_exports, secret: secret_ui_exports, kittens: kittens_ui_exports, wavelength: wavelength_ui_exports, herd: herd_ui_exports, letters: letters_ui_exports, familyfeud: familyfeud_ui_exports, deception: deception_ui_exports, shareef: shareef_ui_exports, monopoly: monopoly_ui_exports, kalim: kalim_ui_exports };
+  var GAME_UI = { mafia: mafia_ui_exports, skull: skull_ui_exports, bara: bara_ui_exports, avalon: avalon_ui_exports, werewolf: werewolf_ui_exports, coup: coup_ui_exports, secret: secret_ui_exports, kittens: kittens_ui_exports, wavelength: wavelength_ui_exports, herd: herd_ui_exports, letters: letters_ui_exports, familyfeud: familyfeud_ui_exports, deception: deception_ui_exports, shareef: shareef_ui_exports, monopoly: monopoly_ui_exports, kalim: kalim_ui_exports, abdea: abdea_ui_exports };
   var HOST_KEY = "samra.host";
   var LAST_ROOM_KEY = "samra.lastRoom";
   var LAST_DISPLAY_KEY = "samra.lastDisplay";
@@ -13346,6 +15615,18 @@ var qrcode = function() {
     }
     if (!peer) return showFatal(NET_MESSAGES[lastErr?.code] || "تعذّر إنشاء الغرفة. تأكد من اتصال الإنترنت ثم حاول مجددًا.", () => createRoom(gameId));
     startLocalHostClient(host, peer, p);
+  }
+  // غرفة محلية ضد الذكاء الاصطناعي (بدون إنترنت ولا PeerJS) — إضافة
+  async function createOfflineRoom(gameId, options = {}) {
+    const p = profile.get() || await profileSheet({ title: "قبل البدء: من أنت؟", submit: "ابدأ" });
+    if (!p) return;
+    unlockAudio();
+    endSession(false);
+    const host = new HostSession({ engines: ENGINES, code: "AI" + randomCode().slice(-4), gameId, onSave: saveHostSoon });
+    host.room.offline = true;
+    const eng = ENGINES[gameId];
+    host.room.options = eng.normalizeOptions ? eng.normalizeOptions(options, 1) : options;
+    startLocalHostClient(host, null, p);
   }
   var wakeLock = null;
   async function keepAwake(on) {
@@ -13417,6 +15698,7 @@ var qrcode = function() {
     unlockAudio();
     showBusy("جارٍ استعادة الغرفة " + saved.code + "…");
     const host = new HostSession({ engines: ENGINES, restored: saved.room, onSave: saveHostSoon });
+    if (saved.room.offline) return startLocalHostClient(host, null, p);
     let peer = null, lastErr = null;
     for (let attempt = 0; attempt < 8 && !peer; attempt++) {
       try {
@@ -13521,7 +15803,10 @@ var qrcode = function() {
       const maxId = fx.reduce((m, e) => Math.max(m, e.id), 0);
       if (s.fxReady) {
         const root2 = document.getElementById("stage");
-        for (const e of fx) if (e.id > s.lastFxId) gameUi.onFx?.(e, ctxFor(s), root2);
+        for (const e of fx) if (e.id > s.lastFxId) {
+          gameUi.onFx?.(e, ctxFor(s), root2);
+          if (s.isDisplay) centerFx(room.gameId, e, ctxFor(s));
+        }
       }
       s.lastFxId = Math.max(s.lastFxId, maxId);
       s.fxReady = true;
@@ -13693,7 +15978,8 @@ var qrcode = function() {
     const url = joinUrl(room.code);
     const eng = ENGINES[room.gameId];
     const n = room.players.length;
-    let html = `<section class="panel code-card">
+    let html = room.offline ? `<section class="panel code-card ab-offline"><p class="h2" style="margin:0">🤖 لعب ضد الذكاء الاصطناعي</p>
+      <p class="soft" style="margin:6px 0 0">غرفة محلية على جهازك — لا تحتاج إنترنت. حدّد عدد اللاعبين الآليين ومستواهم من الإعدادات بالأسفل ثم ابدأ.</p></section>` : `<section class="panel code-card">
       <p class="soft" style="margin:0">كود الغرفة</p>
       <div class="code-digits">${esc(room.code)}</div>
       <div class="qr" aria-label="رمز QR للانضمام">${qrSvg(url)}</div>
@@ -13706,9 +15992,10 @@ var qrcode = function() {
       ${p.isHost ? '<span class="badge host">المضيف</span>' : p.connected ? p.ready ? '<span class="badge ok">✓ جاهز</span>' : '<span class="badge">غير جاهز</span>' : '<span class="badge off">منقطع</span>'}
       ${ctx2.isHost && !p.isHost ? `<button class="icon-btn" style="width:40px;height:40px;font-size:16px" data-cmd="kick" data-id="${p.id}" aria-label="إخراج ${esc(p.name)}">✕</button>` : ""}
     </div>`).join("")}</div>
-    <p class="muted center" style="font-size:14px">هذه اللعبة تحتاج من ${ar(eng.meta.minPlayers)} إلى ${ar(eng.meta.maxPlayers)} لاعبين${byId(room.gameId)?.moderator ? " (بمن فيهم المقدم)" : ""}.</p>
-    ${byId(room.gameId)?.moderator ? '<p class="private-note">في هذه اللعبة المضيف هو <b>المقدم والحَكَم</b> ولا ينضم لأي فريق. باقي اللاعبين يُقسّمون عشوائيًا لفريقين عند البدء.</p>' : ""}`;
-    html += `<div class="panel display-hint" style="margin:10px 0"><div class="row spread"><b>📺 شاشة عرض للجميع</b>${room.displays ? `<span class="badge ok">متصلة: ${ar(room.displays)}</span>` : ""}</div>
+    <p class="muted center" style="font-size:14px">${eng.startCheck ? `هذه اللعبة تحتاج من ${ar(2)} إلى ${ar(eng.meta.maxPlayers)} لاعبين — ويمكن إكمال العدد بلاعبي الذكاء الاصطناعي 🤖 من الإعدادات` : `هذه اللعبة تحتاج من ${ar(eng.meta.minPlayers)} إلى ${ar(eng.meta.maxPlayers)} لاعبين${byId(room.gameId)?.moderator ? " (بمن فيهم المقدم)" : ""}`}.</p>
+    ${byId(room.gameId)?.moderator ? `<p class="private-note">في هذه اللعبة المضيف هو <b>المقدم والحَكَم</b> ولا ينضم لأي فريق. باقي اللاعبين يُقسّمون لفريقين عند البدء${eng.teamInfo ? " — عشوائيًا، أو اختاروا فرقكم من لوحة «الفرق» بالأسفل" : " عشوائيًا"}.</p>` : ""}`;
+    html += lobbyTeamsHtml(ctx2);
+    if (!room.offline) html += `<div class="panel display-hint" style="margin:10px 0"><div class="row spread"><b>📺 شاشة عرض للجميع</b>${room.displays ? `<span class="badge ok">متصلة: ${ar(room.displays)}</span>` : ""}</div>
     <p class="soft" style="margin:6px 0 8px;font-size:15px">اعرض اللعبة على تلفزيون أو لابتوب: افتح الموقع هناك، اكتب الكود <b dir="ltr">${esc(room.code)}</b> واضغط «شاشة عرض». الشاشة لا تعرض أسرار أحد.</p>
     <button class="btn soft small" data-cmd="copyDisplay">نسخ رابط شاشة العرض</button></div>`;
     html += `<div class="row" style="margin:6px 0 12px"><button class="btn ghost small" data-cmd="profile">${avatar(meP, "sm")} تعديل اسمي وصورتي</button><a class="btn ghost small" href="#/g/${room.gameId}" data-cmd="rules">طريقة اللعب</a></div>`;
@@ -13722,6 +16009,47 @@ var qrcode = function() {
       <p class="center muted" style="margin:6px 0 0;font-size:15px">المضيف يبدأ اللعبة عندما يكون الجميع جاهزًا.</p></div>`;
     }
     return html;
+  }
+  // ===== لوحة اختيار الفرق في غرفة الانتظار (إضافة) =====
+  function lobbyTeamsHtml(ctx2, forDisplay = false) {
+    const room = ctx2.room;
+    const eng = ENGINES[room.gameId];
+    const info = teamInfoFor(eng, room.options);
+    if (!info) return "";
+    const manual = room.teamMode === "manual";
+    const host = ctx2.isHost && !forDisplay;
+    if (forDisplay && !manual) return "";
+    const plan = planTeams(info, room.players, manual ? room.teams || {} : {});
+    const meP = ctx2.player(ctx2.me);
+    const iPlay = !forDisplay && meP && plan.parts.includes(ctx2.me);
+    const sel = host && manual ? ctx2.ui.teamSel || null : null;
+    const chipOf = (id) => {
+      const p = ctx2.player(id) || {};
+      const inner = `${esc(p.emoji || "")} ${esc(p.name || "؟")}${id === ctx2.me ? " (أنت)" : ""}`;
+      return host ? `<button class="tp-chip ${sel === id ? "on" : ""}" data-cmd="teamSel" data-id="${id}" aria-pressed="${sel === id}">${inner}</button>` : `<span class="tp-chip">${inner}</span>`;
+    };
+    let h = `<section class="panel team-pick ${forDisplay ? "disp-teams" : ""}" style="margin:10px 0">
+      <div class="row spread"><b>👥 الفرق</b>${host ? `<div class="tp-mode" role="group" aria-label="طريقة تقسيم الفرق"><button class="chip-btn ${manual ? "" : "on"}" data-cmd="teamMode" data-mode="random">🎲 عشوائي</button><button class="chip-btn ${manual ? "on" : ""}" data-cmd="teamMode" data-mode="manual">✋ اختيار يدوي</button></div>` : `<span class="badge">${manual ? "اختيار يدوي" : "عشوائي"}</span>`}</div>`;
+    if (!manual) {
+      h += `<p class="soft" style="margin:8px 0 0;font-size:15px">تُقسّم الفرق عشوائيًا عند بدء اللعبة (${ar(plan.k)} فرق).${host ? " اضغط «اختيار يدوي» ليختار كل لاعب فريقه أو لتوزّعهم بنفسك." : " يمكن للمضيف تفعيل اختيار الفرق يدويًا."}</p></section>`;
+      return h;
+    }
+    h += `<p class="soft" style="margin:8px 0 0;font-size:15px">${host ? "اضغط على اسم لاعب ثم «انقل هنا» لنقله، أو اترك اللاعبين يختارون بأنفسهم." : forDisplay ? "اختاروا فرقكم من جوالاتكم." : "اختر فريقك بالضغط على «انضم»."} من لا يختار يُضاف تلقائيًا للفريق الأصغر.</p>
+      <div class="tp-cols">${plan.cols.map((col, i) => {
+      const mine = col.includes(ctx2.me);
+      const color = (info.colors || [])[i] || "var(--accent)";
+      let act = "";
+      if (host && sel && !col.includes(sel)) act = `<button class="btn small soft tp-act" data-cmd="teamMove" data-team="${i}">⬅ انقل هنا</button>`;
+      else if (iPlay && !mine && !forDisplay) act = `<button class="btn small tp-act" data-cmd="teamJoin" data-team="${i}">انضم</button>`;
+      return `<div class="tp-col ${mine ? "mine" : ""}" style="--tc:${color}"><div class="tp-head"><b>${esc((info.names || [])[i] || "فريق " + ar(i + 1))}</b><span class="badge">${ar(col.length)}</span></div>
+        <div class="tp-mem">${col.map(chipOf).join("") || '<span class="muted" style="font-size:14px">لا أحد بعد</span>'}</div>${act}</div>`;
+    }).join("")}</div>`;
+    if (room.gameId === "abdea" && (room.options || {}).bots) h += `<p class="muted" style="font-size:13px;margin:8px 0 0">🤖 اللاعبون الآليون يكملون الفرق الأصغر تلقائيًا عند البدء.</p>`;
+    if (plan.free.length) h += `<div class="tp-free"><span class="muted" style="font-size:14px">بدون فريق (يُوزّعون تلقائيًا):</span> ${plan.free.map(chipOf).join("")}${host && sel && !plan.free.includes(sel) ? '<button class="btn small ghost" data-cmd="teamMove" data-team="null">أخرجه من الفريق</button>' : ""}</div>`;
+    if (host) h += `<div class="row" style="margin-top:10px;gap:8px"><button class="btn small soft" data-cmd="teamShuffle">🔀 وزّع الجميع عشوائيًا</button></div>`;
+    else if (iPlay && !plan.free.includes(ctx2.me)) h += `<div class="row" style="margin-top:10px"><button class="btn small ghost" data-cmd="teamJoin" data-team="null">اترك فريقي</button></div>`;
+    if (plan.error && !forDisplay) h += `<p class="center" style="margin:8px 0 0;font-size:14px;color:var(--danger)">${esc(plan.error)}</p>`;
+    return h + `</section>`;
   }
   function displayLobbyHtml(ctx2, meta17) {
     const room = ctx2.room;
@@ -13738,6 +16066,7 @@ var qrcode = function() {
       <div class="row spread" style="margin-bottom:12px"><h2 class="h2">اللاعبون</h2><span class="badge">${ar(n)}</span></div>
       <div class="disp-pgrid">${room.players.map((p) => `<div class="disp-p ${p.connected ? "" : "off"}">${avatar(p, "lg")}<b>${esc(p.name)}</b>
         <span class="muted">${p.isHost ? "المضيف" : !p.connected ? "منقطع" : p.ready ? "✓ جاهز" : "يستعد…"}</span></div>`).join("")}</div>
+      ${lobbyTeamsHtml(ctx2, true)}
       ${meta17?.short ? `<p class="soft center" style="margin-top:18px">${esc(meta17.short)}</p>` : ""}
       <p class="h2 center" style="margin-top:10px">بانتظار المضيف لبدء اللعبة<span class="waiting-dots"></span></p>
     </section>
@@ -13777,7 +16106,7 @@ var qrcode = function() {
     const eng = ENGINES[g];
     if (eng.optionSchema) {
       const d = eng.normalizeOptions ? eng.normalizeOptions(o, room.players.length) : o;
-      const fields = eng.optionSchema(room.players.length);
+      const fields = eng.optionSchema(room.players.length, d);
       if (!fields.length) return "";
       return `<details class="panel" ${host ? "open" : ""}><summary><b>إعدادات اللعبة</b>${host ? "" : ' <span class="muted">(يحددها المضيف)</span>'}</summary>
       <div class="stack" style="margin-top:10px">${fields.map((f) => f.type === "switch" ? sw(f.key, d[f.key], esc(f.label)) : `<div class="field"><label>${esc(f.label)}</label>${sel(f.key, d[f.key], f.options)}</div>`).join("")}</div></details>`;
@@ -13908,6 +16237,37 @@ var qrcode = function() {
         if (!r.ok) cmdEl.disabled = false;
         return;
       }
+      case "teamMode":
+        s.ui.teamSel = null;
+        play("shell", "tap");
+        return s.client.hostCmd("teamMode", { mode: cmdEl.dataset.mode });
+      case "teamSel": {
+        if (!s.isHost) return;
+        s.ui.teamSel = s.ui.teamSel === cmdEl.dataset.id ? null : cmdEl.dataset.id;
+        play("shell", "tap");
+        return renderPlay();
+      }
+      case "teamMove": {
+        const target = s.ui.teamSel;
+        s.ui.teamSel = null;
+        if (!target) return renderPlay();
+        const team = cmdEl.dataset.team === "null" ? null : Number(cmdEl.dataset.team);
+        play("shell", "tap");
+        const r = await s.client.hostCmd("setTeam", { target, team });
+        if (!r.ok) renderPlay();
+        return;
+      }
+      case "teamJoin": {
+        const team = cmdEl.dataset.team === "null" ? null : Number(cmdEl.dataset.team);
+        play("shell", "tap");
+        cmdEl.disabled = true;
+        await s.client.setTeam(team);
+        return;
+      }
+      case "teamShuffle":
+        s.ui.teamSel = null;
+        play("shell", "tap");
+        return s.client.hostCmd("shuffleTeams");
       case "kick": {
         const p = s.state.room.players.find((x) => x.id === cmdEl.dataset.id);
         if (p && confirm(`إخراج ${p.name} من الغرفة؟`)) await s.client.hostCmd("kick", { target: p.id });
@@ -13994,6 +16354,10 @@ var qrcode = function() {
     const s = S2;
     S2 = null;
     try {
+      clearCenter();
+    } catch {
+    }
+    try {
       s.client.close();
     } catch {
     }
@@ -14061,6 +16425,7 @@ var qrcode = function() {
     window.__samraS = () => S2;
     window.__samraRender = () => renderPlay();
     window.__samraWake = () => wakeLock ? "held" : "none";
+    window.__samraT = { ENGINES, HostSession, ClientSession, localTransport, createRng, GAME_UI, CATALOG, planTeams, centerFx, throwCenter, createOfflineRoom, ctxFor, renderPlay };
   }
 
   // js/app.js
@@ -14166,15 +16531,16 @@ var qrcode = function() {
     <p><span class="badge">${esc(g.players.replace(/\d+/g, (d) => ar(d)))} لاعبين</span></p>
     ${r ? `
       <h3>الهدف</h3><p>${esc(r.goal)}</p>
-      <h3>${g.id === "skull" ? "الأقراص" : "الأدوار"}</h3><ul>${r.roles.map(([n, d]) => `<li><b>${esc(n)}:</b> ${esc(d)}</li>`).join("")}</ul>
+      <h3>${g.id === "skull" ? "الأقراص" : g.id === "abdea" ? "البطاقات والمكونات" : "الأدوار"}</h3><ul>${r.roles.map(([n, d]) => `<li><b>${esc(n)}:</b> ${esc(d)}</li>`).join("")}</ul>
       <h3>مراحل اللعب</h3><ol style="padding-inline-start:22px">${r.phases.map((x) => `<li>${esc(x)}</li>`).join("")}</ol>
       <h3>النقاط</h3><p>${esc(r.scoring)}</p>
       <h3>الفوز والخسارة</h3><p>${esc(r.win)}</p>
       <h3>نصيحة للمبتدئ</h3><p>${esc(r.beginner)}</p>
       ${r.verify?.length ? `<h3>تحتاج تحققًا</h3><ul>${r.verify.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>` : ""}
-      <div class="sticky-cta">${cur2 && !cur2.dead ? `<a class="btn block" href="#/play">ارجع للغرفة</a>` : `<button class="btn block" id="g-create">أنشئ غرفة</button>`}</div>` : `<div class="panel" style="margin-top:16px"><p class="h2">قريبًا</p><p class="soft">هذه اللعبة مخطط لها في المراحل القادمة من المنصة، ولن تظهر كلعبة قابلة للعب قبل أن تُبنى قواعدها وتُختبر.</p></div>`}
+      <div class="sticky-cta">${cur2 && !cur2.dead ? `<a class="btn block" href="#/play">ارجع للغرفة</a>` : `<button class="btn block" id="g-create">أنشئ غرفة</button>${g.id === "abdea" ? `<button class="btn soft block" id="g-ai" style="margin-top:8px">🤖 العب ضد الذكاء الاصطناعي</button>` : ""}`}</div>` : `<div class="panel" style="margin-top:16px"><p class="h2">قريبًا</p><p class="soft">هذه اللعبة مخطط لها في المراحل القادمة من المنصة، ولن تظهر كلعبة قابلة للعب قبل أن تُبنى قواعدها وتُختبر.</p></div>`}
   </div>`;
     app.querySelector("#g-create")?.addEventListener("click", () => createRoom(g.id));
+    app.querySelector("#g-ai")?.addEventListener("click", () => createOfflineRoom(g.id, { bots: 2, botLevel: "normal" }));
   }
   function renderJoin(code) {
     setShell();
