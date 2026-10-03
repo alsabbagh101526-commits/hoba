@@ -352,6 +352,8 @@ body.display-mode .dawn-card .who { font-size: 1.5em; }
 /* تكبير مكونات لعبة كما هي على الشاشة الكبيرة */
 body.display-mode .disp-zoom { zoom: 1.5; }
 @media (max-width: 900px) { body.display-mode .disp-zoom { zoom: 1; } }
+body.display-mode .mono-disp .mono-board { max-width: min(62vh, 100%); margin: 0 auto; }
+.herd-win { outline: 3px solid var(--accent); }
 
 /* ===== بطاقة لعب حقيقية: وجه + ظهر + قلب ثلاثي الأبعاد ===== */
 .card {
@@ -735,7 +737,11 @@ body[data-theme="familyfeud"] { --bg: #071340; --bg-2: #0c1d5c; --surface: rgba(
   --team-a: #e63946; --team-b: #1e88e5;
   background-image: radial-gradient(circle at 50% -20%, rgba(255, 211, 77, .3), transparent 60%); }
 .ff-q { background: var(--surface-2); border: 3px solid var(--accent); border-radius: var(--r-md); padding: 12px; display: flex; align-items: center; gap: 10px; justify-content: space-between; }
-.ff-bank { background: var(--accent); color: var(--accent-ink); font: 700 26px var(--font-display); border-radius: 10px; padding: 4px 12px; min-width: 64px; text-align: center; }
+.ff-bank { background: var(--accent); color: var(--accent-ink); font: 700 26px var(--font-display); border-radius: 10px; padding: 4px 12px; min-width: 64px; text-align: center; display: grid; line-height: 1.1; }
+.ff-bank small { font: 700 11px var(--font-body, 'Readex'); opacity: .8; white-space: nowrap; }
+.ff-tot-l { margin: 0 0 4px; font-size: 13px; color: var(--ink-soft); text-align: center; }
+body.display-mode .ff-bank small { font-size: .45em; }
+body.display-mode .ff-tot-l { font-size: .8em; }
 .ff-board { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 10px 0; }
 .ff-slot { min-height: 50px; border-radius: 8px; border: 2px solid var(--accent); background: linear-gradient(#1a3fb8, #0d2a85); color: #fff; display: flex; align-items: center; justify-content: space-between; padding: 0 10px; font: inherit; }
 .ff-slot .ff-n { margin: auto; width: 34px; height: 34px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; font: 700 18px var(--font-display); }
@@ -743,6 +749,20 @@ body[data-theme="familyfeud"] { --bg: #071340; --bg-2: #0c1d5c; --surface: rgba(
 .ff-slot.mod:not(:disabled) { cursor: pointer; border-style: dashed; }
 .ff-slot.mod .ff-t { opacity: .75; }
 .ff-p { font: 700 20px var(--font-display); }
+.ff-slot:not(.shown):not(.mod) .ff-n { margin: 0; }
+.ff-hidden-p { opacity: .85; color: var(--accent); }
+.ff-slot:not(.shown):not(.mod) { justify-content: space-between; }
+/* شاشة العرض: الخانة التي كُشفت للتو فقط تنقلب، والباقي ثابت */
+.disp .ff-slot { min-height: clamp(56px, 7vh, 96px); font-size: 1.15em; }
+.disp .ff-slot.shown:not(.just) { animation: none; }
+.disp .ff-slot.shown.just { animation: ffFlip .7s ease-out; }
+@keyframes ffFlip { 0% { transform: perspective(600px) rotateX(90deg); filter: brightness(2); } 60% { transform: perspective(600px) rotateX(-12deg); } 100% { transform: none; } }
+.ff-bigx { position: fixed; inset: 0; display: grid; place-items: center; z-index: 90; pointer-events: none;
+  font: 900 min(42vw, 60vh) / 1 var(--font-display); color: #ff2b2b; text-shadow: 0 0 40px #ff0000, 0 0 8px #000; letter-spacing: -.05em;
+  animation: ffX 1.25s ease-out forwards; }
+@keyframes ffX { 0% { opacity: 0; transform: scale(1.6); } 15% { opacity: 1; transform: scale(1); } 75% { opacity: 1; } 100% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .disp .ff-slot.shown.just, .ff-bigx { animation-duration: .01s; } }
+html.reduce-motion .disp .ff-slot.shown.just { animation: none; }
 .ff-strikes { display: flex; justify-content: center; gap: 10px; font: 700 34px var(--font-display); color: rgba(255,255,255,.18); }
 .ff-strikes .on { color: #ff3b3b; text-shadow: 0 0 12px #ff3b3b; }
 
@@ -789,6 +809,127 @@ body[data-theme="monopoly"] .h1, body[data-theme="monopoly"] .h2 { font-weight: 
 .deed-head { background: var(--gc); color: #fff; text-align: center; font-weight: 800; padding: 10px; text-shadow: 0 1px 2px rgba(0,0,0,.5); }
 .big-roll { font-size: 22px; min-height: 64px; }
 .trade-box { border: 2px solid var(--accent-2); }
+
+/* ===== بطاقات القطط المتفجرة (تصميم جديد): تدرج حسب النوع + إطار داخلي + شريط اسم + وسم نوع ===== */
+.k-card .card-front { background: none; border: 0; }
+.kc { position: absolute; inset: 0; display: grid; grid-template-rows: auto 1fr auto; overflow: hidden;
+  background: radial-gradient(120% 80% at 50% 0%, var(--c2), var(--c1)); color: #fff; container-type: inline-size; }
+.kc::after { content: ''; position: absolute; inset: 4%; border: max(2px, 1.2cqw) solid rgba(255, 255, 255, .55); border-radius: 9%/6%; pointer-events: none; }
+.kc-band { display: flex; align-items: center; justify-content: center; margin: 7% 7% 0; padding: 3% 4%; min-height: 15%;
+  background: rgba(0, 0, 0, .28); border-radius: 14px; position: relative; z-index: 1; }
+.kc-name { font: 700 clamp(8px, 10.5cqw, 26px)/1.12 'Marhey', 'Readex', sans-serif; text-shadow: 0 2px 0 rgba(0, 0, 0, .3); text-align: center; }
+.kc-tag { position: absolute; top: calc(100% + 4px); inset-inline-start: 2%; font: 700 clamp(6px, 6.5cqw, 13px)/1 'Readex', sans-serif;
+  background: var(--acc); color: var(--c1); padding: 2.5% 5%; border-radius: 99px; white-space: nowrap; box-shadow: 0 2px 0 rgba(0, 0, 0, .2); }
+.kc-art { display: grid; place-items: center; min-height: 0; padding: 2% 6%; }
+.kc-art svg { width: 100%; height: 100%; max-height: 100%; filter: drop-shadow(0 4px 0 rgba(0, 0, 0, .18)); }
+.kc-desc { margin: 0 7% 8%; padding: 4% 5%; background: rgba(255, 255, 255, .92); color: #2d2416; border-radius: 10px;
+  font: 700 clamp(6px, 8.6cqw, 17px)/1.35 'Readex', sans-serif; text-align: center; position: relative; z-index: 1; }
+.kc-danger { background: repeating-linear-gradient(-45deg, rgba(255, 212, 0, .14) 0 10px, transparent 10px 20px), radial-gradient(120% 80% at 50% 0%, var(--c2), var(--c1)); }
+.kc-danger .kc-spark { animation: kspark .5s steps(2) infinite; transform-origin: 108px 14px; }
+@keyframes kspark { 50% { transform: scale(1.25) rotate(20deg); } }
+.kc-cat .kc-band { background: rgba(255, 255, 255, .25); }
+.kc-counter .kc-name { font-size: clamp(9px, 16cqw, 34px); }
+.kc-back { background: #ff8e3c; }
+.kc-back svg { width: 100%; height: 100%; }
+/* البطاقات الصغيرة جدًا: الرسم فقط */
+.card.xs .kc-desc, .card.xs .kc-tag { display: none; }
+.card.xs .kc-band { margin: 6% 6% 0; padding: 2%; }
+.card.sm .kc-desc { font-size: clamp(6px, 8cqw, 12px); }
+/* زر الشرح ⓘ: منفصل عن زر البطاقة، فوق زاويتها */
+.k-slot { position: relative; display: inline-block; }
+/* منطقة اللمس ٤٠×٤٠ (الحد الأدنى الموصى به)، والدائرة الظاهرة ٣٢ حتى لا تغطي البطاقة */
+.kc-info { position: absolute; top: -12px; inset-inline-end: -12px; z-index: 5; width: 40px; height: 40px; border-radius: 50%;
+  border: 0; background: radial-gradient(circle, #2d2416 0 14px, #fff 14.5px 16px, transparent 16.5px); color: #fff; font: 700 16px/1 'Readex', sans-serif;
+  display: grid; place-items: center; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .35)); cursor: pointer; padding: 0; }
+.kc-info:active { transform: scale(.92); }
+.k-guide { display: grid; grid-template-columns: repeat(auto-fill, minmax(124px, 1fr)); gap: 16px 10px; justify-items: center; padding-top: 8px; }
+.k-guide .card { --w: 118px; cursor: default; }
+.kh { display: grid; grid-template-columns: 140px 1fr; gap: 14px; align-items: start; }
+.kh-card { position: relative; width: 140px; aspect-ratio: 5 / 7; border-radius: 14px; overflow: hidden; box-shadow: 0 8px 20px rgba(0, 0, 0, .3); }
+.kh-row { margin: 0 0 8px; } .kh-row b { color: var(--accent); } .kh-row p { margin: 2px 0 0; line-height: 1.6; }
+@media (max-width: 420px) { .kh { grid-template-columns: 1fr; } .kh-card { margin: 0 auto; width: 130px; } }
+/* شاشة العرض في «شريف»: العنوان فوق خلفية الخشب الداكنة يحتاج لونًا فاتحًا */
+body[data-theme="shareef"].display-mode .disp-head .h1, body[data-theme="shareef"].display-mode .disp-head .soft { color: var(--accent-2); text-shadow: 0 2px 0 rgba(0, 0, 0, .5); }
+
+/* ======================== كَلِم — لوح كلمات كحلي وبطاقات ملونة حسب نوع التحدي ======================== */
+body[data-theme="kalim"] { --bg: #13203a; --bg-2: #1a2b4d; --surface: rgba(255, 255, 255, .08); --surface-2: #233a66; --ink: #f6f3ea; --ink-soft: #c9d3e8; --ink-mute: #8d9bbb;
+  --accent: #ffcc33; --accent-ink: #13203a; --accent-2: #ff8a3d; --danger: #e63946; --ok: #2bb673; --line: rgba(255, 204, 51, .18); --font-display: 'Lalezar', 'Readex', sans-serif;
+  background-image: radial-gradient(circle at 15% 10%, rgba(255, 138, 61, .16), transparent 35%), radial-gradient(circle at 85% 90%, rgba(43, 182, 115, .14), transparent 40%); background-attachment: fixed; }
+.km-score { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; margin: 0 0 10px; }
+.km-team { background: var(--surface); border-radius: 14px; padding: 8px 10px; border-top: 5px solid var(--tc); transition: transform .3s, box-shadow .3s; }
+.km-team.turn { box-shadow: 0 0 0 3px var(--tc), 0 8px 22px rgba(0, 0, 0, .3); transform: translateY(-2px); }
+.km-tname { font: 700 18px var(--font-display); color: var(--tc); filter: brightness(1.35); }
+.km-members { display: flex; flex-wrap: wrap; gap: 3px; margin: 4px 0; }
+.km-members .avatar.sm { width: 26px; height: 26px; font-size: 16px; }
+.km-members .act .avatar { box-shadow: 0 0 0 2px var(--accent); }
+.km-pts { display: flex; justify-content: space-between; gap: 6px; }
+.km-pts span { display: grid; text-align: center; }
+.km-pts small { font-size: 11px; color: var(--ink-mute); }
+.km-pts b { font: 700 22px var(--font-display); }
+.km-pts span:last-child b { color: var(--accent); }
+.km-turn { font-size: 18px; margin: 6px 0 10px; } .km-turn b { color: var(--tc); filter: brightness(1.35); }
+/* البطاقة */
+.km-card { --w: min(320px, 84vw); margin: 4px auto 12px; }
+.km-back { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; border-radius: 18px;
+  background: repeating-linear-gradient(45deg, #1f3b6b 0 14px, #223f72 14px 28px); border: 6px solid #ffcc33; }
+.km-back span { font: 700 64px/1 'Lalezar', sans-serif; color: #ffcc33; text-shadow: 0 4px 0 #0c1426; }
+.km-back small { color: #c9d3e8; font-size: 15px; margin-top: 6px; }
+.km-face { position: absolute; inset: 0; display: grid; grid-template-rows: auto 1fr auto auto; border-radius: 18px; overflow: hidden;
+  background: linear-gradient(170deg, #fffaf0, #f3ead6); color: #1c2333; border: 6px solid var(--kt); }
+.km-band { display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: var(--kt); color: #fff; }
+.km-ic { width: 32px; height: 32px; border-radius: 50%; background: rgba(255, 255, 255, .25); display: grid; place-items: center; font: 700 17px 'Lalezar', sans-serif; }
+.km-tn { font: 700 19px 'Lalezar', sans-serif; flex: 1; }
+.km-tp { font-size: 13px; font-weight: 700; background: rgba(0, 0, 0, .2); padding: 2px 8px; border-radius: 99px; }
+.km-main { display: grid; place-content: center; justify-items: center; gap: 6px; padding: 10px; text-align: center; min-height: 0; }
+.km-letter { width: 104px; height: 104px; border-radius: 22px; background: var(--kt); color: #fff; display: grid; place-items: center;
+  font: 700 70px/1 'Lalezar', sans-serif; box-shadow: 0 6px 0 rgba(0, 0, 0, .18); }
+.km-letter.sm { width: 74px; height: 74px; font-size: 48px; border-radius: 16px; }
+.km-two { display: flex; align-items: center; gap: 10px; } .km-dots { font-size: 30px; color: var(--kt); }
+.km-cat { margin: 0; font: 700 26px 'Lalezar', sans-serif; color: #1c2333; }
+.km-prompt { margin: 0; font: 700 30px/1.3 'Lalezar', sans-serif; }
+.km-sub { margin: 0; color: #5b6478; font-size: 14px; }
+.km-word { margin: 0; font: 700 40px 'Lalezar', sans-serif; color: var(--kt); }
+.km-forbid { list-style: none; padding: 0; margin: 4px 0 0; display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+.km-forbid li { background: #ffe1e3; color: #b3132a; border-radius: 99px; padding: 3px 10px; font-weight: 700; font-size: 15px; text-decoration: line-through; text-decoration-thickness: 2px; }
+.km-tiles { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+.km-tile { width: 46px; height: 52px; border-radius: 10px; background: #fff; border: 3px solid var(--kt); display: grid; place-items: center;
+  font: 700 30px/1 'Lalezar', sans-serif; color: #1c2333; box-shadow: 0 4px 0 var(--kt); }
+.km-answer { margin: 0 12px 4px; text-align: center; color: #1c2333; } .km-answer b { color: var(--kt); font-size: 1.2em; }
+.km-how { margin: 0; padding: 8px 12px 12px; font-size: 14px; color: #3d4559; text-align: center; border-top: 1px dashed rgba(0, 0, 0, .15); }
+/* الإجابات */
+.km-subs { display: grid; gap: 6px; margin: 10px 0; }
+.km-sub-row { display: flex; align-items: center; gap: 8px; background: var(--surface); border-radius: 12px; padding: 8px 10px; border-inline-start: 4px solid var(--ink-mute); }
+.km-sub-row.ok { border-color: var(--ok); } .km-sub-row.no { border-color: var(--danger); opacity: .75; } .km-sub-row.pend { border-color: var(--accent); }
+.km-st { font-weight: 800; width: 20px; text-align: center; }
+.km-sub-row.ok .km-st { color: var(--ok); } .km-sub-row.no .km-st { color: var(--danger); } .km-sub-row.pend .km-st { color: var(--accent); }
+.km-tx { font-weight: 700; font-size: 18px; } .km-by { font-size: 12px; flex: 1; }
+.km-dec { display: flex; gap: 6px; }
+.km-dec .mini { width: 40px; height: 40px; border-radius: 10px; border: 0; font: 700 18px inherit; color: #fff; cursor: pointer; }
+.km-dec .mini.ok { background: var(--ok); } .km-dec .mini.no { background: var(--danger); }
+/* النتيجة */
+.km-out { text-align: center; border-radius: 18px; padding: 12px; margin: 8px 0; animation: popIn .45s; }
+.km-out.win { background: rgba(43, 182, 115, .18); border: 2px solid var(--ok); } .km-out.lose { background: rgba(230, 57, 70, .14); border: 2px solid var(--danger); }
+.km-out-pts { margin: 0; font: 700 54px/1 var(--font-display); } .km-out.win .km-out-pts { color: var(--ok); } .km-out.lose .km-out-pts { color: var(--danger); }
+.km-out-tx { margin: 6px 0 0; font-weight: 700; }
+.km-table { width: 100%; border-collapse: collapse; } .km-table th, .km-table td { padding: 8px 6px; text-align: center; border-bottom: 1px solid var(--line); }
+.km-table td:nth-child(2), .km-table th:nth-child(2) { text-align: start; }
+.km-dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: var(--tc); margin-inline-end: 6px; vertical-align: middle; }
+.km-guide { border-radius: 14px; padding: 10px 12px; margin: 8px 0; background: var(--surface); border-inline-start: 6px solid var(--kt); }
+.km-guide.off { opacity: .5; } .km-guide p { margin: 4px 0; line-height: 1.6; }
+.km-gh { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; } .km-gh .km-ic { background: var(--kt); color: #fff; }
+.km-chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 10px; }
+.km-chip { padding: 6px 14px; border-radius: 99px; font-weight: 700; background: var(--surface); }
+.km-chip.ok { background: var(--ok); color: #fff; animation: popIn .4s; } .km-chip.pend { border: 2px dashed var(--accent); } .km-chip.no { background: rgba(230, 57, 70, .25); }
+/* شاشة العرض */
+.disp .km-card.disp-km { --w: min(30vw, 44vh); }
+.disp .km-card.disp-km .km-letter { width: 7vw; height: 7vw; font-size: 4.6vw; }
+.disp .km-card.disp-km .km-tile { width: 4.2vw; height: 4.8vw; font-size: 2.8vw; }
+.disp .km-card.disp-km .km-prompt { font-size: 2.6vw; } .disp .km-card.disp-km .km-cat { font-size: 2.2vw; }
+.disp .km-card.disp-km .km-how { font-size: 1.1vw; } .disp .km-card.disp-km .km-tn { font-size: 1.8vw; }
+.km-turn.big { display: grid; justify-items: center; background: var(--surface); border-radius: 18px; padding: 12px; border: 3px solid var(--tc); margin-bottom: 12px; }
+.km-turn.big b { font: 700 clamp(28px, 3vw, 56px) var(--font-display); } .km-turn.big span { font-size: 1.2em; }
+.km-score.big .km-pts b { font-size: clamp(26px, 2.4vw, 46px); } .km-score.big .km-tname { font-size: clamp(20px, 1.8vw, 34px); }
+@media (max-aspect-ratio: 1/1) { .disp .km-card.disp-km { --w: min(80vw, 46vh); } }
 
 </style>
 </head>
@@ -3349,13 +3490,13 @@ var qrcode = function() {
           ["خلط", "اخلط الكومة."],
           ["استبصار", "شاهد أعلى ٣ بطاقات سرًا."],
           ["لا!", "تلغي أي فعل، ويمكن إلغاؤها بـ«لا!» أخرى."],
-          ["بطاقات القطط", "زوج متطابق = اسرق بطاقة عشوائية، ثلاث = اطلب بطاقة بالاسم، ٥ مختلفة = خذ من المهملات."]
+          ["المجموعات", "أي زوج بنفس الاسم = اسرق بطاقة عشوائية، ثلاث = اطلب بطاقة بالاسم، ٥ مختلفة = خذ من المهملات."]
         ],
         phases: ["في دورك العب ما تشاء من البطاقات (أو لا شيء).", "بعد كل بطاقة فعل نافذة قصيرة يمكن فيها لأي لاعب قول «لا!».", "أنهِ دورك بسحب بطاقة."],
         scoring: "لا نقاط.",
         win: "آخر لاعب حي.",
         beginner: "احتفظ بـ«إبطال» دائمًا.",
-        verify: ["الهجوم لا يتراكم (النسخة الأصلية الأولى). بعض النسخ الحديثة تراكمه.", "أسماء البطاقات ورسومها أصلية؛ الآليات مأخوذة من القواعد المعروفة."]
+        verify: ["اعتمدنا كتيب القواعد الحالي: الهجوم يتراكم (المتبقي + ٢)، والأزواج والثلاثيات لأي بطاقات بنفس الاسم بلا استثناء. الطبعة الأولى (2015) كانت لا تراكم الهجوم.", "أسماء البطاقات ورسومها أصلية؛ الآليات مأخوذة من القواعد المعروفة."]
       }
     },
     {
@@ -3430,6 +3571,23 @@ var qrcode = function() {
         win: "أول فريق يكمل مساره يفوز باللوحة (أو بلوحتين في «الأفضل من ٣»).",
         beginner: "لا تجمع حروفًا متفرقة — فكّر بالمسار.",
         verify: ["الأسئلة تصنيفية (اسم/حيوان/بلد…) لتجنب أخطاء الأسئلة المعرفية، والمقدم يحكم."]
+      }
+    },
+    {
+      id: "kalim",
+      name: "كَلِم",
+      players: "2–12",
+      status: "ready",
+      theme: "kalim",
+      short: "حروف وفئات، تحدي سريع، فك كلمة، ممنوع تقول… وتحدي مضاعف. سرعة بديهة وثروة لغوية.",
+      rules: {
+        goal: "أعلى مجموع نقاط بعد آخر جولة (فرق أو لعب فردي).",
+        roles: [["صاحب الدور", "يسحب البطاقة ويجاوب (أو يشرح في «ممنوع تقول»)."], ["فريقه", "يخمّن في «ممنوع تقول» فقط."], ["الفرق الأخرى", "تراقب، وتبلّغ عن كلمة ممنوعة."], ["المقدم (المضيف)", "يحكم: يعتمد أو يرفض الإجابات المختلف عليها ويعتمد نتيجة كل بطاقة. يمكن أن يلعب أو يكتفي بالتقديم."]],
+        phases: ["يتحدد الفريق صاحب الدور ولاعبه بالتناوب.", "يسحب بطاقة عشوائية من الأنواع المفعّلة (بلا تكرار حتى تنفد المجموعة).", "تظهر تعليمات التحدي، ثم يبدأ المؤقت (٣٠ ثانية افتراضيًا).", "تُرسل الإجابات: تُفحص آليًا ما أمكن (الحرف، التكرار، الكلمة الصحيحة)، والمقدم يحسم الباقي.", "المقدم يعتمد النتيجة فتُحتسب النقاط في «رصيد الجولة».", "بعد أن يلعب كل فريق بطاقة تنتهي الجولة ويُرحَّل رصيدها إلى المجموع الكلي."],
+        scoring: "الحروف ١٠ • التحدي السريع ٥ لكل إجابة صحيحة غير مكررة • فك الكلمة ١٥ • ممنوع تقول ٢٠ (تسقط إن قيلت كلمة محظورة) • التحدي المضاعف ٣٠. كل القيم وعدد الجولات والمؤقت وأنواع البطاقات قابلة للتعديل من إعدادات الغرفة.",
+        win: "الأعلى مجموعًا بعد آخر جولة؛ التعادل يُعلن فوزًا مشتركًا.",
+        beginner: "في «فك الكلمة» ابدأ بالحروف النادرة، وفي «ممنوع تقول» اشرح بالمواقف لا بالمرادفات.",
+        verify: ["قواعد مقترحة لهذه النسخة الإلكترونية، وليست القواعد الرسمية للعبة الورقية «كلم». البطاقات محتوى أصلي لهذه النسخة. عند توفر القواعد والبطاقات الأصلية تُعدَّل القيم والأنواع من الإعدادات أو من ملف البطاقات.", "«ممنوع تقول» لا تظهر في اللعب الفردي لأنها تحتاج فريقًا يخمّن."]
       }
     },
     {
@@ -3625,10 +3783,10 @@ var qrcode = function() {
   function baraOutsiderArt() {
     const fig = (x, y, c, s = 1) => `<g transform="translate(${x} ${y}) scale(${s})"><circle cx="0" cy="-22" r="11" fill="${c}"/><path d="M-16 12 Q-16 -8 0 -8 Q16 -8 16 12 Z" fill="${c}"/></g>`;
     let ring = "";
-    const cols = ["#2ec4b6", "#3a86ff", "#8338ec", "#06d6a0", "#ef476f", "#118ab2"];
+    const cols3 = ["#2ec4b6", "#3a86ff", "#8338ec", "#06d6a0", "#ef476f", "#118ab2"];
     for (let k = 0; k < 6; k++) {
       const a = k / 6 * Math.PI * 2;
-      ring += fig(78 + Math.cos(a) * 44, 120 + Math.sin(a) * 30, cols[k], 0.9);
+      ring += fig(78 + Math.cos(a) * 44, 120 + Math.sin(a) * 30, cols3[k], 0.9);
     }
     return `<svg viewBox="0 0 200 200" aria-hidden="true">
     <ellipse cx="78" cy="132" rx="62" ry="40" fill="#fff" opacity=".35"/>
@@ -3645,6 +3803,9 @@ var qrcode = function() {
     <rect width="300" height="400" fill="url(#${g})"/>${body}</svg>`;
   };
   var COVERS = {
+    kalim: () => coverBase("#13203a", "#1f3b6b", `
+    ${[["ك", "#ff8a3d", 70, 150, -8], ["َ", "#ffcc33", 120, 118, 0], ["ل", "#2bb673", 150, 165, 6], ["ِ", "#ffcc33", 196, 128, 0], ["م", "#e63946", 228, 172, -5]].filter((x) => x[0].trim().length && !"َِ".includes(x[0])).map(([l, c, x, y, r]) => `<g transform="translate(${x} ${y}) rotate(${r})"><rect x="-34" y="-40" width="68" height="80" rx="12" fill="${c}" stroke="#fff" stroke-width="4"/><text x="0" y="16" text-anchor="middle" font-size="48" font-weight="700" fill="#fff" font-family="Lalezar, sans-serif">${l}</text></g>`).join("")}
+    <g transform="translate(150 285)"><rect x="-90" y="-26" width="180" height="52" rx="26" fill="#ffcc33"/><text x="0" y="12" text-anchor="middle" font-size="30" font-weight="700" fill="#13203a" font-family="Lalezar, sans-serif">٣٠ ثانية!</text></g>`),
     mafia: () => coverBase("#121722", "#3a0c10", `
     <circle cx="220" cy="80" r="38" fill="#f1e2c6"/><circle cx="220" cy="80" r="60" fill="#f1e2c6" opacity=".12"/>
     <g fill="#05070a"><rect x="0" y="230" width="50" height="170"/><rect x="44" y="190" width="40" height="210"/><rect x="230" y="210" width="70" height="190"/><rect x="200" y="250" width="40" height="150"/></g>
@@ -3990,18 +4151,18 @@ var qrcode = function() {
       }
     }
   };
-  function play(kit16, name) {
+  function play(kit17, name) {
     const s = settings.get();
     if (!s.sound || s.volume <= 0) return;
     const c = ensure();
     if (!c) return;
     if (c.state === "suspended") c.resume();
-    const key = kit16 + ":" + name;
+    const key = kit17 + ":" + name;
     const now = performance.now();
     if (now - (lastPlayed.get(key) || 0) < 90) return;
     lastPlayed.set(key, now);
     master.gain.value = s.volume;
-    const fn = SFX[kit16]?.[name] || SFX.shell[name];
+    const fn = SFX[kit17]?.[name] || SFX.shell[name];
     try {
       fn && fn();
     } catch {
@@ -5754,12 +5915,12 @@ var qrcode = function() {
       const keep = Array.isArray(a.indices) ? [...new Set(a.indices)] : [];
       if (keep.length !== need || keep.some((k) => !Number.isInteger(k) || k < 0 || k >= pool.length)) return err4(`اختر ${need} بطاقة للاحتفاظ بها`);
       const kept = keep.map((k) => pool[k]);
-      const back8 = pool.filter((_, k) => !keep.includes(k));
+      const back7 = pool.filter((_, k) => !keep.includes(k));
       let n = 0;
       me.cards.forEach((c) => {
         if (!c.dead) c.c = kept[n++];
       });
-      s.deck = ctx2.rng.shuffle(s.deck.concat(back8));
+      s.deck = ctx2.rng.shuffle(s.deck.concat(back7));
       s.exchange = null;
       log(s, "بدّل بطاقاته");
       return endTurn(s);
@@ -6321,6 +6482,7 @@ var qrcode = function() {
   __export(kittens_exports, {
     ACTIONS: () => ACTIONS,
     CATS: () => CATS,
+    COUNTS: () => COUNTS,
     act: () => act8,
     meta: () => meta8,
     normalizeOptions: () => normalizeOptions5,
@@ -6347,7 +6509,7 @@ var qrcode = function() {
     for (let k = 0; k < extraDefuse; k++) deck.push("defuse");
     for (let k = 0; k < n - 1; k++) deck.push("bomb");
     deck = rng.shuffle(deck);
-    return { game: "kittens", o, phase: "play", players: ps, deck, discard: [], turn: rng.int(n), turnsLeft: 1, pending: null, favor: null, defuse: null, future: null, last: null, winner: null, fx: [], fxSeq: 0 };
+    return { game: "kittens", o, phase: "play", players: ps, deck, discard: [], turn: rng.int(n), turnsLeft: 1, underAttack: false, pending: null, favor: null, defuse: null, future: null, last: null, winner: null, fx: [], fxSeq: 0 };
   }
   var cur = (s) => s.players[s.turn];
   function act8(s, pid, a, ctx2) {
@@ -6421,6 +6583,7 @@ var qrcode = function() {
         s.last = { type: "exploded", who: pid };
         if (checkWin4(s)) return ok4();
         s.turnsLeft = 1;
+        s.underAttack = false;
         s.turn = nextAliveIdx(s.players, s.turn);
         return ok4();
       }
@@ -6440,8 +6603,8 @@ var qrcode = function() {
       }
       let kind;
       if (cards.length === 1 && ACTIONS.includes(cards[0])) kind = cards[0];
-      else if (cards.length === 2 && cards[0] === cards[1] && cards[0] !== "defuse" && cards[0] !== "nope") kind = "pair";
-      else if (cards.length === 3 && cards.every((c) => c === cards[0]) && cards[0] !== "defuse") kind = "triple";
+      else if (cards.length === 2 && cards[0] === cards[1]) kind = "pair";
+      else if (cards.length === 3 && cards.every((c) => c === cards[0])) kind = "triple";
       else if (cards.length === 5 && new Set(cards).size === 5) kind = "five";
       else return err4("هذه المجموعة غير صالحة");
       let t = -1;
@@ -6486,8 +6649,10 @@ var qrcode = function() {
         endOneTurn(s);
         break;
       case "attack": {
+        const carry = s.underAttack ? s.turnsLeft : 0;
         s.turn = nextAliveIdx(s.players, s.turn);
-        s.turnsLeft = 2;
+        s.turnsLeft = carry + 2;
+        s.underAttack = true;
         s.future = null;
         pushFx(s, { kind: "attack" });
         break;
@@ -6545,6 +6710,7 @@ var qrcode = function() {
     if (s.turnsLeft <= 0) {
       s.turn = nextAliveIdx(s.players, s.turn);
       s.turnsLeft = 1;
+      s.underAttack = false;
     }
     return ok4();
   }
@@ -7182,7 +7348,7 @@ var qrcode = function() {
     s.bank = 0;
     s.strikes = 0;
     s.control = null;
-    s.face = { A: pick(s, "A"), B: pick(s, "B"), buzz: null, first: null, firstIdx: null };
+    s.face = { A: pick(s, "A"), B: pick(s, "B"), buzz: null, buzzBy: null, first: null, firstIdx: null };
     s.answerer = null;
     s.result = null;
     disarm(s);
@@ -7216,10 +7382,14 @@ var qrcode = function() {
     const now = ctx2 && Number.isFinite(ctx2.now) ? ctx2.now : null;
     switch (a.type) {
       case "buzz": {
-        if (s.phase !== "faceoff" || s.face.buzz) return err4("ليس وقت الجرس");
-        if (pid !== s.face.A && pid !== s.face.B) return err4("المواجهة بين لاعبين فقط");
-        if (s.face.first && s.face.first === teamOf3(s, pid)) return err4("دور الفريق الآخر");
-        s.face.buzz = teamOf3(s, pid);
+        if (s.phase !== "faceoff") return err4("ليس وقت الجرس");
+        const team = teamOf3(s, pid);
+        if (!team) return err4("المقدم لا يضغط الجرس");
+        if (s.face.buzz) return err4(`سبقك ${s.face.buzzBy === pid ? "ضغطك السابق" : "لاعب آخر"} — الجرس مقفل`);
+        if (s.face.first) return err4("الجرس مقفل: يجاوب الفريق الآخر");
+        s.face[team] = pid;
+        s.face.buzzBy = pid;
+        s.face.buzz = team;
         arm(s, now);
         pushFx(s, { kind: "buzz" });
         return ok4();
@@ -7288,7 +7458,7 @@ var qrcode = function() {
       const firstK = f.firstIdx;
       if (k >= 0 && (firstK < 0 || k < firstK)) return winFace(s, t);
       if (firstK >= 0) return winFace(s, f.first);
-      s.face = { A: pick(s, "A"), B: pick(s, "B"), buzz: null, first: null, firstIdx: null };
+      s.face = { A: pick(s, "A"), B: pick(s, "B"), buzz: null, buzzBy: null, first: null, firstIdx: null };
       disarm(s);
       return ok4();
     }
@@ -7363,7 +7533,8 @@ var qrcode = function() {
       score: s.score,
       question: FEUD_QUESTIONS[s.q].q,
       // الإجابات المخفية لا تُرسل إلا للمقدم
-      answers: ans.map(([t, p], k) => isMod || s.revealed[k] || end4 && s.revealed[k] ? { text: t, pts: p, shown: s.revealed[k] } : { text: null, pts: null, shown: false }),
+      answers: ans.map(([t, p], k) => isMod || s.revealed[k] || end4 && s.revealed[k] ? { text: t, pts: p, shown: s.revealed[k] } : { text: null, pts: p, shown: false }),
+      // نقاط الخانة ظاهرة للجميع، ونصها لا يُرسل قبل الكشف
       bank: s.bank,
       strikes: s.strikes,
       control: s.control,
@@ -7383,17 +7554,623 @@ var qrcode = function() {
     return { winnerTeam: s.winner, winners: s.teams[s.winner] || [] };
   }
 
-  // js/engines/deception.js
-  var deception_exports = {};
-  __export(deception_exports, {
+  // js/engines/kalim.js
+  var kalim_exports = {};
+  __export(kalim_exports, {
+    TEAM_STYLE: () => TEAM_STYLE,
+    TYPES: () => TYPES,
     act: () => act13,
     meta: () => meta13,
+    norm: () => norm2,
     normalizeOptions: () => normalizeOptions10,
     optionSchema: () => optionSchema8,
     setup: () => setup13,
     summary: () => summary13,
     tick: () => tick5,
     view: () => view13
+  });
+
+  // js/data/kalim-cards.js
+  var LETTER_CATS = [
+    { cat: "اسم ولد", letters: "ا ب ت ج ح خ د ر ز س ش ص ط ع غ ف ق ك م ن ه و ي" },
+    { cat: "اسم بنت", letters: "ا ب ت ج ح خ د ر ز س ش ص ع غ ف ل م ن ه و ي" },
+    { cat: "حيوان", letters: "ا ب ت ث ج ح خ د ذ ز س ش ص ض ط ظ ع غ ف ق ك ن ه و" },
+    { cat: "دولة", letters: "ا ب ت ج س ص ع ف ق ك ل م ن ه ي" },
+    { cat: "مدينة", letters: "ا ب ت ج د ر ز س ش ص ط ع ف ق ك ل م ن ه و ي" },
+    { cat: "أكلة", letters: "ب ت ج ح خ ر س ش ص ع ف ق ك ل م ه" },
+    { cat: "فاكهة أو خضار", letters: "ب ت ج ح خ ر ز ش ع ف ق ك ل م ن" },
+    { cat: "مهنة", letters: "ا ب ت ج ح خ د ر س ش ص ط ع ف ق ك م ن" },
+    { cat: "جماد في البيت", letters: "ب ت ث ج ح خ د ر س ش ص ط ف ق ك م ن و" },
+    { cat: "شيء تلبسه", letters: "ب ت ج ح خ د ر س ش ع ف ق ك م ن" }
+  ];
+  var RAPID = [
+    "فواكه",
+    "خضروات",
+    "دول عربية",
+    "عواصم في العالم",
+    "حيوانات تعيش في البحر",
+    "ألوان",
+    "أدوات في المطبخ",
+    "مهن",
+    "أكلات شعبية",
+    "رياضات",
+    "أجزاء جسم الإنسان",
+    "ماركات سيارات",
+    "أشياء في المدرسة",
+    "وسائل نقل",
+    "آلات موسيقية",
+    "أشياء لونها أحمر",
+    "ملابس",
+    "طيور",
+    "حشرات",
+    "أدوات مكتبية",
+    "مشروبات",
+    "حلويات",
+    "أشياء تطير",
+    "أشهر السنة",
+    "كواكب وأجرام في السماء",
+    "أجهزة كهربائية",
+    "أماكن في المدينة",
+    "رياضات فيها كرة",
+    "أشياء تجدها في الحديقة",
+    "أشياء مصنوعة من الخشب",
+    "حيوانات صحراوية",
+    "أشياء في الحمام",
+    "أشياء تأخذها في السفر",
+    "أشياء باردة",
+    "أشياء مستديرة"
+  ];
+  var SCRAMBLE = [
+    ["قلم"],
+    ["كتاب"],
+    ["مدرسة", "مدرسه"],
+    ["سيارة", "سياره"],
+    ["جمل"],
+    ["نخلة", "نخله"],
+    ["قهوة", "قهوه"],
+    ["بحر"],
+    ["شمس"],
+    ["مطر"],
+    ["سرير"],
+    ["مفتاح"],
+    ["ساعة", "ساعه"],
+    ["حديقة", "حديقه"],
+    ["طائرة", "طائره", "طياره", "طيارة"],
+    ["مطبخ"],
+    ["برتقال"],
+    ["تفاحة", "تفاحه", "تفاح"],
+    ["ثلاجة", "ثلاجه"],
+    ["شجرة", "شجره"],
+    ["قمر"],
+    ["نجمة", "نجمه"],
+    ["مكتبة", "مكتبه"],
+    ["مسجد"],
+    ["خيمة", "خيمه"],
+    ["صحراء", "صحرا"],
+    ["عصفور"],
+    ["فراشة", "فراشه"],
+    ["نافذة", "نافذه"],
+    ["كرسي"],
+    ["طاولة", "طاوله"],
+    ["حقيبة", "حقيبه", "شنطة", "شنطه"],
+    ["ملعب"],
+    ["مستشفى"],
+    ["جزيرة", "جزيره"],
+    ["بركان"],
+    ["ميزان"],
+    ["زرافة", "زرافه"],
+    ["أرنب", "ارنب"],
+    ["دلة", "دله"],
+    ["فنجان"],
+    ["سفينة", "سفينه"],
+    ["مظلة", "مظله"],
+    ["شاطئ", "شاطي"],
+    ["ممحاة", "ممحاه", "مساحة"]
+  ];
+  var TABOO = [
+    ["سيارة", ["محرك", "طريق", "سواقة", "عجلات"], ["سياره", "موتر", "عربية"]],
+    ["قهوة", ["فنجان", "دلة", "بن", "مشروب"], ["قهوه"]],
+    ["مدرسة", ["طلاب", "معلم", "فصل", "تعليم"], ["مدرسه"]],
+    ["طائرة", ["سفر", "مطار", "طيار", "تطير"], ["طياره", "طيارة", "طائره"]],
+    ["مستشفى", ["مريض", "طبيب", "علاج", "ممرضة"], ["مستشفي"]],
+    ["جوال", ["اتصال", "شاشة", "رسائل", "هاتف"], ["موبايل", "جوّال"]],
+    ["بحر", ["ماء", "سمك", "موج", "شاطئ"], []],
+    ["رمضان", ["صيام", "شهر", "إفطار", "سحور"], []],
+    ["كرة القدم", ["ملعب", "هدف", "لاعب", "مباراة"], ["كوره", "كرة قدم", "كره القدم"]],
+    ["شمس", ["حرارة", "نهار", "ضوء", "صيف"], []],
+    ["مطر", ["غيوم", "ماء", "شتاء", "مظلة"], []],
+    ["عرس", ["زواج", "عروس", "حفلة", "معرس"], ["زفاف"]],
+    ["خيمة", ["بر", "كشتة", "تخييم", "حبال"], ["خيمه"]],
+    ["ثلاجة", ["برودة", "أكل", "مطبخ", "تبريد"], ["ثلاجه"]],
+    ["كتاب", ["قراءة", "صفحات", "مكتبة", "مؤلف"], []],
+    ["صحراء", ["رمل", "جمل", "حر", "كثبان"], ["صحرا"]],
+    ["نخلة", ["تمر", "شجرة", "سعف", "رطب"], ["نخله", "نخل"]],
+    ["مطعم", ["أكل", "طاولة", "نادل", "طلب"], []],
+    ["سوق", ["شراء", "بيع", "محلات", "فلوس"], []],
+    ["عيد", ["عيدية", "فطر", "أضحى", "ملابس"], []],
+    ["حديقة", ["أشجار", "ورد", "عشب", "ألعاب"], ["حديقه", "منتزه"]],
+    ["قلم", ["كتابة", "حبر", "ورقة", "رصاص"], []],
+    ["ساعة", ["وقت", "عقارب", "يد", "دقيقة"], ["ساعه"]],
+    ["مكيف", ["برودة", "هواء", "صيف", "تبريد"], ["مكيّف", "تكييف"]],
+    ["مطار", ["طائرة", "سفر", "جواز", "بوابة"], []],
+    ["بيت", ["منزل", "غرفة", "سكن", "باب"], ["منزل"]],
+    ["قطة", ["حيوان", "مواء", "قط", "أليف"], ["قطه", "بسه", "بسة", "قط"]],
+    ["سرير", ["نوم", "مخدة", "غرفة", "بطانية"], []],
+    ["نظارة", ["عيون", "نظر", "عدسات", "شمسية"], ["نظاره"]],
+    ["كيك", ["حلا", "عيد ميلاد", "شمع", "فرن"], ["كيكة", "كيكه", "كعكة"]],
+    ["تمر", ["نخلة", "رطب", "حلو", "قهوة"], []],
+    ["مفتاح", ["باب", "قفل", "فتح", "سيارة"], []],
+    ["إطفائي", ["حريق", "نار", "ماء", "خرطوم"], ["اطفائي", "رجل اطفاء", "مطافي"]],
+    ["مسجد", ["صلاة", "أذان", "إمام", "مئذنة"], ["جامع"]],
+    ["جبل", ["قمة", "صخور", "عالي", "تسلق"], []]
+  ];
+  var DOUBLE_LETTERS = [
+    ["حيوان", "ف", "ل", "فيل"],
+    ["دولة", "م", "ر", "مصر"],
+    ["مدينة", "ج", "ة", "جدة"],
+    ["أكلة", "ك", "ة", "كبسة"],
+    ["اسم ولد", "م", "د", "محمد"],
+    ["فاكهة", "ت", "ح", "تفاح"],
+    ["حيوان", "ج", "ل", "جمل"],
+    ["دولة", "ع", "ن", "عمان"],
+    ["مهنة", "ط", "ب", "طبيب"],
+    ["جماد", "ق", "م", "قلم"],
+    ["اسم بنت", "س", "ة", "سارة"],
+    ["لون", "أ", "ر", "أحمر"],
+    ["حيوان", "ق", "ط", "قط"],
+    ["مدينة", "د", "ي", "دبي"],
+    ["أكلة", "م", "ي", "مندي"],
+    ["دولة", "ل", "ن", "لبنان"],
+    ["فاكهة", "م", "ز", "موز"],
+    ["حيوان", "ح", "ن", "حصان"],
+    ["مهنة", "م", "س", "مهندس"],
+    ["جماد", "ك", "ي", "كرسي"]
+  ];
+  var DOUBLE_SCRAMBLE = [
+    ["تلفزيون", "تلفزيون"],
+    ["كمبيوتر"],
+    ["برتقالة", "برتقاله"],
+    ["مغناطيس"],
+    ["استراحة", "استراحه"],
+    ["ميكروفون"],
+    ["باذنجان"],
+    ["شوكولاتة", "شوكولاته", "شوكولا"],
+    ["بسكويت"],
+    ["فراولة", "فراوله"],
+    ["أناناس", "اناناس"],
+    ["كهرباء", "كهربا"],
+    ["سلحفاة", "سلحفاه"],
+    ["بطاريات"],
+    ["مستطيل"]
+  ];
+
+  // js/engines/kalim.js
+  var TYPES = ["letters", "rapid", "scramble", "taboo", "double"];
+  var DEF_PTS = { letters: 10, rapid: 5, scramble: 15, taboo: 20, double: 30 };
+  var PTS_OPTS = { letters: [5, 10, 15, 20], rapid: [3, 5, 10], scramble: [10, 15, 20], taboo: [10, 20, 30], double: [20, 30, 40] };
+  var TEAM_STYLE = [
+    ["الصقور", "#e63946"],
+    ["النمور", "#1e88e5"],
+    ["النجوم", "#2bb673"],
+    ["البروق", "#8e44ad"],
+    ["", "#f39c12"],
+    ["", "#16a085"],
+    ["", "#d35400"],
+    ["", "#2c3e50"],
+    ["", "#c0392b"],
+    ["", "#7f8c8d"],
+    ["", "#27ae60"],
+    ["", "#6c5ce7"]
+  ];
+  var MAX_SUBS = 60;
+  var meta13 = { id: "kalim", minPlayers: 2, maxPlayers: 12, defaultOptions: {} };
+  function normalizeOptions10(o = {}) {
+    const pick2 = (v, list, d) => list.includes(v) ? v : d;
+    const n = {
+      mode: pick2(o.mode, ["teams", "solo"], "teams"),
+      teams: pick2(o.teams, [2, 3, 4], 2),
+      hostRole: pick2(o.hostRole, ["play", "mod"], "play"),
+      rounds: pick2(o.rounds, [3, 5, 7, 10], 5),
+      timer: pick2(o.timer, [20, 30, 45, 60], 30)
+    };
+    for (const t of TYPES) {
+      n["t_" + t] = o["t_" + t] === void 0 ? true : !!o["t_" + t];
+      n["p_" + t] = pick2(o["p_" + t], PTS_OPTS[t], DEF_PTS[t]);
+    }
+    if (!TYPES.some((t) => n["t_" + t])) TYPES.forEach((t) => n["t_" + t] = true);
+    return n;
+  }
+  var TL = { letters: "بطاقة الحروف", rapid: "التحدي السريع", scramble: "فك الكلمة", taboo: "ممنوع تقول", double: "التحدي المضاعف" };
+  function optionSchema8() {
+    const ar2 = (x) => String(x).replace(/\d/g, (d) => "٠١٢٣٤٥٦٧٨٩"[d]);
+    return [
+      { key: "mode", type: "select", label: "نمط اللعب", options: [["teams", "فرق"], ["solo", "فردي (كل لاعب لنفسه)"]] },
+      { key: "teams", type: "select", label: "عدد الفرق", options: [[2, "فريقان"], [3, "٣ فرق"], [4, "٤ فرق"]] },
+      { key: "hostRole", type: "select", label: "دور المضيف", options: [["play", "يلعب ويحكم"], ["mod", "مقدم وحَكَم فقط"]] },
+      { key: "rounds", type: "select", label: "عدد الجولات", options: [3, 5, 7, 10].map((x) => [x, ar2(x)]) },
+      { key: "timer", type: "select", label: "مؤقت البطاقة", options: [20, 30, 45, 60].map((x) => [x, ar2(x) + " ثانية"]) },
+      ...TYPES.map((t) => ({ key: "t_" + t, type: "switch", label: "تفعيل " + TL[t] })),
+      ...TYPES.map((t) => ({ key: "p_" + t, type: "select", label: `نقاط ${TL[t]}${t === "rapid" ? " (لكل إجابة)" : ""}`, options: PTS_OPTS[t].map((x) => [x, ar2(x)]) }))
+    ];
+  }
+  function norm2(t, keepAl = false) {
+    let s = String(t || "").trim().replace(/[\u064B-\u0652\u0640\u0670]/g, "").replace(/[أإآٱ]/g, "ا").replace(/ة/g, "ه").replace(/ى/g, "ي").replace(/ؤ/g, "و").replace(/ئ/g, "ي").replace(/\s+/g, " ");
+    if (!keepAl) s = s.replace(/^ال(?=..)/, "").replace(/ ال(?=..)/g, " ");
+    return s.replace(/[^\p{L}\p{N} ]+/gu, "").trim();
+  }
+  var firstLetter = (w) => norm2(w).replace(/ /g, "")[0] || "";
+  var lastLetter = (w) => {
+    const x = norm2(w).replace(/ /g, "");
+    return x[x.length - 1] || "";
+  };
+  function allIds(type) {
+    if (type === "letters") {
+      const ids = /* @__PURE__ */ new Set();
+      LETTER_CATS.forEach((c, i) => c.letters.split(" ").forEach((l) => ids.add(i + "|" + l)));
+      return [...ids];
+    }
+    if (type === "rapid") return RAPID.map((_, i) => String(i));
+    if (type === "scramble") return SCRAMBLE.map((_, i) => String(i));
+    if (type === "taboo") return TABOO.map((_, i) => String(i));
+    return [...DOUBLE_LETTERS.map((_, i) => "L" + i), ...DOUBLE_SCRAMBLE.map((_, i) => "S" + i)];
+  }
+  function scrambleLetters(word, rng) {
+    const chars = [...word.replace(/ /g, "")];
+    for (let tries = 0; tries < 20; tries++) {
+      const sh = rng.shuffle(chars.slice());
+      if (sh.join("") !== chars.join("")) return sh;
+    }
+    return chars.slice().reverse();
+  }
+  function makeCard(type, id, rng) {
+    if (type === "letters") {
+      const [ci, letter] = id.split("|");
+      return { type, id, category: LETTER_CATS[+ci].cat, letter, secret: null };
+    }
+    if (type === "rapid") return { type, id, prompt: RAPID[+id], secret: null };
+    if (type === "scramble") {
+      const [w2, ...alts2] = SCRAMBLE[+id];
+      return { type, id, letters: scrambleLetters(w2, rng), secret: { word: w2, alts: alts2 } };
+    }
+    if (type === "taboo") {
+      const [w2, forbidden, alts2] = TABOO[+id];
+      return { type, id, secret: { word: w2, forbidden, alts: alts2 } };
+    }
+    if (id[0] === "L") {
+      const [category, letter, last, example] = DOUBLE_LETTERS[+id.slice(1)];
+      return { type, id, sub: "letters2", category, letter, last, secret: { example } };
+    }
+    const [w, ...alts] = DOUBLE_SCRAMBLE[+id.slice(1)];
+    return { type, id, sub: "scramble", letters: scrambleLetters(w, rng), secret: { word: w, alts } };
+  }
+  var enabledTypes = (s) => {
+    const on = TYPES.filter((t) => s.o["t_" + t] && !(t === "taboo" && s.solo));
+    return on.length ? on : TYPES.filter((t) => t !== "taboo");
+  };
+  function drawCard(s, rng) {
+    const types = enabledTypes(s);
+    const type = rng.pick(types);
+    if (!s.decks[type] || s.decks[type].length === 0) {
+      s.decks[type] = rng.shuffle(allIds(type));
+      s.reshuffles[type] = (s.reshuffles[type] || 0) + (s.drawn[type] ? 1 : 0);
+    }
+    const id = s.decks[type].pop();
+    s.drawn[type] = (s.drawn[type] || 0) + 1;
+    s.usedIds.push(type + ":" + id);
+    return makeCard(type, id, rng);
+  }
+  function setup13(players, options, rng) {
+    const o = normalizeOptions10(options);
+    const host = (players.find((p) => p.isHost) || players[0]).id;
+    const ids = players.map((p) => p.id).filter((id) => !(o.hostRole === "mod" && id === host));
+    const solo = o.mode === "solo" || ids.length < 2;
+    let teams;
+    if (solo) teams = ids.map((id, k) => ({ id: "t" + k, name: "", solo: true, color: TEAM_STYLE[k % TEAM_STYLE.length][1], members: [id] }));
+    else {
+      const k = Math.max(2, Math.min(o.teams, ids.length));
+      const sh = rng.shuffle(ids);
+      teams = Array.from({ length: k }, (_, i) => ({ id: "t" + i, name: TEAM_STYLE[i][0], solo: false, color: TEAM_STYLE[i][1], members: [] }));
+      sh.forEach((id, i) => teams[i % k].members.push(id));
+    }
+    const s = {
+      game: "kalim",
+      o,
+      host,
+      solo,
+      teams,
+      rot: teams.map(() => 0),
+      players: players.map((p) => ({ id: p.id })),
+      // كل المشاركين (ومنهم المقدم إن لم يلعب)
+      round: 1,
+      turnIdx: 0,
+      active: null,
+      phase: "draw",
+      card: null,
+      deadline: null,
+      subs: [],
+      subSeq: 0,
+      tabooOk: false,
+      foul: null,
+      outcome: null,
+      roundPts: {},
+      totals: {},
+      history: [],
+      decks: {},
+      drawn: {},
+      reshuffles: {},
+      usedIds: [],
+      winners: null,
+      fx: [],
+      fxSeq: 0
+    };
+    teams.forEach((t) => {
+      s.roundPts[t.id] = 0;
+      s.totals[t.id] = 0;
+    });
+    s.active = nextMember(s, 0);
+    return s;
+  }
+  function nextMember(s, ti) {
+    const t = s.teams[ti];
+    const id = t.members[s.rot[ti] % t.members.length];
+    s.rot[ti]++;
+    return id;
+  }
+  var teamIdxOf = (s, pid) => s.teams.findIndex((t) => t.members.includes(pid));
+  function pushFx2(s, e) {
+    s.fx.push({ id: ++s.fxSeq, ...e });
+    if (s.fx.length > 20) s.fx.shift();
+  }
+  function autoCheck(s, text) {
+    const c = s.card;
+    const n = norm2(text);
+    if (!n) return { status: "no", reason: "إجابة فارغة" };
+    if (s.subs.some((x) => x.status !== "no" && norm2(x.text) === n)) return { status: "no", reason: "مكررة" };
+    if (c.type === "letters" || c.type === "double" && c.sub === "letters2") {
+      if (firstLetter(text) !== norm2(c.letter, true)[0]) return { status: "no", reason: `لا تبدأ بحرف «${c.letter}»` };
+      if (c.type === "double" && lastLetter(text) !== norm2(c.last, true)[0]) return { status: "no", reason: `لا تنتهي بحرف «${c.last}»` };
+      return { status: "pending" };
+    }
+    if (c.type === "rapid") return { status: "pending" };
+    const okWords = [c.secret.word, ...c.secret.alts || []].map((w) => norm2(w));
+    if (okWords.includes(n)) return { status: "ok", reason: "صحيحة" };
+    return { status: "no", reason: "غير صحيحة" };
+  }
+  var toJudge = (s, why) => {
+    s.phase = "judge";
+    s.deadline = null;
+    s.judgeWhy = why;
+  };
+  function act13(s, pid, a, ctx2 = {}) {
+    if (!a || typeof a.type !== "string") return err4("إجراء غير صالح");
+    if (s.phase === "over") return err4("انتهت اللعبة");
+    const now = Number.isFinite(ctx2.now) ? ctx2.now : 0;
+    const isHost = pid === s.host;
+    const ti = teamIdxOf(s, pid);
+    const activeTi = s.turnIdx;
+    const isActive = pid === s.active;
+    switch (a.type) {
+      case "draw": {
+        if (s.phase !== "draw") return err4("ليس وقت السحب");
+        if (!isActive && !isHost) return err4("السحب لصاحب الدور");
+        s.card = drawCard(s, ctx2.rng);
+        s.subs = [];
+        s.tabooOk = false;
+        s.foul = null;
+        s.outcome = null;
+        s.judgeWhy = null;
+        s.phase = "ready";
+        pushFx2(s, { kind: "draw" });
+        return ok4();
+      }
+      case "start": {
+        if (s.phase !== "ready") return err4("ليس وقت البدء");
+        if (!isActive && !isHost) return err4("البدء لصاحب الدور");
+        s.phase = "answer";
+        s.deadline = now + s.o.timer * 1e3;
+        pushFx2(s, { kind: "start" });
+        return ok4();
+      }
+      case "submit": {
+        if (s.phase !== "answer") return err4("ليس وقت الإجابة");
+        if (s.deadline && now >= s.deadline) return err4("انتهى الوقت");
+        const text = typeof a.text === "string" ? a.text.trim().slice(0, 40) : "";
+        if (!text) return err4("اكتب إجابة");
+        if (s.card.type === "taboo") {
+          if (isActive) return err4("أنت الشارح: اشرح بالكلام دون الكلمات المحظورة");
+          if (ti !== activeTi) return err4("التخمين لفريق صاحب الدور");
+        } else if (!isActive) return err4("الإجابة لصاحب الدور");
+        if (s.subs.length >= MAX_SUBS) return err4("وصلت للحد الأقصى من الإجابات");
+        const r = autoCheck(s, text);
+        const sub = { id: ++s.subSeq, by: pid, text, status: r.status, reason: r.reason || null };
+        s.subs.push(sub);
+        pushFx2(s, { kind: r.status === "ok" ? "correct" : r.status === "no" ? "reject" : "submit" });
+        if (r.status === "ok" && (s.card.type === "scramble" || s.card.type === "taboo" || s.card.sub === "scramble")) {
+          if (s.card.type === "taboo") s.tabooOk = true;
+          toJudge(s, "solved");
+        }
+        return ok4();
+      }
+      case "decide": {
+        if (!isHost) return err4("الحكم للمقدم فقط");
+        if (s.phase !== "answer" && s.phase !== "judge") return err4("لا يوجد ما يُحكم عليه");
+        const sub = s.subs.find((x) => x.id === a.sid);
+        if (!sub) return err4("إجابة غير موجودة");
+        if (a.ok && sub.status !== "ok") {
+          if (s.subs.some((x) => x !== sub && x.status === "ok" && norm2(x.text) === norm2(sub.text))) return err4("مكررة مع إجابة معتمدة");
+          sub.status = "ok";
+          sub.reason = "اعتمدها المقدم";
+          pushFx2(s, { kind: "correct" });
+        } else if (!a.ok) {
+          sub.status = "no";
+          sub.reason = "رفضها المقدم";
+          pushFx2(s, { kind: "reject" });
+        }
+        if (s.card.type === "taboo") s.tabooOk = s.subs.some((x) => x.status === "ok");
+        if (s.phase === "answer" && a.ok && (s.card.type === "letters" || s.card.sub === "letters2" || s.card.type === "scramble" || s.card.sub === "scramble" || s.card.type === "taboo")) toJudge(s, "solved");
+        return ok4();
+      }
+      case "tabooWin": {
+        if (!isHost) return err4("المقدم يعتمد التخمين");
+        if (s.card?.type !== "taboo" || s.phase !== "answer" && s.phase !== "judge") return err4("ليس وقتها");
+        s.tabooOk = true;
+        s.foul = null;
+        if (s.phase === "answer") toJudge(s, "solved");
+        return ok4();
+      }
+      case "tabooFoul": {
+        if (s.card?.type !== "taboo" || s.phase !== "answer" && s.phase !== "judge") return err4("ليس وقتها");
+        if (!isHost && (ti === activeTi || ti < 0)) return err4("يبلّغ عنها المقدم أو الفريق المنافس");
+        s.foul = { by: pid };
+        s.tabooOk = false;
+        pushFx2(s, { kind: "foul" });
+        if (s.phase === "answer") toJudge(s, "foul");
+        return ok4();
+      }
+      case "tabooClear": {
+        if (!isHost || s.phase !== "judge") return err4("للمقدم فقط");
+        s.foul = null;
+        return ok4();
+      }
+      case "giveUp": {
+        if (s.phase !== "answer") return err4("ليس وقتها");
+        if (!isActive && !isHost) return err4("لصاحب الدور");
+        toJudge(s, "gaveUp");
+        return ok4();
+      }
+      case "confirm": {
+        if (!isHost) return err4("اعتماد النتيجة للمقدم");
+        if (s.phase !== "judge") return err4("ليس وقت الاعتماد");
+        if (s.subs.some((x) => x.status === "pending")) return err4("احكم على الإجابات المعلقة أولًا");
+        const c = s.card, team = s.teams[activeTi];
+        const okSubs = s.subs.filter((x) => x.status === "ok");
+        let points2 = 0, success = false;
+        if (c.type === "rapid") {
+          const uniq = new Set(okSubs.map((x) => norm2(x.text)));
+          points2 = uniq.size * s.o.p_rapid;
+          success = uniq.size > 0;
+        } else if (c.type === "taboo") {
+          success = s.tabooOk && !s.foul;
+          points2 = success ? s.o.p_taboo : 0;
+        } else {
+          success = okSubs.length > 0;
+          points2 = success ? s.o["p_" + c.type] : 0;
+        }
+        s.roundPts[team.id] += points2;
+        s.outcome = { success, points: points2, team: team.id, by: s.active, count: c.type === "rapid" ? okSubs.length : null, reason: s.foul ? "قال كلمة ممنوعة" : s.judgeWhy === "gaveUp" ? "استسلم" : null };
+        s.phase = "result";
+        pushFx2(s, { kind: success ? "win-card" : "lose-card", points: points2 });
+        return ok4();
+      }
+      case "next": {
+        if (s.phase !== "result") return err4("ليس وقتها");
+        if (!isActive && !isHost) return err4("للمقدم أو صاحب الدور");
+        s.turnIdx++;
+        if (s.turnIdx >= s.teams.length) {
+          for (const t of s.teams) s.totals[t.id] += s.roundPts[t.id];
+          s.history.push({ round: s.round, pts: { ...s.roundPts } });
+          s.phase = "roundEnd";
+          s.card = null;
+          s.deadline = null;
+          pushFx2(s, { kind: "round-end" });
+          return ok4();
+        }
+        s.active = nextMember(s, s.turnIdx);
+        s.phase = "draw";
+        s.card = null;
+        s.subs = [];
+        s.outcome = null;
+        return ok4();
+      }
+      case "nextRound": {
+        if (!isHost) return err4("للمقدم فقط");
+        if (s.phase !== "roundEnd") return err4("ليس وقتها");
+        if (s.round >= s.o.rounds) {
+          const best = Math.max(...s.teams.map((t) => s.totals[t.id]));
+          s.winners = s.teams.filter((t) => s.totals[t.id] === best).map((t) => t.id);
+          s.phase = "over";
+          pushFx2(s, { kind: "game-over" });
+          return ok4();
+        }
+        s.round++;
+        s.turnIdx = 0;
+        s.teams.forEach((t) => {
+          s.roundPts[t.id] = 0;
+        });
+        s.active = nextMember(s, 0);
+        s.phase = "draw";
+        pushFx2(s, { kind: "round-start" });
+        return ok4();
+      }
+    }
+    return err4("إجراء غير معروف");
+  }
+  function tick5(s, now) {
+    if (s.phase === "answer" && s.deadline && now >= s.deadline) {
+      pushFx2(s, { kind: "timeUp" });
+      toJudge(s, "time");
+      return true;
+    }
+    return false;
+  }
+  function view13(s, pid) {
+    const isHost = pid === s.host;
+    const display = pid === "#display";
+    const ti = teamIdxOf(s, pid);
+    const ended = ["result", "roundEnd", "over"].includes(s.phase);
+    const c = s.card;
+    let seeSecret = ended;
+    if (c && !ended) {
+      if (c.type === "taboo") seeSecret = pid === s.active || ti >= 0 && ti !== s.turnIdx || isHost && s.o.hostRole === "mod";
+      else if (c.secret) seeSecret = isHost && s.o.hostRole === "mod";
+    }
+    const card3 = c ? { type: c.type, sub: c.sub || null, letter: c.letter || null, last: c.last || null, category: c.category || null, prompt: c.prompt || null, letters: c.letters || null } : null;
+    return {
+      game: "kalim",
+      phase: s.phase,
+      round: s.round,
+      rounds: s.o.rounds,
+      timer: s.o.timer,
+      host: s.host,
+      hostRole: s.o.hostRole,
+      solo: s.solo,
+      teams: s.teams.map((t) => ({ id: t.id, name: t.name, color: t.color, solo: t.solo, members: t.members })),
+      turnIdx: s.turnIdx,
+      active: s.active,
+      deadline: s.deadline || null,
+      card: card3,
+      secret: c && c.secret && seeSecret ? c.secret : null,
+      // شاشة العرض لا ترى نص إجابة قبل اعتمادها
+      subs: s.subs.map((x) => ({ id: x.id, by: x.by, status: x.status, reason: x.reason, text: display && x.status !== "ok" ? null : x.text })),
+      tabooOk: s.tabooOk,
+      foul: s.foul,
+      outcome: s.outcome,
+      judgeWhy: s.judgeWhy || null,
+      roundPts: s.roundPts,
+      totals: s.totals,
+      history: s.history,
+      winners: s.winners,
+      pts: TYPES.reduce((m, t) => (m[t] = s.o["p_" + t], m), {}),
+      types: enabledTypes(s),
+      me: display ? null : { isHost, team: ti, isActive: pid === s.active, seeSecret },
+      fx: s.fx
+    };
+  }
+  function summary13(s) {
+    return { totals: s.totals, winners: s.winners, history: s.history };
+  }
+
+  // js/engines/deception.js
+  var deception_exports = {};
+  __export(deception_exports, {
+    act: () => act14,
+    meta: () => meta14,
+    normalizeOptions: () => normalizeOptions11,
+    optionSchema: () => optionSchema9,
+    setup: () => setup14,
+    summary: () => summary14,
+    tick: () => tick6,
+    view: () => view14
   });
 
   // js/data/deception-cards.js
@@ -7424,19 +8201,19 @@ var qrcode = function() {
   ];
 
   // js/engines/deception.js
-  var meta13 = { id: "deception", minPlayers: 4, maxPlayers: 12, defaultOptions: { accomplice: true, witness: true, discussionSec: 180 } };
-  var normalizeOptions10 = (o = {}) => ({
+  var meta14 = { id: "deception", minPlayers: 4, maxPlayers: 12, defaultOptions: { accomplice: true, witness: true, discussionSec: 180 } };
+  var normalizeOptions11 = (o = {}) => ({
     accomplice: bool(o.accomplice, true),
     witness: bool(o.witness, true),
     discussionSec: [0, 120, 180, 240, 300].includes(o.discussionSec) ? o.discussionSec : 180
   });
-  var optionSchema8 = () => [
+  var optionSchema9 = () => [
     { key: "accomplice", type: "switch", label: "الشريك (٦ لاعبين فأكثر)" },
     { key: "witness", type: "switch", label: "الشاهد (٦ لاعبين فأكثر)" },
     { key: "discussionSec", type: "select", label: "مدة كل جولة نقاش", options: [[0, "بدون مؤقت"], [120, "دقيقتان"], [180, "٣ دقائق"], [240, "٤ دقائق"], [300, "٥ دقائق"]] }
   ];
-  function setup13(players, options, rng) {
-    const o = normalizeOptions10(options);
+  function setup14(players, options, rng) {
+    const o = normalizeOptions11(options);
     const n = players.length;
     const roles = ["forensic", "murderer"];
     if (n >= 6 && o.accomplice) roles.push("accomplice");
@@ -7469,7 +8246,7 @@ var qrcode = function() {
     return s;
   }
   var role = (s, r) => s.players.find((p) => p.role === r);
-  function act13(s, pid, a, ctx2) {
+  function act14(s, pid, a, ctx2) {
     const i = idxOf(s, pid);
     if (i < 0) return err4("لست ضمن هذه اللعبة");
     if (!a || typeof a.type !== "string") return err4("إجراء غير صالح");
@@ -7566,7 +8343,7 @@ var qrcode = function() {
     pushFx(s, { kind: "phase" });
     return ok4();
   }
-  function tick5(s, now, rng) {
+  function tick6(s, now, rng) {
     if (s.phase === "discuss" && s.deadline && now >= s.deadline) {
       endRound(s);
       return true;
@@ -7581,7 +8358,7 @@ var qrcode = function() {
     pushFx(s, { kind: "game-over" });
     return ok4();
   }
-  function view13(s, pid) {
+  function view14(s, pid) {
     const i = idxOf(s, pid);
     const me = i >= 0 ? s.players[i] : null;
     const over = s.phase === "over";
@@ -7612,7 +8389,7 @@ var qrcode = function() {
       fx: viewFx(s, pid)
     };
   }
-  function summary13(s) {
+  function summary14(s) {
     return { winnerTeam: s.winner, winners: s.players.filter((p) => ["murderer", "accomplice"].includes(p.role) === (s.winner === "evil")).map((p) => p.id) };
   }
 
@@ -7621,14 +8398,14 @@ var qrcode = function() {
   __export(shareef_exports, {
     BONUS: () => BONUS,
     GOODS: () => GOODS,
-    act: () => act14,
-    meta: () => meta14,
+    act: () => act15,
+    meta: () => meta15,
     score: () => score2,
-    setup: () => setup14,
-    summary: () => summary14,
-    view: () => view14
+    setup: () => setup15,
+    summary: () => summary15,
+    view: () => view15
   });
-  var meta14 = { id: "shareef", minPlayers: 3, maxPlayers: 5, defaultOptions: {} };
+  var meta15 = { id: "shareef", minPlayers: 3, maxPlayers: 5, defaultOptions: {} };
   var GOODS = {
     apple: { name: "تفاح", value: 2, penalty: 2, legal: true },
     cheese: { name: "جبن", value: 3, penalty: 2, legal: true },
@@ -7642,7 +8419,7 @@ var qrcode = function() {
   var DECK = { apple: 48, cheese: 36, bread: 36, chicken: 24, pepper: 22, mead: 21, silk: 12, crossbow: 5 };
   var BONUS = { apple: [20, 10], cheese: [15, 10], bread: [15, 10], chicken: [10, 5] };
   var LEGAL = ["apple", "cheese", "bread", "chicken"];
-  function setup14(players, options, rng) {
+  function setup15(players, options, rng) {
     let deck = [];
     for (const [g, n] of Object.entries(DECK)) for (let k = 0; k < n; k++) deck.push(g);
     deck = rng.shuffle(deck);
@@ -7673,7 +8450,7 @@ var qrcode = function() {
       p.hand.push(s.deck.pop());
     }
   }
-  function act14(s, pid, a, ctx2) {
+  function act15(s, pid, a, ctx2) {
     const i = idxOf(s, pid);
     if (i < 0) return err4("لست ضمن هذه اللعبة");
     if (!a || typeof a.type !== "string") return err4("إجراء غير صالح");
@@ -7833,7 +8610,7 @@ var qrcode = function() {
     pushFx(s, { kind: "game-over" });
     return ok4();
   }
-  function view14(s, pid) {
+  function view15(s, pid) {
     const i = idxOf(s, pid);
     const me = i >= 0 ? s.players[i] : null;
     return {
@@ -7863,7 +8640,7 @@ var qrcode = function() {
       fx: viewFx(s, pid)
     };
   }
-  function summary14(s) {
+  function summary15(s) {
     return { winners: s.winner || [] };
   }
 
@@ -7874,19 +8651,19 @@ var qrcode = function() {
     CHANCE: () => CHANCE,
     CHEST: () => CHEST,
     GROUPS: () => GROUPS,
-    act: () => act15,
-    meta: () => meta15,
+    act: () => act16,
+    meta: () => meta16,
     netWorth: () => netWorth,
-    normalizeOptions: () => normalizeOptions11,
-    optionSchema: () => optionSchema9,
+    normalizeOptions: () => normalizeOptions12,
+    optionSchema: () => optionSchema10,
     rentOf: () => rentOf,
-    setup: () => setup15,
-    summary: () => summary15,
-    view: () => view15
+    setup: () => setup16,
+    summary: () => summary16,
+    view: () => view16
   });
-  var meta15 = { id: "monopoly", minPlayers: 2, maxPlayers: 8, defaultOptions: { auctions: true, maxRounds: 0 } };
-  var normalizeOptions11 = (o = {}) => ({ auctions: typeof o.auctions === "boolean" ? o.auctions : true, maxRounds: [0, 15, 25, 40].includes(o.maxRounds) ? o.maxRounds : 0 });
-  var optionSchema9 = () => [
+  var meta16 = { id: "monopoly", minPlayers: 2, maxPlayers: 8, defaultOptions: { auctions: true, maxRounds: 0 } };
+  var normalizeOptions12 = (o = {}) => ({ auctions: typeof o.auctions === "boolean" ? o.auctions : true, maxRounds: [0, 15, 25, 40].includes(o.maxRounds) ? o.maxRounds : 0 });
+  var optionSchema10 = () => [
     { key: "auctions", type: "switch", label: "مزاد عند رفض الشراء" },
     { key: "maxRounds", type: "select", label: "حد الجولات (الأغنى يفوز)", options: [[0, "بلا حد — حتى إفلاس الجميع"], [15, "١٥ جولة"], [25, "٢٥ جولة"], [40, "٤٠ جولة"]] }
   ];
@@ -7979,8 +8756,8 @@ var qrcode = function() {
     { t: "جائزة مسابقة: استلم ١٠", cash: 10 },
     { t: "ورثت: استلم ١٠٠", cash: 100 }
   ];
-  function setup15(players, options, rng) {
-    const o = normalizeOptions11(options);
+  function setup16(players, options, rng) {
+    const o = normalizeOptions12(options);
     const props = {};
     BOARD.forEach((b, k) => {
       if (ownable(k)) props[k] = { owner: null, houses: 0, mortgaged: false };
@@ -8043,7 +8820,7 @@ var qrcode = function() {
     }
     return w;
   }
-  function act15(s, pid, a, ctx2) {
+  function act16(s, pid, a, ctx2) {
     const i = idxOf(s, pid);
     if (i < 0) return err4("لست ضمن هذه اللعبة");
     if (!a || typeof a.type !== "string") return err4("إجراء غير صالح");
@@ -8265,10 +9042,10 @@ var qrcode = function() {
     }
     if (b.type === "tax") return charge(s, i, -1, b.amount, "end", ctx2);
     if (b.type === "gotojail") return toJail(s, i);
-    if (b.type === "chance" || b.type === "chest") return drawCard(s, i, b.type, ctx2);
+    if (b.type === "chance" || b.type === "chest") return drawCard2(s, i, b.type, ctx2);
     return ok4();
   }
-  function drawCard(s, i, kind, ctx2) {
+  function drawCard2(s, i, kind, ctx2) {
     const pile = kind === "chance" ? s.chance : s.chest;
     const list = kind === "chance" ? CHANCE : CHEST;
     const ci = pile.shift();
@@ -8507,8 +9284,8 @@ var qrcode = function() {
     if (j < 0 || j === i || s.players[j].bankrupt) return err4("اختر لاعبًا");
     const e1 = validSide(s, i, a.give), e2 = validSide(s, j, a.get);
     if (e1 || e2) return err4(e1 || e2);
-    const norm2 = (x) => ({ cash: x.cash || 0, props: [...new Set(x.props || [])], cards: x.cards || 0 });
-    s.trade = { from: s.players[i].id, to: a.to, give: norm2(a.give), get: norm2(a.get) };
+    const norm3 = (x) => ({ cash: x.cash || 0, props: [...new Set(x.props || [])], cards: x.cards || 0 });
+    s.trade = { from: s.players[i].id, to: a.to, give: norm3(a.give), get: norm3(a.get) };
     pushFx(s, { kind: "trade" });
     return ok4();
   }
@@ -8536,7 +9313,7 @@ var qrcode = function() {
     pushFx(s, { kind: "trade-yes" });
     return ok4();
   }
-  function view15(s, pid) {
+  function view16(s, pid) {
     const i = idxOf(s, pid);
     return {
       game: "monopoly",
@@ -8560,12 +9337,12 @@ var qrcode = function() {
       fx: viewFx(s, pid)
     };
   }
-  function summary15(s) {
+  function summary16(s) {
     return { winners: s.winner || [] };
   }
 
   // js/engines/index.js
-  var ENGINES = { skull: skull_exports, bara: bara_exports, mafia: mafia_exports, avalon: avalon_exports, werewolf: werewolf_exports, coup: coup_exports, secret: secret_exports, kittens: kittens_exports, wavelength: wavelength_exports, herd: herd_exports, letters: letters_exports, familyfeud: familyfeud_exports, deception: deception_exports, shareef: shareef_exports, monopoly: monopoly_exports };
+  var ENGINES = { skull: skull_exports, bara: bara_exports, mafia: mafia_exports, avalon: avalon_exports, werewolf: werewolf_exports, coup: coup_exports, secret: secret_exports, kittens: kittens_exports, wavelength: wavelength_exports, herd: herd_exports, letters: letters_exports, familyfeud: familyfeud_exports, deception: deception_exports, shareef: shareef_exports, monopoly: monopoly_exports, kalim: kalim_exports };
 
   // js/core/rng.js
   function createRng(seed) {
@@ -9034,13 +9811,13 @@ var qrcode = function() {
     // كل لاعب يستلم نسخة مفصّلة له فقط — لا تُرسل أسرار الآخرين ثم تُخفى بالواجهة
     viewFor(pid) {
       const r = this.room;
-      let game = null, summary16 = null;
+      let game = null, summary17 = null;
       if (r.status === "playing" && r.game) {
         const eng = this.engines[r.gameId];
         game = eng.view(r.game.state, pid);
-        if (game.phase === "over" && eng.summary) summary16 = eng.summary(r.game.state);
+        if (game.phase === "over" && eng.summary) summary17 = eng.summary(r.game.state);
       }
-      return { t: "state", now: this.now(), you: pid, room: this.publicRoom(), game, summary: summary16 };
+      return { t: "state", now: this.now(), you: pid, room: this.publicRoom(), game, summary: summary17 };
     }
     _changed() {
       this.room.rngState = this.rng.state();
@@ -9661,14 +10438,14 @@ var qrcode = function() {
   var nm = (ctx2, id) => esc(ctx2.player(id)?.name || "؟");
   var who = (ctx2, id, size2 = "sm") => `${avatar(ctx2.player(id), size2)} <b>${nm(ctx2, id)}</b>`;
   var chip = (ctx2, id, extra = "", cls = "") => `<span class="badge ${cls}">${esc(ctx2.player(id)?.emoji || "")} ${nm(ctx2, id)}${extra}</span>`;
-  var act16 = (a) => `data-act='${JSON.stringify(a).replace(/'/g, "&#39;")}'`;
-  var btn = (label, a, cls = "", extra = "") => `<button class="btn ${cls}" ${act16(a)} ${extra}>${label}</button>`;
+  var act17 = (a) => `data-act='${JSON.stringify(a).replace(/'/g, "&#39;")}'`;
+  var btn = (label, a, cls = "", extra = "") => `<button class="btn ${cls}" ${act17(a)} ${extra}>${label}</button>`;
   var wait = (t) => `<p class="center soft" style="margin:12px 0">${t}<span class="waiting-dots"></span></p>`;
   var panel = (html, cls = "", style = "") => `<div class="panel ${cls}" style="${style}">${html}</div>`;
   function targets(ctx2, ids, { action, field = "target", extra = {}, disabled = () => false, mark = () => "", selected = null, ui = null } = {}) {
     return `<div class="target-list">${ids.map((id) => {
       const d = disabled(id), m = mark(id);
-      const attr = ui ? `data-ui="${ui}" data-id="${id}"` : act16({ type: action, [field]: id, ...extra });
+      const attr = ui ? `data-ui="${ui}" data-id="${id}"` : act17({ type: action, [field]: id, ...extra });
       const sel = Array.isArray(selected) ? selected.includes(id) : selected === id;
       return `<button class="target" ${d ? "disabled" : ""} aria-pressed="${sel}" ${attr}>${avatar(ctx2.player(id), "sm")}<span class="t-name">${nm(ctx2, id)}${id === ctx2.me ? " (أنت)" : ""}${m ? `<br><span class="t-mark">${esc(m)}</span>` : ""}</span></button>`;
     }).join("")}</div>`;
@@ -9677,19 +10454,19 @@ var qrcode = function() {
     return `<div class="teams">${["A", "B"].map((t) => `<div class="team team-${t}"><div class="row spread"><b>${labels[t]}</b>${score3 ? `<span class="team-score">${ar(score3[t])}</span>` : ""}</div>
     <div class="row wrap" style="gap:6px;margin-top:6px">${teams[t].map((id) => chip(ctx2, id, id === ctx2.me ? " (أنت)" : "")).join("")}</div></div>`).join("")}</div>`;
   }
-  function card({ cls = "", back: back8 = "", front: front2 = "", flipped = false, attrs = "", hint = "" }) {
+  function card({ cls = "", back: back7 = "", front: front2 = "", flipped = false, attrs = "", hint = "" }) {
     return `<div class="card ${cls} ${flipped ? "is-flipped" : ""}" ${attrs}><div class="card-inner">
-    <div class="card-face card-back">${back8}${hint ? `<div class="tap-hint">${hint}</div>` : ""}</div>
+    <div class="card-face card-back">${back7}${hint ? `<div class="tap-hint">${hint}</div>` : ""}</div>
     <div class="card-face card-front">${front2}</div></div></div>`;
   }
   function roleFront({ type = "", name, desc, art: art4 = "", tone: tone2 = "" }) {
     return `<div class="cf role-front ${tone2}"><div class="cf-head"><span class="cf-type">${type}</span></div>
     <div class="cf-art">${art4}</div><div><h3 class="cf-name">${name}</h3><p class="cf-desc">${desc}</p></div></div>`;
   }
-  function revealStep(ctx2, { cardHtml, readyCount, total, ready, after: after7 = "" }) {
+  function revealStep(ctx2, { cardHtml, readyCount, total, ready, after: after8 = "" }) {
     if (ready) return `<div class="big-status"><p class="h2">بانتظار البقية<span class="waiting-dots"></span></p><p class="soft">${ar(readyCount)} من ${ar(total)} جاهزون</p></div>`;
     let h = `<p class="center soft" style="margin:4px 0 14px">اكشف بطاقتك بعيدًا عن أعين الآخرين.</p>${cardHtml}`;
-    if (ctx2.ui.revealed) h += `<p class="private-note">هذه المعلومة خاصة بك — لا تعرضها لأحد.</p>${after7}<div style="margin-top:16px">${btn("حفظت دوري — جاهز", { type: "ready" }, "block")}</div>`;
+    if (ctx2.ui.revealed) h += `<p class="private-note">هذه المعلومة خاصة بك — لا تعرضها لأحد.</p>${after8}<div style="margin-top:16px">${btn("حفظت دوري — جاهز", { type: "ready" }, "block")}</div>`;
     return h;
   }
   function flipReveal(name, el, ctx2, rerender, sound = "flip") {
@@ -10018,9 +10795,10 @@ var qrcode = function() {
     return head + (side ? `<div class="disp-cols"><div>${tiles2}</div><div>${side}</div></div>` : tiles2);
   }
 
-  // js/ui/games/skull-ui.js
-  var skull_ui_exports = {};
-  __export(skull_ui_exports, {
+  // js/ui/games/kalim-ui.js
+  var kalim_ui_exports = {};
+  __export(kalim_ui_exports, {
+    KT: () => KT,
     after: () => after2,
     ambient: () => ambient2,
     headerExtra: () => headerExtra2,
@@ -10033,19 +10811,243 @@ var qrcode = function() {
     screenKey: () => screenKey2,
     theme: () => theme2
   });
-  var theme2 = "skull";
-  var kit2 = "luxe";
+  var theme2 = "kalim";
+  var kit2 = "pop";
   var ambient2 = () => "";
+  var KT = {
+    letters: { name: "بطاقة الحروف", color: "#ff8a3d", icon: "أ", how: "قل كلمة تبدأ بالحرف الظاهر وتنتمي للفئة.", check: "الحرف يُفحص آليًا (مع تجاهل «ال»)، وانتماء الكلمة للفئة يعتمده المقدم.", ex: "حرف «م» + فئة «حيوان» ← «ماعز»." },
+    rapid: { name: "التحدي السريع", color: "#2bb673", icon: "⚡", how: "اذكر أكبر عدد من الإجابات الصحيحة قبل نهاية الوقت.", check: "المكرر يُرفض آليًا (حتى مع اختلاف الهمزات و«ال»)، والمقدم يعتمد صحة كل إجابة. النقاط لكل إجابة صحيحة غير مكررة.", ex: "«ألوان» ← أحمر، أزرق، أخضر… كل إجابة صحيحة لها نقاطها." },
+    scramble: { name: "فك الكلمة", color: "#8e44ad", icon: "🔀", how: "رتّب الحروف المبعثرة لتكوين الكلمة الصحيحة.", check: "الكلمة الصحيحة وكتاباتها المقبولة تُحل آليًا. أي كلمة أخرى صحيحة لغويًا من نفس الحروف يقرر فيها المقدم.", ex: "ر ة ي س ا ← «سيارة»." },
+    taboo: { name: "ممنوع تقول", color: "#e63946", icon: "🤐", how: "صاحب الدور يشرح الكلمة لفريقه بالكلام دون قول الكلمة ولا الكلمات المحظورة، وفريقه يكتب التخمينات.", check: "التخمين الصحيح يُحل آليًا أو يعتمده المقدم. الفرق الأخرى (أو المقدم) تبلّغ عن قول كلمة محظورة فتسقط البطاقة.", ex: "الكلمة «مطار» والمحظور: طائرة، سفر، رحلة… ← «مكان تودّع فيه أهلك قبل ما تطلع من البلد»." },
+    double: { name: "التحدي المضاعف", color: "#d4a017", icon: "×٢", how: "تحدٍّ أصعب: كلمة من فئة تبدأ بحرف وتنتهي بحرف، أو فك كلمة طويلة.", check: "الحرفان يُفحصان آليًا، والفئة يعتمدها المقدم. الكلمة الطويلة تُحل آليًا.", ex: "فئة «دولة» تبدأ بـ«ع» وتنتهي بـ«ن» ← «عُمان»." }
+  };
+  var PHASE_WHY = { time: "⏰ انتهى الوقت", solved: "✓ حُلّت", gaveUp: "🏳️ إنهاء مبكر", foul: "🚫 بلاغ: كلمة محظورة" };
+  var teamName = (ctx2, t) => t.solo ? nm(ctx2, t.members[0]) : esc(t.name);
+  var typeOf = (c) => c ? KT[c.type] : null;
+  function scoreboard(ctx2, v, big = false) {
+    return `<div class="km-score ${big ? "big" : ""}">${v.teams.map((t, i) => `<div class="km-team ${i === v.turnIdx && !["roundEnd", "over"].includes(v.phase) ? "turn" : ""}" style="--tc:${t.color}">
+    <div class="km-tname">${teamName(ctx2, t)}</div>
+    ${t.solo ? "" : `<div class="km-members">${t.members.map((id) => `<span class="${id === v.active ? "act" : ""}">${avatar(ctx2.player(id), "sm")}</span>`).join("")}</div>`}
+    <div class="km-pts"><span><small>رصيد الجولة</small><b>${ar(v.roundPts[t.id] || 0)}</b></span><span><small>المجموع</small><b>${ar(v.totals[t.id] || 0)}</b></span></div>
+  </div>`).join("")}</div>`;
+  }
+  function cardBody(v) {
+    const c = v.card, T = typeOf(c);
+    if (!c) return "";
+    let main = "";
+    if (c.type === "letters") main = `<div class="km-letter">${esc(c.letter)}</div><p class="km-cat">${esc(c.category)}</p>`;
+    else if (c.type === "rapid") main = `<p class="km-prompt">${esc(c.prompt)}</p><p class="km-sub">أكبر عدد من الإجابات</p>`;
+    else if (c.type === "scramble" || c.sub === "scramble") main = `<div class="km-tiles">${(c.letters || []).map((l) => `<span class="km-tile">${esc(l)}</span>`).join("")}</div>${c.sub ? '<p class="km-sub">كلمة طويلة</p>' : ""}`;
+    else if (c.sub === "letters2") main = `<div class="km-two"><span class="km-letter sm">${esc(c.letter)}</span><span class="km-dots">…</span><span class="km-letter sm">${esc(c.last)}</span></div><p class="km-cat">${esc(c.category)}</p><p class="km-sub">تبدأ بالأول وتنتهي بالثاني</p>`;
+    else if (c.type === "taboo") {
+      main = v.secret ? `<p class="km-word">${esc(v.secret.word)}</p><ul class="km-forbid">${v.secret.forbidden.map((w) => `<li>${esc(w)}</li>`).join("")}</ul>` : `<p class="km-prompt">🤐</p><p class="km-sub">الكلمة سرية — يشرحها صاحب الدور</p>`;
+    }
+    const answer = v.secret && (c.type === "scramble" || c.sub === "scramble") ? `<p class="km-answer">الكلمة: <b>${esc(v.secret.word)}</b></p>` : "";
+    const example = v.secret && c.sub === "letters2" && v.secret.example ? `<p class="km-answer">مثال: <b>${esc(v.secret.example)}</b></p>` : "";
+    return `<div class="km-face" style="--kt:${T.color}">
+    <div class="km-band"><span class="km-ic">${T.icon}</span><span class="km-tn">${T.name}</span><span class="km-tp">${c.type === "rapid" ? `${ar(v.pts.rapid)} لكل إجابة` : `${ar(v.pts[c.type])} نقطة`}</span></div>
+    <div class="km-main">${main}</div>${answer}${example}
+    <p class="km-how">${T.how}</p></div>`;
+  }
+  var cardBack = () => `<div class="km-back"><span>كَلِم</span><small>اسحب بطاقة</small></div>`;
+  function kmCard(ctx2, v, size2 = "") {
+    const id = v.card ? v.round + ":" + v.turnIdx + ":" + v.card.type + ":" + (v.card.letter || v.card.prompt || (v.card.letters || []).join("")) : "";
+    const flipped = !!v.card && ctx2.ui.kmFlipped === id;
+    return card({ cls: `km-card ${size2} ${v.card && !flipped ? "km-flip-on-mount" : ""}`, back: cardBack(), front: cardBody(v), flipped, attrs: v.card ? `data-km-id="${esc(id)}"` : "" });
+  }
+  function onAct2(a) {
+    if (a.type !== "submit") return;
+    const inp = document.getElementById("kans");
+    if (inp) {
+      inp.value = "";
+      inp.focus();
+    }
+  }
+  function after2(root2, ctx2) {
+    const inp = root2.querySelector("#kans");
+    if (inp && !inp.dataset.bound) {
+      inp.dataset.bound = "1";
+      inp.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          root2.querySelector('[data-input*="kans"]')?.click();
+        }
+      });
+    }
+    const el = root2.querySelector(".km-flip-on-mount");
+    if (!el) return;
+    ctx2.ui.kmFlipped = el.dataset.kmId;
+    requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add("is-flipped")));
+  }
+  function subsList(ctx2, v, mod) {
+    if (!v.subs.length) return "";
+    const st = { ok: ["✓", "ok"], no: ["✕", "no"], pending: ["؟", "pend"] };
+    return `<div class="km-subs">${v.subs.map((x) => `<div class="km-sub-row ${st[x.status][1]}">
+    <span class="km-st">${st[x.status][0]}</span>
+    <span class="km-tx">${x.text === null ? "•••" : esc(x.text)}</span>
+    <span class="muted km-by">${nm(ctx2, x.by)}${x.reason ? " — " + esc(x.reason) : ""}</span>
+    ${mod && ["answer", "judge"].includes(v.phase) ? `<span class="km-dec">${x.status !== "ok" ? `<button class="mini ok" ${act17({ type: "decide", sid: x.id, ok: true })} aria-label="اعتماد">✓</button>` : ""}${x.status !== "no" ? `<button class="mini no" ${act17({ type: "decide", sid: x.id, ok: false })} aria-label="رفض">✕</button>` : ""}</span>` : ""}
+  </div>`).join("")}</div>`;
+  }
+  var headerExtra2 = () => `<button class="icon-btn" data-ui="kmguide" aria-label="دليل البطاقات">📖</button>`;
+  var screenKey2 = (v) => [v.phase, v.round, v.turnIdx].join(":");
+  function render2(ctx2) {
+    const v = ctx2.view, me = v.me || {};
+    const mod = me.isHost;
+    const t = v.teams[v.turnIdx];
+    const turnLine = t ? `<p class="center km-turn" style="--tc:${t.color}">الدور: <b>${teamName(ctx2, t)}</b>${t.solo ? "" : ` — يلعب ${nm(ctx2, v.active)}`}</p>` : "";
+    let h = `<p class="center muted" style="margin:2px 0 8px">الجولة ${ar(v.round)} من ${ar(v.rounds)}${v.hostRole === "mod" ? ` • المقدم: ${nm(ctx2, v.host)}` : ""}</p>` + scoreboard(ctx2, v);
+    if (v.phase === "over") {
+      const ws = v.winners || [];
+      const names = ws.map((id) => teamName(ctx2, v.teams.find((x) => x.id === id))).join(" و");
+      return winnerBanner(ws.length > 1 ? `تعادل: ${names}` : `الفائز: ${names}`, "انتهت كل الجولات") + finalTable(ctx2, v);
+    }
+    if (v.phase === "roundEnd") {
+      h += panel(`<p class="h2 center" style="margin:0 0 8px">انتهت الجولة ${ar(v.round)}</p>${roundTable(ctx2, v)}`);
+      h += mod ? btn(v.round >= v.rounds ? "اعرض النتائج النهائية 🏆" : "ابدأ الجولة التالية", { type: "nextRound" }, "block") : wait("بانتظار المقدم");
+      return h;
+    }
+    h += turnLine;
+    if (v.phase === "draw") {
+      h += kmCard(ctx2, v);
+      h += me.isActive || mod ? btn("🃏 اسحب بطاقة", { type: "draw" }, "block") : wait(`${nm(ctx2, v.active)} يسحب بطاقة`);
+      return h;
+    }
+    h += kmCard(ctx2, v);
+    const c = v.card;
+    if (v.phase === "ready") {
+      if (c.type === "taboo" && me.isActive) h += `<p class="center soft">أنت الشارح: لا تقل الكلمة ولا المحظورات.</p>`;
+      h += me.isActive || mod ? btn(`▶️ ابدأ (${ar(v.timer)} ثانية)`, { type: "start" }, "block") : wait("اقرأوا التحدي… سيبدأ الوقت");
+      return h;
+    }
+    if (v.phase === "answer") {
+      h += `<div class="center">${timerHtml(v.deadline)}</div>`;
+      const canAnswer = c.type === "taboo" ? me.team === v.turnIdx && !me.isActive : me.isActive;
+      if (canAnswer) {
+        h += `<div class="field"><input id="kans" maxlength="40" autocomplete="off" placeholder="${c.type === "taboo" ? "اكتب تخمينك" : "اكتب إجابتك"}" enterkeyhint="send"></div>`;
+        h += `<button class="btn block" data-act='${JSON.stringify({ type: "submit" })}' data-input='{"text":"#kans"}'>أرسل</button>`;
+      } else if (c.type === "taboo" && me.isActive) h += `<p class="center h2">اشرح لفريقك الآن 🗣️</p>`;
+      else h += `<p class="center soft">${c.type === "taboo" ? "فريق صاحب الدور يخمّن" : `${nm(ctx2, v.active)} يجاوب`}</p>`;
+      h += subsList(ctx2, v, mod);
+      if (c.type === "taboo") {
+        if (mod) h += btn("✓ خمّنوها (اعتماد شفهي)", { type: "tabooWin" }, "soft block");
+        if (mod || me.team >= 0 && me.team !== v.turnIdx) h += btn("🚫 قال كلمة محظورة", { type: "tabooFoul" }, "danger block");
+      }
+      if (me.isActive || mod) h += btn("إنهاء البطاقة الآن", { type: "giveUp" }, "ghost block");
+      return h;
+    }
+    if (v.phase === "judge") {
+      h += `<p class="center h2" style="margin:8px 0">${PHASE_WHY[v.judgeWhy] || ""}</p>`;
+      h += subsList(ctx2, v, mod);
+      if (mod) {
+        const pend = v.subs.filter((x) => x.status === "pending").length;
+        if (c.type === "taboo") {
+          if (v.foul) h += btn("البلاغ غير صحيح — ألغِه", { type: "tabooClear" }, "soft block");
+          else if (!v.tabooOk) h += btn("✓ خمّنوها (اعتماد شفهي)", { type: "tabooWin" }, "soft block");
+        }
+        h += pend ? `<p class="center muted">احكم على ${ar(pend)} ${pend === 1 ? "إجابة معلّقة" : "إجابات معلّقة"} أولًا</p>` : btn("اعتمد النتيجة", { type: "confirm" }, "block");
+      } else h += wait("المقدم يراجع الإجابات");
+      return h;
+    }
+    if (v.phase === "result") {
+      h += outcomeHtml(ctx2, v) + subsList(ctx2, v, false);
+      h += me.isActive || mod ? btn(v.turnIdx >= v.teams.length - 1 ? "إنهاء الجولة" : "الدور التالي ⬅️", { type: "next" }, "block") : wait("بانتظار الانتقال");
+    }
+    return h;
+  }
+  function outcomeHtml(ctx2, v) {
+    const o = v.outcome;
+    if (!o) return "";
+    return `<div class="km-out ${o.success ? "win" : "lose"}"><p class="km-out-pts">${o.success ? "+" + ar(o.points) : "٠"}</p>
+    <p class="km-out-tx">${o.success ? o.count != null ? `${ar(o.count)} ${o.count === 1 ? "إجابة صحيحة" : "إجابات صحيحة"}` : "أحسنت!" : "لا نقاط"}${o.reason ? " — " + esc(o.reason) : ""}</p></div>`;
+  }
+  function roundTable(ctx2, v) {
+    const rows = [...v.teams].sort((a, b) => v.totals[b.id] - v.totals[a.id]);
+    return `<table class="km-table"><thead><tr><th>الفريق</th><th>هذه الجولة</th><th>المجموع</th></tr></thead><tbody>${rows.map((t) => {
+      const last = v.history[v.history.length - 1];
+      return `<tr style="--tc:${t.color}"><td><span class="km-dot"></span>${teamName(ctx2, t)}</td><td>${ar(last ? last.pts[t.id] : 0)}</td><td><b>${ar(v.totals[t.id])}</b></td></tr>`;
+    }).join("")}</tbody></table>`;
+  }
+  function finalTable(ctx2, v) {
+    const rows = [...v.teams].sort((a, b) => v.totals[b.id] - v.totals[a.id]);
+    return panel(`<p class="h2" style="margin:0 0 8px">الترتيب النهائي</p><table class="km-table"><thead><tr><th>#</th><th>الفريق</th>${v.history.map((r) => `<th>ج${ar(r.round)}</th>`).join("")}<th>المجموع</th></tr></thead>
+    <tbody>${rows.map((t, k) => `<tr style="--tc:${t.color}"><td>${ar(k + 1)}</td><td><span class="km-dot"></span>${teamName(ctx2, t)}</td>${v.history.map((r) => `<td>${ar(r.pts[t.id] || 0)}</td>`).join("")}<td><b>${ar(v.totals[t.id])}</b></td></tr>`).join("")}</tbody></table>`);
+  }
+  function onUi2(name, el, ctx2) {
+    if (name !== "kmguide") return;
+    const v = ctx2.view;
+    openSheet(`<h2>دليل بطاقات كَلِم</h2>
+    <p class="soft" style="margin-top:0">قواعد مقترحة لهذه النسخة الإلكترونية. البطاقات المفعّلة في هذه الغرفة مميزة.</p>
+    ${Object.entries(KT).map(([k, T]) => `<div class="km-guide ${v.types.includes(k) ? "" : "off"}" style="--kt:${T.color}">
+      <div class="km-gh"><span class="km-ic">${T.icon}</span><b>${T.name}</b><span class="badge">${k === "rapid" ? `${ar(v.pts.rapid)} لكل إجابة` : `${ar(v.pts[k])} نقطة`}</span>${v.types.includes(k) ? "" : '<span class="badge">غير مفعّلة</span>'}</div>
+      <p><b>التحدي:</b> ${T.how}</p><p><b>التحقق:</b> ${T.check}</p><p><b>مثال:</b> ${T.ex}</p></div>`).join("")}
+    <button class="btn soft block" style="margin-top:10px" data-sheet-close>إغلاق</button>`, { label: "دليل البطاقات" });
+  }
+  function onFx2(e, ctx2) {
+    const m = { draw: "flip", start: "phase", correct: "correct", reject: "wrong", submit: "tap", foul: "buzz", timeUp: "timeUp", "win-card": "win", "lose-card": "lose", "round-end": "round", "round-start": "round", "game-over": "win" };
+    if (m[e.kind]) ctx2.sfx(m[e.kind]);
+    if (e.kind === "timeUp") {
+      vibrate([60, 40, 60]);
+      flash("#ff3b3b");
+    }
+    if (e.kind === "foul") {
+      flash("#c62828");
+      shake();
+    }
+    if (e.kind === "win-card" && e.points > 0) burst(["#ffcc33", "#ff8a3d", "#2bb673", "#fff"]);
+    if (e.kind === "game-over") burst(["#ffcc33", "#e63946", "#1e88e5", "#fff"]);
+  }
+  function renderDisplay2(ctx2) {
+    const v = ctx2.view;
+    const head = dispHead("كَلِم", `الجولة ${ar(v.round)} من ${ar(v.rounds)}`);
+    if (v.phase === "over") {
+      const ws = v.winners || [];
+      return winnerBanner(ws.length > 1 ? `تعادل: ${ws.map((id) => teamName(ctx2, v.teams.find((x) => x.id === id))).join(" و")}` : `الفائز: ${teamName(ctx2, v.teams.find((x) => x.id === ws[0]))}`, "انتهت كل الجولات") + finalTable(ctx2, v);
+    }
+    if (v.phase === "roundEnd") return head + `<div class="disp-cols"><div>${panel(`<p class="h1 center" style="margin:0 0 10px">انتهت الجولة ${ar(v.round)}</p>${roundTable(ctx2, v)}`)}</div><div>${scoreboard(ctx2, v, true)}</div></div>`;
+    const t = v.teams[v.turnIdx];
+    let side = `<div class="km-turn big" style="--tc:${t.color}"><small>الدور</small><b>${teamName(ctx2, t)}</b>${t.solo ? "" : `<span>${nm(ctx2, v.active)}</span>`}</div>`;
+    if (v.phase === "answer") side += `<div class="center">${timerHtml(v.deadline)}</div>`;
+    if (v.phase === "judge") side += `<p class="center h2">${PHASE_WHY[v.judgeWhy] || ""}</p><p class="center soft">المقدم يراجع…</p>`;
+    if (v.phase === "draw") side += `<p class="center h2">يسحب بطاقة…</p>`;
+    if (v.phase === "ready") side += `<p class="center h2">استعدوا… سيبدأ الوقت</p>`;
+    side += scoreboard(ctx2, v, true);
+    const okSubs = v.subs.filter((x) => x.status === "ok" && x.text !== null);
+    const pend = v.subs.filter((x) => x.status === "pending").length;
+    const rej = v.subs.filter((x) => x.status === "no").length;
+    let main = (v.phase === "result" ? outcomeHtml(ctx2, v) : "") + kmCard(ctx2, v, "disp-km");
+    if (okSubs.length || pend || rej) main += `<div class="km-chips">${okSubs.map((x) => `<span class="km-chip ok">✓ ${esc(x.text)}</span>`).join("")}${pend ? `<span class="km-chip pend">${ar(pend)} بانتظار الحكم</span>` : ""}${rej ? `<span class="km-chip no">✕ ${ar(rej)}</span>` : ""}</div>`;
+    return head + `<div class="disp-cols"><div>${main}</div><div>${side}</div></div>`;
+  }
+
+  // js/ui/games/skull-ui.js
+  var skull_ui_exports = {};
+  __export(skull_ui_exports, {
+    after: () => after3,
+    ambient: () => ambient3,
+    headerExtra: () => headerExtra3,
+    kit: () => kit3,
+    onAct: () => onAct3,
+    onFx: () => onFx3,
+    onUi: () => onUi3,
+    render: () => render3,
+    renderDisplay: () => renderDisplay3,
+    screenKey: () => screenKey3,
+    theme: () => theme3
+  });
+  var theme3 = "skull";
+  var kit3 = "luxe";
+  var ambient3 = () => "";
   var DISC_NAME = { rose: "وردة", skull: "جمجمة" };
   function disc(kind, { flipped = true, size: size2 = "", attrs = "", label = "" } = {}) {
     return `<button class="disc ${size2} ${flipped ? "is-flipped" : ""}" ${attrs} aria-label="${esc(label || DISC_NAME[kind] || "قرص مقلوب")}">
     <span class="disc-inner"><span class="disc-face disc-back">${discArt("back")}</span><span class="disc-face disc-front">${kind ? discArt(kind) : ""}</span></span></button>`;
   }
   var nm3 = (ctx2, id) => esc(ctx2.player(id)?.name || "؟");
-  function headerExtra2() {
+  function headerExtra3() {
     return "";
   }
-  function render2(ctx2) {
+  function render3(ctx2) {
     var _a;
     const v = ctx2.view;
     const me = v.me;
@@ -10145,14 +11147,14 @@ var qrcode = function() {
     }
     return "";
   }
-  function screenKey2(v) {
+  function screenKey3(v) {
     return [v.phase, v.round].join(":");
   }
-  function after2(root2) {
+  function after3(root2) {
     const fresh = root2.querySelectorAll("[data-newflip]");
     if (fresh.length) requestAnimationFrame(() => requestAnimationFrame(() => fresh.forEach((d) => d.classList.add("is-flipped"))));
   }
-  function onUi2(name, el, ctx2, rerender) {
+  function onUi3(name, el, ctx2, rerender) {
     const v = ctx2.view;
     if (name === "select") {
       ctx2.ui.selected = el.dataset.kind;
@@ -10175,10 +11177,10 @@ var qrcode = function() {
       }
     }
   }
-  function onAct2(a, ctx2) {
+  function onAct3(a, ctx2) {
     if (a.type === "place") ctx2.ui.selected = null;
   }
-  function onFx2(e, ctx2, root2) {
+  function onFx3(e, ctx2, root2) {
     switch (e.kind) {
       case "place":
         ctx2.sfx("place");
@@ -10220,28 +11222,28 @@ var qrcode = function() {
         break;
     }
   }
-  function renderDisplay2(ctx2) {
+  function renderDisplay3(ctx2) {
     const v = ctx2.view;
-    return dispHead("💀 الجمجمة") + `<div class="disp-zoom">${render2(ctx2)}</div>`;
+    return dispHead("💀 الجمجمة") + `<div class="disp-zoom">${render3(ctx2)}</div>`;
   }
 
   // js/ui/games/bara-ui.js
   var bara_ui_exports = {};
   __export(bara_ui_exports, {
-    ambient: () => ambient3,
-    headerExtra: () => headerExtra3,
-    kit: () => kit3,
-    onAct: () => onAct3,
-    onFx: () => onFx3,
-    onUi: () => onUi3,
-    render: () => render3,
-    renderDisplay: () => renderDisplay3,
-    screenKey: () => screenKey3,
-    theme: () => theme3
+    ambient: () => ambient4,
+    headerExtra: () => headerExtra4,
+    kit: () => kit4,
+    onAct: () => onAct4,
+    onFx: () => onFx4,
+    onUi: () => onUi4,
+    render: () => render4,
+    renderDisplay: () => renderDisplay4,
+    screenKey: () => screenKey4,
+    theme: () => theme4
   });
-  var theme3 = "bara";
-  var kit3 = "pop";
-  var ambient3 = () => "";
+  var theme4 = "bara";
+  var kit4 = "pop";
+  var ambient4 = () => "";
   var nm4 = (ctx2, id) => esc(ctx2.player(id)?.name || "؟");
   function front(v) {
     const me = v.me;
@@ -10259,12 +11261,12 @@ var qrcode = function() {
     <div class="card-inner"><div class="card-face card-back">${baraBackArt()}${hint ? `<div class="tap-hint" style="color:#fff">${hint}</div>` : ""}</div>
     <div class="card-face card-front">${front(v)}</div></div></div>`;
   }
-  function headerExtra3(ctx2) {
+  function headerExtra4(ctx2) {
     const v = ctx2.view;
     if (!v.me || v.phase === "reveal" || v.phase === "over") return "";
     return `<button class="icon-btn" data-ui="peek" aria-label="اعرض بطاقتي">🂠</button>`;
   }
-  function render3(ctx2) {
+  function render4(ctx2) {
     const v = ctx2.view, me = v.me;
     let html = `<p class="center soft" style="margin:0 0 10px">الجولة ${ar(v.round)} من ${ar(v.rounds)} · التصنيف: <b>${esc(v.category.icon)} ${esc(v.category.name)}</b></p>`;
     if (v.phase === "reveal") {
@@ -10301,7 +11303,7 @@ var qrcode = function() {
         html += `<div class="panel center pop-in"><p>صوّتّ على: <b>${nm4(ctx2, me.vote)}</b></p><p class="soft">بانتظار البقية<span class="waiting-dots"></span></p></div>`;
       }
       html += `<div class="row wrap" style="justify-content:center;margin-top:12px">${v.players.map((p) => `<span class="badge ${p.voted ? "ok" : ""}">${esc(ctx2.player(p.id)?.emoji || "")} ${nm4(ctx2, p.id)} ${p.voted ? "✓" : "…"}</span>`).join("")}</div>`;
-      if (ctx2.isHost) html += `<button class="btn ghost block" style="margin-top:14px" data-act='{"type":"advance"}'>أنهِ التصويت الآن</button>`;
+      if (ctx2.isHost && v.players.some((p) => p.voted)) html += `<button class="btn ghost block" style="margin-top:14px" data-act='{"type":"advance"}'>أنهِ التصويت الآن</button>`;
       return html;
     }
     if (v.phase === "over") {
@@ -10357,10 +11359,10 @@ var qrcode = function() {
     <td style="width:40px"><span class="rank ${k === 0 ? "first" : ""}">${ar(k + 1)}</span></td><td>${esc(ctx2.player(p.id)?.emoji || "")} ${nm4(ctx2, p.id)}</td>
     <td class="num">${v.roundScores && v.roundScores[p.id] ? `<span class="badge ok">+${ar(v.roundScores[p.id])}</span> ` : ""}${ar(p.score)}</td></tr>`).join("")}</tbody></table></div>`;
   }
-  function screenKey3(v) {
+  function screenKey4(v) {
     return [v.phase, v.round, v.pair?.index].join(":");
   }
-  function onUi3(name, el, ctx2, rerender) {
+  function onUi4(name, el, ctx2, rerender) {
     if (name === "reveal" && !ctx2.ui.revealed) {
       ctx2.ui.revealed = true;
       el.classList.add("is-flipped");
@@ -10372,10 +11374,10 @@ var qrcode = function() {
       openSheet(`<h2>بطاقتي</h2>${card2(ctx2.view, { flipped: true, hint: "" })}<button class="btn soft block" style="margin-top:14px" data-sheet-close>إخفاء</button>`, { label: "بطاقتي" });
     }
   }
-  function onAct3(a, ctx2) {
+  function onAct4(a, ctx2) {
     if (a.type === "seen") ctx2.ui.revealed = false;
   }
-  function onFx3(e, ctx2) {
+  function onFx4(e, ctx2) {
     switch (e.kind) {
       case "round-start":
         ctx2.sfx("reveal");
@@ -10409,7 +11411,7 @@ var qrcode = function() {
         break;
     }
   }
-  function renderDisplay3(ctx2) {
+  function renderDisplay4(ctx2) {
     const v = ctx2.view;
     const cat2 = `${v.category.icon} ${esc(v.category.name)}`;
     let head = dispHead(cat2, `الجولة ${ar(v.round)} من ${ar(v.rounds)}`), side = "";
@@ -10439,20 +11441,21 @@ var qrcode = function() {
   // js/ui/games/avalon-ui.js
   var avalon_ui_exports = {};
   __export(avalon_ui_exports, {
-    after: () => after3,
-    ambient: () => ambient4,
-    headerExtra: () => headerExtra4,
-    kit: () => kit4,
-    onAct: () => onAct4,
-    onFx: () => onFx4,
-    onUi: () => onUi4,
-    render: () => render4,
-    screenKey: () => screenKey4,
-    theme: () => theme4
+    after: () => after4,
+    ambient: () => ambient5,
+    headerExtra: () => headerExtra5,
+    kit: () => kit5,
+    onAct: () => onAct5,
+    onFx: () => onFx5,
+    onUi: () => onUi5,
+    render: () => render5,
+    renderDisplay: () => renderDisplay5,
+    screenKey: () => screenKey5,
+    theme: () => theme5
   });
-  var theme4 = "avalon";
-  var kit4 = "luxe";
-  var ambient4 = () => "";
+  var theme5 = "avalon";
+  var kit5 = "luxe";
+  var ambient5 = () => "";
   var ROLE2 = {
     merlin: ["ميرلين", "أهل الخير", "تعرف الأشرار. ساعد الخير دون أن تنكشف للقاتل."],
     percival: ["برسيفال", "أهل الخير", "ترى ميرلين (ومعه مورغانا إن وُجدت). احمِه."],
@@ -10483,11 +11486,11 @@ var qrcode = function() {
       return `<div class="quest ${r || ""} ${k === v.mission && !r ? "now" : ""}"><span>${ar(n)}</span>${k === 3 && v.twoFails ? "<small>فشلان</small>" : ""}${r ? `<b>${r === "success" ? "✓" : "✕"}</b>` : ""}</div>`;
     }).join("")}</div><p class="center muted" style="margin:4px 0 0;font-size:14px">رفض متتالي: ${ar(v.rejects)} / ٥</p>`;
   }
-  function headerExtra4(ctx2) {
+  function headerExtra5(ctx2) {
     return ctx2.view.me && ctx2.view.phase !== "reveal" && ctx2.view.phase !== "over" ? `<button class="icon-btn" data-ui="peek" aria-label="اعرض دوري">🛡️</button>` : "";
   }
-  var screenKey4 = (v) => [v.phase, v.mission, v.rejects].join(":");
-  function render4(ctx2) {
+  var screenKey5 = (v) => [v.phase, v.mission, v.rejects].join(":");
+  function render5(ctx2) {
     const v = ctx2.view, me = v.me;
     if (v.phase === "reveal") {
       return revealStep(ctx2, { cardHtml: roleCard2(me.role, !!ctx2.ui.revealed, 'data-ui="reveal" role="button" tabindex="0"'), readyCount: v.players.filter((p) => p.ready).length, total: v.players.length, ready: me.ready, after: knowsBlock(ctx2, me.knows) });
@@ -10539,10 +11542,10 @@ var qrcode = function() {
     }
     return h;
   }
-  function after3(root2) {
+  function after4(root2) {
     root2.querySelectorAll("[data-stagger]").forEach((c) => setTimeout(() => c.classList.add("is-flipped"), 250 + Number(c.dataset.stagger) * 150));
   }
-  function onUi4(name, el, ctx2, rerender) {
+  function onUi5(name, el, ctx2, rerender) {
     if (flipReveal(name, el, ctx2, rerender, "reveal")) return;
     if (name === "pick") {
       const ui = ctx2.ui;
@@ -10553,11 +11556,11 @@ var qrcode = function() {
     }
     if (name === "peek") openSheet(`<h2>دوري</h2>${roleCard2(ctx2.view.me.role, true)}${knowsBlock(ctx2, ctx2.view.me.knows)}<button class="btn soft block" style="margin-top:14px" data-sheet-close>إخفاء</button>`, { label: "دوري" });
   }
-  function onAct4(a, ctx2) {
+  function onAct5(a, ctx2) {
     if (a.type === "ready") ctx2.ui.revealed = false;
     if (a.type === "propose") ctx2.ui.team = [];
   }
-  function onFx4(e, ctx2) {
+  function onFx5(e, ctx2) {
     const m = { proposed: "bid", vote: "tap", approved: "rose", rejected: "pass", "mission-success": "point", "mission-fail": "skull", phase: "round" };
     if (m[e.kind]) ctx2.sfx(m[e.kind]);
     if (e.kind === "game-over") {
@@ -10568,25 +11571,54 @@ var qrcode = function() {
       } else ctx2.sfx("lose");
     }
   }
+  var cols = (a, b) => b ? `<div class="disp-cols"><div>${a}</div><div>${b}</div></div>` : a;
+  function renderDisplay5(ctx2) {
+    const v = ctx2.view;
+    const inTeam = (id) => v.team.includes(id) && ["propose", "vote", "mission"].includes(v.phase);
+    const yes = (x) => x.v === true || x.v === "yes" || x.v === "approve";
+    const tiles2 = dispPlayers(ctx2, v.players.map((p) => ({
+      id: p.id,
+      cls: inTeam(p.id) || v.phase === "reveal" && p.ready ? "active" : "",
+      sub: v.phase === "over" ? ROLE2[p.role]?.[0] || "" : [
+        p.id === v.leader ? "👑 القائد" : "",
+        inTeam(p.id) ? "⚔️ في الفريق" : "",
+        v.phase === "reveal" ? p.ready ? "✓ جاهز" : "…" : "",
+        v.phase === "vote" ? p.voted ? "✓ صوّت" : "…" : "",
+        v.phase === "mission" && p.played !== void 0 ? p.played ? "✓ لعب بطاقته" : "…" : ""
+      ].filter(Boolean).join(" • ") || " "
+    })));
+    if (v.phase === "over") return winnerBanner(v.winner === "good" ? "انتصر أهل الخير" : "انتصر الأشرار", v.reason, v.winner === "good" ? "#7fb2ff" : "#ff7a7a") + track(v) + tiles2;
+    let side = "";
+    if (v.phase === "reveal") side = '<p class="center h2">كل لاعب يكشف دوره سرًّا</p>';
+    else if (v.phase === "propose") side = `<p class="center h2">${nm(ctx2, v.leader)} يختار فريقًا من ${ar(v.size)}</p>`;
+    else if (v.phase === "vote") side = `<p class="center h2">التصويت على الفريق</p><p class="disp-big">${ar(v.players.filter((p) => p.voted).length)} / ${ar(v.players.length)}</p>`;
+    else if (v.phase === "mission") side = `<p class="center h2">الفريق في المهمة…</p><p class="disp-big">${ar(v.players.filter((p) => p.played).length)} / ${ar(v.team.length)}</p>`;
+    else if (v.phase === "assassin") side = '<p class="center h2">🗡️ الأشرار يتشاورون لاغتيال ميرلين</p>';
+    const lm = v.lastMission;
+    if (lm) side += panel(`<p class="center" style="margin:0">المهمة ${ar(lm.n)}: <b>${lm.success ? "نجحت ✓" : "فشلت ✕"}</b> — بطاقات الفشل: ${ar(lm.fails)}</p>`, "", "margin-top:10px");
+    const lv = v.lastVote;
+    if (lv) side += panel(`<p class="center" style="margin:0">آخر تصويت: <b>${lv.approved ? "قُبل الفريق" : "رُفض الفريق"}</b></p><p class="center soft" style="margin:4px 0 0">وافق: ${lv.votes.filter(yes).map((x) => nm(ctx2, x.id)).join("، ") || "—"}</p>`, "", "margin-top:10px");
+    return dispHead("أفالون", `المهمة ${ar(Math.min(v.mission + 1, 5))} — القائد: ${nm(ctx2, v.leader)}`) + track(v) + cols(tiles2, side);
+  }
 
   // js/ui/games/werewolf-ui.js
   var werewolf_ui_exports = {};
   __export(werewolf_ui_exports, {
-    after: () => after4,
-    ambient: () => ambient5,
-    headerExtra: () => headerExtra5,
-    kit: () => kit5,
-    onAct: () => onAct5,
-    onFx: () => onFx5,
-    onUi: () => onUi5,
-    render: () => render5,
-    renderDisplay: () => renderDisplay4,
-    screenKey: () => screenKey5,
-    theme: () => theme5
+    after: () => after5,
+    ambient: () => ambient6,
+    headerExtra: () => headerExtra6,
+    kit: () => kit6,
+    onAct: () => onAct6,
+    onFx: () => onFx6,
+    onUi: () => onUi6,
+    render: () => render6,
+    renderDisplay: () => renderDisplay6,
+    screenKey: () => screenKey6,
+    theme: () => theme6
   });
-  var theme5 = "werewolf";
-  var kit5 = "noir";
-  var ambient5 = () => `<div class="ww-moon"></div><svg class="ww-forest" viewBox="0 0 400 120" preserveAspectRatio="none"><path d="M0 120 L0 70 L20 40 L35 70 L50 30 L70 72 L90 45 L105 75 L125 25 L145 70 L165 50 L180 78 L200 35 L222 74 L240 48 L258 76 L280 28 L300 72 L318 52 L335 78 L355 38 L375 74 L400 50 L400 120 Z" fill="#050b12"/></svg>`;
+  var theme6 = "werewolf";
+  var kit6 = "noir";
+  var ambient6 = () => `<div class="ww-moon"></div><svg class="ww-forest" viewBox="0 0 400 120" preserveAspectRatio="none"><path d="M0 120 L0 70 L20 40 L35 70 L50 30 L70 72 L90 45 L105 75 L125 25 L145 70 L165 50 L180 78 L200 35 L222 74 L240 48 L258 76 L280 28 L300 72 L318 52 L335 78 L355 38 L375 74 L400 50 L400 120 Z" fill="#050b12"/></svg>`;
   var ROLE3 = {
     wolf: ["ذئب", "قطيع الذئاب", "اتفق مع الذئاب ليلًا على ضحية، وتظاهر بالبراءة نهارًا."],
     seer: ["العرّافة", "القرية", "كل ليلة تكشفين سرًا إن كان لاعب ما ذئبًا."],
@@ -10606,15 +11638,15 @@ var qrcode = function() {
   };
   var alive4 = (v) => v.players.filter((p) => p.alive);
   var causes = { wolves: "افترسته الذئاب", poison: "مات مسمومًا", hunter: "أصابته رصاصة الصياد", vote: "أُقصي بالتصويت" };
-  function headerExtra5(ctx2) {
+  function headerExtra6(ctx2) {
     return ctx2.view.me && !["roles", "over"].includes(ctx2.view.phase) ? `<button class="icon-btn" data-ui="peek" aria-label="اعرض دوري">🌕</button>` : "";
   }
-  var screenKey5 = (v) => [v.phase, v.night, v.day].join(":");
+  var screenKey6 = (v) => [v.phase, v.night, v.day].join(":");
   function deathsBlock(ctx2, list) {
     if (!list || !list.length) return panel('<p class="center" style="margin:0">مرّت الليلة بسلام… لم يمت أحد.</p>');
     return panel(list.map((d) => `<p style="margin:4px 0">${who(ctx2, d.id)} — ${causes[d.cause] || ""}${ctx2.view.players.find((p) => p.id === d.id)?.role ? ` <span class="badge">${ROLE3[ctx2.view.players.find((p) => p.id === d.id).role][0]}</span>` : ""}</p>`).join(""));
   }
-  function render5(ctx2) {
+  function render6(ctx2) {
     const v = ctx2.view, me = v.me;
     if (v.phase === "roles") {
       const pack = me.role === "wolf" ? panel(`<b>قطيعك:</b> ${me.pack.filter((p) => p.id !== ctx2.me).map((p) => chip(ctx2, p.id)).join(" ") || "أنت الذئب الوحيد"}`, "", "margin-top:12px") : "";
@@ -10679,10 +11711,10 @@ var qrcode = function() {
     }
     return "";
   }
-  function after4(root2) {
+  function after5(root2) {
     root2.querySelectorAll("[data-stagger]").forEach((c) => setTimeout(() => c.classList.add("is-flipped"), 250 + Number(c.dataset.stagger) * 140));
   }
-  function onUi5(name, el, ctx2, rerender) {
+  function onUi6(name, el, ctx2, rerender) {
     if (flipReveal(name, el, ctx2, rerender, "reveal")) return;
     if (name === "heal") {
       ctx2.ui.heal = el.checked;
@@ -10695,14 +11727,14 @@ var qrcode = function() {
     }
     if (name === "peek") openSheet(`<h2>دوري</h2>${roleCard3(ctx2.view.me.role, true)}<button class="btn soft block" style="margin-top:14px" data-sheet-close>إخفاء</button>`, { label: "دوري" });
   }
-  function onAct5(a, ctx2) {
+  function onAct6(a, ctx2) {
     if (a.type === "ready") ctx2.ui.revealed = false;
     if (a.type === "witch") {
       ctx2.ui.heal = false;
       ctx2.ui.poison = null;
     }
   }
-  function onFx5(e, ctx2) {
+  function onFx6(e, ctx2) {
     const m = { night: "night", "dawn-death": "scream", "dawn-safe": "dawn", vote: "vote", eliminated: "gavel", "no-elim": "pass", hunter: "phase", seen: "secret", locked: "secret", "witch-wake": "secret", shot: "boom" };
     if (m[e.kind]) ctx2.sfx(m[e.kind]);
     if (e.kind === "dawn-death" || e.kind === "shot") {
@@ -10717,7 +11749,7 @@ var qrcode = function() {
       } else ctx2.sfx("lose");
     }
   }
-  function renderDisplay4(ctx2) {
+  function renderDisplay6(ctx2) {
     const v = ctx2.view;
     const aliveN = alive4(v).length;
     const tiles2 = dispPlayers(ctx2, v.players.map((p) => ({
@@ -10748,20 +11780,20 @@ var qrcode = function() {
   var coup_ui_exports = {};
   __export(coup_ui_exports, {
     CARD: () => CARD,
-    ambient: () => ambient6,
+    ambient: () => ambient7,
     infl: () => infl,
-    kit: () => kit6,
-    onAct: () => onAct6,
-    onFx: () => onFx6,
-    onUi: () => onUi6,
-    render: () => render6,
-    renderDisplay: () => renderDisplay5,
-    screenKey: () => screenKey6,
-    theme: () => theme6
+    kit: () => kit7,
+    onAct: () => onAct7,
+    onFx: () => onFx7,
+    onUi: () => onUi7,
+    render: () => render7,
+    renderDisplay: () => renderDisplay7,
+    screenKey: () => screenKey7,
+    theme: () => theme7
   });
-  var theme6 = "coup";
-  var kit6 = "luxe";
-  var ambient6 = () => "";
+  var theme7 = "coup";
+  var kit7 = "luxe";
+  var ambient7 = () => "";
   var CARD = {
     duke: ["الدوق", "ضريبة +٣ • يصد المساعدة الخارجية", "#7a3fb0"],
     assassin: ["القاتل", "ادفع ٣ واغتل نفوذًا", "#2b2b2b"],
@@ -10780,13 +11812,13 @@ var qrcode = function() {
     const [n, d, col] = CARD[c];
     return card({ cls: `coup-card ${size2} ${dead ? "dead" : ""}`, back: back3(), front: roleFront({ type: dead ? "مكشوفة" : "نفوذ", name: n, desc: d, art: sil(c, col) }), flipped, attrs });
   }
-  var screenKey6 = (v) => [v.phase, v.turn, v.pend?.stage || ""].join(":");
+  var screenKey7 = (v) => [v.phase, v.turn, v.pend?.stage || ""].join(":");
   function pendLine(ctx2, p) {
     let t = `${nm(ctx2, p.actor)} يعلن: <b>${ACTION[p.kind]}</b>${p.target ? ` على ${nm(ctx2, p.target)}` : ""}`;
     if (p.blocker) t += `<br>${nm(ctx2, p.blocker)} يصدّ مدعيًا <b>${CARD[p.blockCard][0]}</b>`;
     return t;
   }
-  function render6(ctx2) {
+  function render7(ctx2) {
     const v = ctx2.view, me = v.me;
     let h = `<div class="coup-table">${v.players.map((p) => `<div class="coup-seat ${p.id === v.turn ? "turn" : ""} ${p.alive ? "" : "out"}">
     <div class="row" style="gap:6px">${chip(ctx2, p.id, p.id === ctx2.me ? " (أنت)" : "")}<span class="coins">🪙 ${ar(p.coins)}</span></div>
@@ -10840,7 +11872,7 @@ var qrcode = function() {
     }
     return h;
   }
-  function onUi6(name, el, ctx2, rerender) {
+  function onUi7(name, el, ctx2, rerender) {
     if (name === "choose") {
       ctx2.ui.action = ctx2.ui.action === el.dataset.k ? null : el.dataset.k;
       ctx2.sfx("tap");
@@ -10852,11 +11884,11 @@ var qrcode = function() {
       rerender();
     }
   }
-  function onAct6(a, ctx2) {
+  function onAct7(a, ctx2) {
     ctx2.ui.action = null;
     if (a.type === "keep") ctx2.ui.keep = [];
   }
-  function onFx6(e, ctx2) {
+  function onFx7(e, ctx2) {
     const m = { coin: "coin", declare: "bid", block: "pass", challenge: "buzz", "challenge-win": "correct", "challenge-fail": "wrong", lose: "flip", out: "skull", coup: "boom", assassinate: "boom", blocked: "pass" };
     if (m[e.kind]) ctx2.sfx(m[e.kind]);
     if (e.kind === "coup" || e.kind === "assassinate") shake();
@@ -10867,7 +11899,7 @@ var qrcode = function() {
       } else ctx2.sfx("lose");
     }
   }
-  function renderDisplay5(ctx2) {
+  function renderDisplay7(ctx2) {
     const v = ctx2.view;
     const table = `<div class="coup-table disp-coup">${v.players.map((p) => `<div class="coup-seat ${p.id === v.turn ? "turn" : ""} ${p.alive ? "" : "out"}">
     <div class="row" style="gap:6px">${chip(ctx2, p.id)}<span class="coins">🪙 ${ar(p.coins)}</span></div>
@@ -10888,20 +11920,21 @@ var qrcode = function() {
   // js/ui/games/secret-ui.js
   var secret_ui_exports = {};
   __export(secret_ui_exports, {
-    after: () => after5,
-    ambient: () => ambient7,
-    headerExtra: () => headerExtra6,
-    kit: () => kit7,
-    onAct: () => onAct7,
-    onFx: () => onFx7,
-    onUi: () => onUi7,
-    render: () => render7,
-    screenKey: () => screenKey7,
-    theme: () => theme7
+    after: () => after6,
+    ambient: () => ambient8,
+    headerExtra: () => headerExtra7,
+    kit: () => kit8,
+    onAct: () => onAct8,
+    onFx: () => onFx8,
+    onUi: () => onUi8,
+    render: () => render8,
+    renderDisplay: () => renderDisplay8,
+    screenKey: () => screenKey8,
+    theme: () => theme8
   });
-  var theme7 = "secret";
-  var kit7 = "luxe";
-  var ambient7 = () => "";
+  var theme8 = "secret";
+  var kit8 = "luxe";
+  var ambient8 = () => "";
   var ROLE4 = {
     liberal: ["ليبرالي", "الحزب الليبرالي", "شرّعوا ٥ قوانين ليبرالية أو اكشفوا القائد السري وأعدموه.", "#3d6fa8"],
     fascist: ["فاشي", "الحزب الفاشي", "تعرف فريقك والقائد السري. ساعده ليصل للسلطة.", "#b5523f"],
@@ -10924,11 +11957,11 @@ var qrcode = function() {
     if (!me.knows) return "";
     return panel(`<b>فريقك:</b> ${me.knows.map((k) => chip(ctx2, k.id, k.role === "hitler" ? " — القائد السري" : "")).join(" ")}`, "", "margin-top:12px");
   }
-  function headerExtra6(ctx2) {
+  function headerExtra7(ctx2) {
     return ctx2.view.me && !["reveal", "over"].includes(ctx2.view.phase) ? `<button class="icon-btn" data-ui="peek" aria-label="اعرض دوري">🗂️</button>` : "";
   }
-  var screenKey7 = (v) => [v.phase, v.president, v.lib, v.fas, v.tracker].join(":");
-  function render7(ctx2) {
+  var screenKey8 = (v) => [v.phase, v.president, v.lib, v.fas, v.tracker].join(":");
+  function render8(ctx2) {
     const v = ctx2.view, me = v.me;
     if (v.phase === "reveal") return revealStep(ctx2, { cardHtml: roleCard4(me.role, !!ctx2.ui.revealed, 'data-ui="reveal" role="button" tabindex="0"'), readyCount: v.players.filter((p) => p.ready).length, total: v.players.length, ready: me.ready, after: knows(ctx2, me) });
     let h = boards(v);
@@ -10973,17 +12006,17 @@ var qrcode = function() {
     }
     return h;
   }
-  function after5(root2) {
+  function after6(root2) {
     root2.querySelectorAll("[data-stagger]").forEach((c) => setTimeout(() => c.classList.add("is-flipped"), 250 + Number(c.dataset.stagger) * 140));
   }
-  function onUi7(name, el, ctx2, rerender) {
+  function onUi8(name, el, ctx2, rerender) {
     if (flipReveal(name, el, ctx2, rerender, "reveal")) return;
     if (name === "peek") openSheet(`<h2>دوري</h2>${roleCard4(ctx2.view.me.role, true)}${knows(ctx2, ctx2.view.me)}<button class="btn soft block" style="margin-top:14px" data-sheet-close>إخفاء</button>`, { label: "دوري" });
   }
-  function onAct7(a, ctx2) {
+  function onAct8(a, ctx2) {
     if (a.type === "ready") ctx2.ui.revealed = false;
   }
-  function onFx7(e, ctx2) {
+  function onFx8(e, ctx2) {
     const m = { nominated: "bid", vote: "vote", elected: "correct", failed: "wrong", "policy-l": "flip", "policy-f": "flip", chaos: "buzz", power: "phase", kill: "boom", veto: "pass", vetoed: "pass", investigated: "secret" };
     if (m[e.kind]) ctx2.sfx(m[e.kind]);
     if (e.kind === "game-over") {
@@ -10994,25 +12027,257 @@ var qrcode = function() {
       } else ctx2.sfx("lose");
     }
   }
+  var cols2 = (a, b) => b ? `<div class="disp-cols"><div>${a}</div><div>${b}</div></div>` : a;
+  function renderDisplay8(ctx2) {
+    const v = ctx2.view;
+    const tiles2 = dispPlayers(ctx2, v.players.map((p) => ({
+      id: p.id,
+      cls: !p.alive ? "dead" : p.id === v.president || p.id === v.chancellor ? "active" : "",
+      sub: v.phase === "over" ? ROLE4[p.role]?.[0] || "" : [
+        !p.alive ? "خارج" : "",
+        p.id === v.president ? "🎩 الرئيس" : "",
+        p.id === v.chancellor ? "📜 المستشار" : "",
+        p.investigated ? "🔍" : "",
+        v.phase === "vote" && p.alive ? p.voted ? "✓ صوّت" : "…" : "",
+        v.phase === "reveal" ? p.ready ? "✓ جاهز" : "…" : ""
+      ].filter(Boolean).join(" • ") || " "
+    })));
+    if (v.phase === "over") return winnerBanner(v.winner === "liberal" ? "فاز الليبراليون" : "فاز الفاشيون", v.reason || "") + boards(v) + tiles2;
+    const P2 = {
+      reveal: "كل لاعب يكشف دوره سرًّا",
+      nominate: `الرئيس ${nm(ctx2, v.president)} يرشح مستشارًا`,
+      vote: `التصويت على الحكومة: ${nm(ctx2, v.president)} و${v.chancellor ? nm(ctx2, v.chancellor) : "؟"}`,
+      presLeg: "الرئيس يتخلص من قانون سرًا…",
+      chanLeg: "المستشار يختار القانون…",
+      vetoAsk: "المستشار طلب «الفيتو» — بانتظار الرئيس",
+      power: "صلاحية تنفيذية للرئيس…",
+      invResult: "الرئيس يطّلع على نتيجة التحقيق…"
+    };
+    let side = `<p class="center h2">${P2[v.phase] || ""}</p>`;
+    if (v.phase === "vote") side += `<p class="disp-big">${ar(v.players.filter((p) => p.voted).length)} / ${ar(v.players.filter((p) => p.alive).length)}</p>`;
+    if (v.lastPolicy) side += panel(`<p class="center" style="margin:0">آخر قانون: <b>${/^(f|fas)/i.test(String(v.lastPolicy)) ? "فاشي" : "ليبرالي"}</b></p>`, "", "margin-top:10px");
+    if (v.lastVote) side += panel(`<p class="center" style="margin:0">آخر تصويت: <b>${v.lastVote.pass ? "نجحت الحكومة" : "سقطت الحكومة"}</b></p>`, "", "margin-top:10px");
+    if (v.lastKill) side += panel(`<p class="center" style="margin:0">أُعدم: <b>${nm(ctx2, v.lastKill)}</b></p>`, "", "margin-top:10px");
+    return dispHead("هتلر السري", `الكومة: ${ar(v.deck)} قوانين`) + boards(v) + cols2(tiles2, side);
+  }
 
   // js/ui/games/kittens-ui.js
   var kittens_ui_exports = {};
   __export(kittens_ui_exports, {
     CARDS: () => CARDS2,
-    ambient: () => ambient8,
+    ambient: () => ambient9,
+    headerExtra: () => headerExtra8,
     kcard: () => kcard,
-    kit: () => kit8,
-    onAct: () => onAct8,
-    onFx: () => onFx8,
-    onUi: () => onUi8,
-    render: () => render8,
-    renderDisplay: () => renderDisplay6,
-    screenKey: () => screenKey8,
-    theme: () => theme8
+    kit: () => kit9,
+    onAct: () => onAct9,
+    onFx: () => onFx9,
+    onUi: () => onUi9,
+    render: () => render9,
+    renderDisplay: () => renderDisplay9,
+    screenKey: () => screenKey9,
+    theme: () => theme9
   });
-  var theme8 = "kittens";
-  var kit8 = "pop";
-  var ambient8 = () => "";
+
+  // js/ui/games/kittens-cards.js
+  function catFace(fur, { eyes = "happy", earIn = "#ffc2cf", blush = true, extra = "", cheek = "#ff8fa3" } = {}) {
+    const E = {
+      happy: '<path d="M64 74 q6 -7 12 0" stroke="#2b1d12" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M92 74 q6 -7 12 0" stroke="#2b1d12" stroke-width="4" fill="none" stroke-linecap="round"/>',
+      open: '<ellipse cx="70" cy="74" rx="6" ry="8" fill="#2b1d12"/><ellipse cx="98" cy="74" rx="6" ry="8" fill="#2b1d12"/><circle cx="72" cy="71" r="2.2" fill="#fff"/><circle cx="100" cy="71" r="2.2" fill="#fff"/>',
+      angry: '<path d="M60 64 L78 70" stroke="#2b1d12" stroke-width="4" stroke-linecap="round"/><path d="M108 64 L90 70" stroke="#2b1d12" stroke-width="4" stroke-linecap="round"/><circle cx="70" cy="78" r="5" fill="#2b1d12"/><circle cx="98" cy="78" r="5" fill="#2b1d12"/>',
+      dizzy: '<path d="M64 74 a6 6 0 1 1 6 6 a3 3 0 1 1 -3 -3" stroke="#2b1d12" stroke-width="3" fill="none"/><path d="M92 74 a6 6 0 1 1 6 6 a3 3 0 1 1 -3 -3" stroke="#2b1d12" stroke-width="3" fill="none"/>',
+      plead: '<ellipse cx="70" cy="75" rx="8" ry="9" fill="#2b1d12"/><ellipse cx="98" cy="75" rx="8" ry="9" fill="#2b1d12"/><circle cx="73" cy="71" r="3.2" fill="#fff"/><circle cx="101" cy="71" r="3.2" fill="#fff"/><circle cx="68" cy="79" r="1.6" fill="#fff"/><circle cx="96" cy="79" r="1.6" fill="#fff"/>',
+      cool: '<rect x="56" y="66" width="24" height="14" rx="5" fill="#1a1a2e"/><rect x="88" y="66" width="24" height="14" rx="5" fill="#1a1a2e"/><rect x="78" y="70" width="12" height="3" fill="#1a1a2e"/><path d="M60 69 l8 0" stroke="#7fd3ff" stroke-width="2"/>',
+      glow: '<ellipse cx="70" cy="74" rx="6" ry="8" fill="#fff3a6"/><ellipse cx="98" cy="74" rx="6" ry="8" fill="#fff3a6"/><circle cx="70" cy="74" r="3" fill="#ff4fa3"/><circle cx="98" cy="74" r="3" fill="#ff4fa3"/>'
+    };
+    return `<path d="M50 62 L54 24 L78 46 Z" fill="${fur}"/><path d="M118 62 L114 24 L90 46 Z" fill="${fur}"/>
+    <path d="M56 50 L58 32 L70 44 Z" fill="${earIn}"/><path d="M112 50 L110 32 L98 44 Z" fill="${earIn}"/>
+    <ellipse cx="84" cy="78" rx="40" ry="35" fill="${fur}"/>
+    ${E[eyes] || E.happy}
+    <path d="M80 88 L88 88 L84 93 Z" fill="#e8607a"/><path d="M84 93 q-5 6 -10 3 M84 93 q5 6 10 3" stroke="#2b1d12" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+    <path d="M46 86 l-18 -3 M46 92 l-18 3 M122 86 l18 -3 M122 92 l18 3" stroke="#2b1d12" stroke-width="1.8" opacity=".5"/>
+    ${blush ? `<ellipse cx="62" cy="90" rx="6" ry="3.5" fill="${cheek}" opacity=".45"/><ellipse cx="106" cy="90" rx="6" ry="3.5" fill="${cheek}" opacity=".45"/>` : ""}
+    ${extra}`;
+  }
+  var svg = (inner, bg = "") => `<svg viewBox="0 0 168 140" aria-hidden="true">${bg}${inner}</svg>`;
+  var rays = (c, o = 0.25) => `<g opacity="${o}">${Array.from({ length: 12 }, (_, k) => `<path d="M84 76 L${84 + 120 * Math.cos(k * Math.PI / 6)} ${76 + 120 * Math.sin(k * Math.PI / 6)} L${84 + 120 * Math.cos(k * Math.PI / 6 + 0.18)} ${76 + 120 * Math.sin(k * Math.PI / 6 + 0.18)} Z" fill="${c}"/>`).join("")}</g>`;
+  var ART = {
+    bomb: () => svg(`
+    <g transform="translate(0 4)">
+      <circle cx="84" cy="80" r="42" fill="#1d1d1d"/><circle cx="70" cy="66" r="10" fill="#fff" opacity=".12"/>
+      <path d="M52 52 L56 22 L74 40 Z M116 52 L112 22 L94 40 Z" fill="#1d1d1d"/>
+      <path d="M62 70 L80 76" stroke="#ffd400" stroke-width="5" stroke-linecap="round"/><path d="M106 70 L88 76" stroke="#ffd400" stroke-width="5" stroke-linecap="round"/>
+      <circle cx="72" cy="83" r="5" fill="#ffd400"/><circle cx="96" cy="83" r="5" fill="#ffd400"/>
+      <path d="M72 102 q12 -8 24 0" stroke="#ff5a3c" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <rect x="76" y="32" width="16" height="10" rx="3" fill="#555"/>
+      <path d="M84 32 q6 -16 22 -18" stroke="#8d6e63" stroke-width="4" fill="none"/>
+      <g class="kc-spark"><circle cx="108" cy="14" r="7" fill="#ffd400"/><path d="M108 2 L110 10 L118 8 L112 14 L120 20 L110 18 L108 26 L106 18 L96 20 L104 14 L98 8 L106 10Z" fill="#ff5a3c"/></g>
+    </g>`, rays("#ff3b1f", 0.35)),
+    defuse: () => svg(`${catFace("#f3c98b", { eyes: "open" })}
+    <g transform="translate(96 84) rotate(-20)"><rect x="-6" y="-2" width="12" height="40" rx="5" fill="#d32f2f"/><rect x="10" y="-2" width="12" height="40" rx="5" fill="#d32f2f"/>
+    <path d="M0 -2 L4 -26 L10 -26 L8 -2 Z M16 -2 L14 -26 L20 -26 L24 -2 Z" fill="#9aa5ad"/><circle cx="12" cy="-2" r="4" fill="#607d8b"/></g>
+    <path d="M10 120 q30 -20 60 6" stroke="#e53935" stroke-width="5" fill="none"/><path d="M98 126 q30 -18 60 -4" stroke="#1e88e5" stroke-width="5" fill="none"/>
+    <path d="M70 126 l6 -6 M92 124 l-4 -8" stroke="#ffd400" stroke-width="3"/>`, rays("#fff", 0.18)),
+    attack: () => svg(`${catFace("#ff8a50", { eyes: "angry", blush: false })}
+    <path d="M128 18 L112 58 L128 56 L110 98 L146 46 L130 48 L144 18 Z" fill="#ffe14d" stroke="#b33" stroke-width="2"/>
+    <g fill="#fff"><path d="M26 112 l10 -22 l4 24z"/><path d="M40 116 l10 -24 l4 26z"/><path d="M54 118 l10 -24 l4 26z"/></g>`, rays("#fff", 0.2)),
+    skip: () => svg(`<g transform="translate(-14 0)">${catFace("#8fc7ff", { eyes: "happy" })}</g>
+    <g fill="#fff"><path d="M118 56 L144 78 L118 100 Z"/><path d="M138 56 L164 78 L138 100 Z" opacity=".75"/></g>
+    <path d="M14 118 q20 -10 40 0 q20 10 40 0" stroke="#fff" stroke-width="4" fill="none" opacity=".6"/>`, rays("#fff", 0.15)),
+    favor: () => svg(`${catFace("#d7a6ff", { eyes: "plead" })}
+    <g transform="translate(60 98)"><rect x="0" y="0" width="48" height="34" rx="5" fill="#ff4f8b"/><rect x="20" y="0" width="8" height="34" fill="#ffd54f"/><rect x="0" y="12" width="48" height="8" fill="#ffd54f"/>
+    <path d="M24 0 q-14 -16 -20 -4 q4 6 20 4 q14 -16 20 -4 q-4 6 -20 4" fill="#ffd54f"/></g>
+    <path d="M136 28 q8 -10 14 0 q6 -10 14 0 q0 12 -14 22 q-14 -10 -14 -22z" fill="#ff4f8b" transform="translate(-6 0)"/>`, rays("#fff", 0.18)),
+    shuffle: () => svg(`<g>${catFace("#c9a27e", { eyes: "dizzy" })}</g>
+    <path d="M30 40 a62 62 0 0 1 104 -6" stroke="#fff" stroke-width="7" fill="none" stroke-linecap="round"/><path d="M126 22 L142 36 L122 42 Z" fill="#fff"/>
+    <path d="M138 116 a62 62 0 0 1 -104 6" stroke="#fff" stroke-width="7" fill="none" stroke-linecap="round"/><path d="M42 134 L26 120 L46 114 Z" fill="#fff"/>`, rays("#fff", 0.12)),
+    future: () => svg(`${catFace("#ffb3d9", { eyes: "glow" })}
+    <circle cx="84" cy="126" r="24" fill="#b39dff" opacity=".9"/><circle cx="76" cy="118" r="7" fill="#fff" opacity=".6"/>
+    <g transform="translate(12 18) rotate(-12)"><rect width="22" height="30" rx="4" fill="#fff"/><rect x="4" y="4" width="14" height="22" rx="2" fill="#ff8e3c"/></g>
+    <g transform="translate(134 12) rotate(10)"><rect width="22" height="30" rx="4" fill="#fff"/><rect x="4" y="4" width="14" height="22" rx="2" fill="#ff8e3c"/></g>
+    <g transform="translate(140 74) rotate(16)"><rect width="18" height="25" rx="4" fill="#fff"/><rect x="3" y="3" width="12" height="19" rx="2" fill="#ff8e3c"/></g>`, rays("#fff", 0.22)),
+    nope: () => svg(`<g transform="translate(-16 6)">${catFace("#f5f5f5", { eyes: "angry", blush: false })}</g>
+    <g transform="translate(116 22)"><ellipse cx="22" cy="44" rx="22" ry="24" fill="#f5f5f5" stroke="#2b1d12" stroke-width="2"/>
+    <ellipse cx="8" cy="18" rx="7" ry="10" fill="#f5f5f5" stroke="#2b1d12" stroke-width="2"/><ellipse cx="22" cy="12" rx="7" ry="11" fill="#f5f5f5" stroke="#2b1d12" stroke-width="2"/><ellipse cx="36" cy="18" rx="7" ry="10" fill="#f5f5f5" stroke="#2b1d12" stroke-width="2"/>
+    <ellipse cx="22" cy="48" rx="10" ry="9" fill="#ff8fa3"/></g>`, `<circle cx="84" cy="70" r="66" fill="none" stroke="#fff" stroke-width="10" opacity=".35"/><path d="M38 24 L130 116" stroke="#fff" stroke-width="10" opacity=".35"/>`),
+    // قطط بلا قدرة — تُجمع أزواجًا (أسماء ورسوم أصلية لهذه النسخة)
+    cat1: () => svg(`${catFace("#f7d9a8", { eyes: "happy", extra: `
+    <path d="M40 58 q44 -50 88 0 l6 30 q-50 -22 -100 0 z" fill="#fff"/>
+    <g fill="#d62828">${Array.from({ length: 5 }, (_, r) => Array.from({ length: 9 }, (_2, c) => (r + c) % 2 ? `<rect x="${44 + c * 10}" y="${30 + r * 8}" width="5" height="5" transform="rotate(10 84 50)"/>` : "").join("")).join("")}</g>
+    <path d="M44 50 q40 -26 80 0" stroke="#111" stroke-width="7" fill="none"/><path d="M46 58 q38 -24 76 0" stroke="#111" stroke-width="5" fill="none"/>
+    <path d="M36 70 q-10 30 4 56 l14 -4 q-10 -22 -4 -46z" fill="#fff"/>` })}`),
+    cat2: () => svg(`${catFace("#ffb26b", { eyes: "open" })}
+    <ellipse cx="84" cy="124" rx="56" ry="14" fill="#fff"/><ellipse cx="84" cy="118" rx="44" ry="14" fill="#f4c542"/>
+    <g fill="#e3a72f">${Array.from({ length: 14 }, (_, k) => `<circle cx="${50 + k * 37 % 68}" cy="${112 + k * 11 % 10}" r="2.2"/>`).join("")}</g>
+    <path d="M70 108 q14 -14 28 0 q-4 10 -14 10 q-10 0 -14 -10z" fill="#a0522d"/><circle cx="104" cy="112" r="4" fill="#4caf50"/><circle cx="62" cy="114" r="3" fill="#e53935"/>`),
+    cat3: () => svg(`${catFace("#a7e3d9", { eyes: "happy" })}
+    <g transform="translate(112 64)"><path d="M10 64 L4 30 Q4 14 18 10 L30 10 Q44 14 44 30 L38 64 Z" fill="#d4a017" stroke="#8a6508" stroke-width="2"/>
+    <path d="M18 10 L16 0 L32 0 L30 10" fill="#d4a017" stroke="#8a6508" stroke-width="2"/><path d="M4 30 Q-14 26 -18 10" stroke="#8a6508" stroke-width="4" fill="none"/>
+    <path d="M44 30 q14 4 12 22" stroke="#8a6508" stroke-width="4" fill="none"/></g>
+    <g transform="translate(26 110)"><path d="M0 0 h24 l-4 16 h-16 z" fill="#fff" stroke="#999"/><path d="M6 -8 q4 -6 0 -12 M14 -8 q4 -6 0 -12" stroke="#fff" stroke-width="2" fill="none" opacity=".8"/></g>`),
+    cat4: () => svg(`${catFace("#c5e1a5", { eyes: "open" })}
+    <g transform="translate(46 100)"><path d="M0 10 q38 -30 76 0 l-4 22 q-34 10 -68 0 z" fill="#f2d6a2" stroke="#b8925a" stroke-width="2"/>
+    ${[[18, 8], [34, 2], [50, 8], [26, 18], [44, 18]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="7" fill="#8d5a2b"/><circle cx="${x - 2}" cy="${y - 2}" r="2" fill="#b07a45"/>`).join("")}
+    <path d="M10 14 q28 10 56 0" stroke="#43a047" stroke-width="4" fill="none"/></g>`),
+    cat5: () => svg(`<g transform="translate(-10 8)">${catFace("#b3b9ff", { eyes: "cool" })}</g>
+    <g transform="translate(112 14)"><rect width="52" height="24" rx="6" fill="#f5f7fa" stroke="#9aa5b1" stroke-width="2"/><rect x="6" y="16" width="40" height="3" rx="1.5" fill="#9aa5b1"/>
+    <circle cx="44" cy="7" r="2.5" fill="#4caf50"/></g>
+    <g stroke="#e3f6ff" stroke-width="3" fill="none" stroke-linecap="round"><path d="M118 46 q-6 10 0 20 q6 10 0 20"/><path d="M134 46 q-6 10 0 20 q6 10 0 20"/><path d="M150 46 q-6 10 0 20"/></g>
+    <text x="146" y="118" font-size="20" fill="#e3f6ff">❄</text>`)
+  };
+  var KCARDS = {
+    bomb: { name: "القطة المتفجرة", kind: "danger", tag: "خطر!", c1: "#3a0d0d", c2: "#8e1a1a", acc: "#ffd400", short: "إذا سحبتها بلا إبطال… تنفجر!" },
+    defuse: { name: "إبطال", kind: "rescue", tag: "منقذ", c1: "#2e7d32", c2: "#66bb6a", acc: "#fff", short: "ينقذك من القطة المتفجرة" },
+    attack: { name: "هجوم", kind: "action", tag: "فعل", c1: "#d84315", c2: "#ff7043", acc: "#ffe14d", short: "لا تسحب • التالي يلعب دورين" },
+    skip: { name: "تخطٍّ", kind: "action", tag: "فعل", c1: "#1565c0", c2: "#42a5f5", acc: "#fff", short: "أنهِ دورًا واحدًا بلا سحب" },
+    favor: { name: "طلب خدمة", kind: "action", tag: "فعل", c1: "#6a1b9a", c2: "#ab47bc", acc: "#ffd54f", short: "لاعب يعطيك بطاقة يختارها" },
+    shuffle: { name: "خلط", kind: "action", tag: "فعل", c1: "#5d4037", c2: "#8d6e63", acc: "#fff", short: "اخلط الكومة" },
+    future: { name: "استبصار", kind: "action", tag: "فعل", c1: "#ad1457", c2: "#ec407a", acc: "#fff3a6", short: "شاهد أعلى ٣ بطاقات سرًا" },
+    nope: { name: "لا!", kind: "counter", tag: "إلغاء", c1: "#b71c1c", c2: "#e53935", acc: "#fff", short: "ألغِ أي فعل — حتى خارج دورك" },
+    cat1: { name: "قط الشماغ", kind: "cat", tag: "قطة", c1: "#c79100", c2: "#ffca28", acc: "#fff", short: "اجمع زوجًا أو ثلاثًا" },
+    cat2: { name: "قط الكبسة", kind: "cat", tag: "قطة", c1: "#e65100", c2: "#ffa726", acc: "#fff", short: "اجمع زوجًا أو ثلاثًا" },
+    cat3: { name: "قط الدلّة", kind: "cat", tag: "قطة", c1: "#00796b", c2: "#26a69a", acc: "#fff", short: "اجمع زوجًا أو ثلاثًا" },
+    cat4: { name: "قط الفلافل", kind: "cat", tag: "قطة", c1: "#558b2f", c2: "#9ccc65", acc: "#fff", short: "اجمع زوجًا أو ثلاثًا" },
+    cat5: { name: "قط المكيّف", kind: "cat", tag: "قطة", c1: "#3949ab", c2: "#7986cb", acc: "#fff", short: "اجمع زوجًا أو ثلاثًا" }
+  };
+  var COMBOS = "المجموعات (لأي بطاقات بنفس الاسم بلا استثناء، وتُهمل نص البطاقة عند لعبها كمجموعة): <b>زوج</b> = تسحب بطاقة عشوائية من لاعب تختاره. <b>ثلاث</b> = تسمّي بطاقة؛ إن كانت عند اللاعب أعطاك إياها، وإلا ضاعت الثلاث. <b>خمس بطاقات مختلفة الأسماء</b> = تختار أي بطاقة من المهملات عدا القطة المتفجرة. تُلعب في دورك، وكل مجموعة يمكن إلغاؤها بـ«لا!».";
+  var KHELP = {
+    bomb: {
+      what: "إذا سحبتها ولا تملك «إبطال» تنفجر وتخرج من اللعبة، وتُرمى كل بطاقاتك في المهملات.",
+      how: "لا تُلعب من اليد أبدًا؛ تنكشف لحظة سحبها.",
+      when: "عند سحب بطاقة من الكومة في نهاية دورك.",
+      example: "سحبتها ومعك «إبطال» ← تُستهلك «إبطال» تلقائيًا، ثم تعيد القطة سرًا في الكومة في الموضع الذي تختاره.",
+      rules: "عددها في الكومة = عدد اللاعبين − ١، فيبقى فائز واحد. لا يمكن إلغاؤها بـ«لا!». آخر لاعب لم ينفجر يفوز."
+    },
+    defuse: {
+      what: "تنقذك من القطة المتفجرة.",
+      how: "تُستخدم تلقائيًا إذا كانت في يدك لحظة سحب القطة، ثم تختار موضع إعادة القطة في الكومة (٠ = أعلاها، أي سيسحبها اللاعب التالي).",
+      when: "لحظة سحب القطة المتفجرة فقط.",
+      example: "سحبت القطة ومعك إبطال ← تضعها في الموضع ١ (الثانية من الأعلى) لتفاجئ من بعدك.",
+      rules: "كل لاعب يبدأ بواحدة، والباقي يُخلط في الكومة (لاعبان أو ثلاثة: اثنتان فقط). لا تُلعب وحدها كبطاقة فعل، ولا يمكن إلغاؤها بـ«لا!». يجوز لعبها ضمن زوج أو ثلاث أو خمس بطاقات مختلفة (كمجموعة يُهمل نصها) — لكنك تخسر حمايتك."
+    },
+    attack: {
+      what: "تنهي دورك دون سحب، واللاعب التالي يلعب دورين متتاليين.",
+      how: "في دورك اضغط البطاقة ثم «العب».",
+      when: "في دورك قبل أن تسحب.",
+      example: "عليك الدور ← تلعب «هجوم» فلا تسحب، وسارة بعدك تلعب دورين. لو ردّت سارة فورًا بـ«هجوم» يأخذ من بعدها ٤ أدوار.",
+      rules: "الهجوم يتراكم: إذا لعبه من عليه أدوار من هجوم سابق، تنتهي أدواره كلها ويأخذ التالي أدواره المتبقية + ٢ (مثلًا ٤ ثم ٦). يمكن إلغاؤه بـ«لا!»."
+    },
+    skip: {
+      what: "تنهي دورًا واحدًا دون سحب.",
+      how: "في دورك اضغط البطاقة ثم «العب».",
+      when: "في دورك قبل أن تسحب.",
+      example: "عرفت بالاستبصار أن القطة المتفجرة في الأعلى ← تلعب «تخطٍّ» وتنهي دورك بأمان.",
+      rules: "إذا كان عليك دوران بسبب «هجوم»، فالتخطي ينهي واحدًا فقط ويبقى الآخر. يمكن إلغاؤه بـ«لا!»."
+    },
+    favor: {
+      what: "تختار لاعبًا فيعطيك بطاقة يختارها هو من يده.",
+      how: "في دورك اضغط البطاقة، اختر اللاعب، ثم «العب».",
+      when: "في دورك قبل أن تسحب.",
+      example: "تلعبها على فهد ← فهد يختار بطاقة من يده ويعطيك إياها.",
+      rules: "لا يجوز اختيار لاعب بلا بطاقات أو خارج اللعبة. يمكن إلغاؤها بـ«لا!»."
+    },
+    shuffle: {
+      what: "تخلط الكومة عشوائيًا.",
+      how: "في دورك اضغط البطاقة ثم «العب».",
+      when: "في دورك قبل أن تسحب — مفيدة إذا كانت القطة المتفجرة في الأعلى.",
+      example: "شفت بالاستبصار أن القطة أول بطاقة ← تخلط وتجرب حظك.",
+      rules: "يُبطل ما رآه أي لاعب سابقًا بالاستبصار. يمكن إلغاؤها بـ«لا!»."
+    },
+    future: {
+      what: "ترى أعلى ٣ بطاقات في الكومة سرًا (الأولى = التي ستُسحب أولًا).",
+      how: "في دورك اضغط البطاقة ثم «العب»؛ تظهر البطاقات على جوالك وحدك.",
+      when: "في دورك قبل أن تسحب.",
+      example: "رأيت القطة في الموضع الثاني ← تسحب الأولى بأمان، والقطة تنتظر من بعدك.",
+      rules: "لا تغيّر ترتيب البطاقات. لا يراها غيرك. أي خلط أو هجوم بعدها يُبطل ما رأيته. يمكن إلغاؤها بـ«لا!»."
+    },
+    nope: {
+      what: "تلغي أي فعل لعبه لاعب: بطاقة فعل أو مجموعة قطط.",
+      how: "بعد لعب أي فعل تفتح نافذة قصيرة (حسب إعداد الغرفة) يظهر فيها زر «لا!» لكل من يملكها — حتى خارج دوره.",
+      when: "أثناء نافذة «لا!» فقط، بعد أن يلعب أحد فعلًا.",
+      example: "سارة لعبت «طلب خدمة» عليك ← تقول «لا!» فيُلغى. إذا ردّ أحدهم بـ«لا!» أخرى يعود الفعل.",
+      rules: "كل «لا!» جديدة تعيد المهلة من البداية. عدد فردي من «لا!» = الفعل يُلغى، وعدد زوجي = ينفذ. لا تُلغي القطة المتفجرة ولا «إبطال». يجوز لعب بطاقتي «لا!» زوجًا في دورك (كمجموعة سرقة، بلا تأثير الإلغاء)."
+    }
+  };
+  var CAT_HELP = {
+    what: "لا تأثير لها وحدها؛ قوتها في جمعها.",
+    how: "في دورك اختر بطاقتين أو ثلاثًا متطابقة (أو خمس بطاقات مختلفة)، ثم اختر اللاعب و«العب».",
+    when: "في دورك قبل أن تسحب.",
+    example: "معك قطّان متطابقان ← تلعبهما معًا على خالد فتسحب بطاقة عشوائية من يده.",
+    rules: COMBOS
+  };
+  for (const c of ["cat1", "cat2", "cat3", "cat4", "cat5"]) KHELP[c] = CAT_HELP;
+  for (const c of ["attack", "skip", "favor", "shuffle", "future"]) KHELP[c] = { ...KHELP[c], combo: COMBOS };
+  function kface(c) {
+    const k = KCARDS[c];
+    if (!k) return "";
+    return `<div class="kc kc-${k.kind}" style="--c1:${k.c1};--c2:${k.c2};--acc:${k.acc}">
+    <div class="kc-band"><span class="kc-name">${k.name}</span><span class="kc-tag">${k.tag}</span></div>
+    <div class="kc-art">${ART[c]()}</div>
+    <p class="kc-desc">${k.short}</p>
+  </div>`;
+  }
+  function kback() {
+    return `<div class="kc kc-back"><svg viewBox="0 0 168 236" aria-hidden="true">
+    <rect width="168" height="236" rx="14" fill="#ff8e3c"/><rect x="10" y="10" width="148" height="216" rx="10" fill="none" stroke="#fff3d6" stroke-width="3" stroke-dasharray="8 6"/>
+    <circle cx="84" cy="118" r="50" fill="#2b2b2b"/><path d="M48 92 L52 56 L72 78 Z M120 92 L116 56 L96 78 Z" fill="#2b2b2b"/>
+    <circle cx="70" cy="114" r="6" fill="#ffd400"/><circle cx="98" cy="114" r="6" fill="#ffd400"/>
+    <path d="M84 68 q8 -20 26 -20" stroke="#fff3d6" stroke-width="4" fill="none"/><circle cx="112" cy="48" r="6" fill="#ffd400"/>
+    <text x="84" y="200" text-anchor="middle" font-size="26" font-weight="700" fill="#fff3d6" font-family="Marhey, sans-serif">قطط متفجرة</text></svg></div>`;
+  }
+  function khelpHtml(c) {
+    const k = KCARDS[c], h = KHELP[c];
+    if (!k || !h) return "";
+    const row = (t, x) => x ? `<div class="kh-row"><b>${t}</b><p>${x}</p></div>` : "";
+    return `<div class="kh"><div class="kh-card">${kface(c)}</div>
+    <div class="kh-body"><p class="h2" style="margin:0 0 8px">${k.name} <span class="badge">${k.tag}</span></p>
+    ${row("وظيفتها", h.what)}${row("طريقة الاستخدام", h.how)}${row("متى تُستخدم", h.when)}${row("مثال", h.example)}${row("الشروط والاستثناءات", h.rules)}${row("كمجموعة", h.combo)}</div></div>`;
+  }
+  var kinfoBtn = (c) => `<button type="button" class="kc-info" data-ui="kinfo" data-c="${c}" aria-label="شرح بطاقة ${KCARDS[c]?.name || ""}">ⓘ</button>`;
+
+  // js/ui/games/kittens-ui.js
+  var theme9 = "kittens";
+  var kit9 = "pop";
+  var ambient9 = () => "";
   var CARDS2 = {
     bomb: ["القطة المتفجرة", "انفجرت! إلا إذا عندك إبطال", "#2b2b2b"],
     defuse: ["إبطال", "يوقف الانفجار", "#57b94a"],
@@ -11031,17 +12296,15 @@ var qrcode = function() {
   function cat(color, extra = "") {
     return `<svg viewBox="0 0 120 120"><circle cx="60" cy="62" r="40" fill="${color}"/><path d="M28 40 L34 12 L52 30 Z M92 40 L86 12 L68 30 Z" fill="${color}"/><circle cx="46" cy="58" r="6" fill="#222"/><circle cx="74" cy="58" r="6" fill="#222"/><path d="M54 74 Q60 80 66 74" stroke="#222" stroke-width="3" fill="none"/>${extra}</svg>`;
   }
-  var ART = {
+  var ART2 = {
     bomb: `<svg viewBox="0 0 120 120"><circle cx="60" cy="70" r="36" fill="#222"/><path d="M60 34 Q70 16 88 18" stroke="#8d6e63" stroke-width="5" fill="none"/><circle cx="90" cy="16" r="8" fill="#ffca28"/><path d="M34 46 L40 26 L52 40Z M86 46 L80 26 L68 40Z" fill="#222"/><circle cx="48" cy="66" r="6" fill="#ff5252"/><circle cx="72" cy="66" r="6" fill="#ff5252"/></svg>`,
     defuse: cat("#57b94a", '<rect x="40" y="88" width="40" height="10" rx="4" fill="#fff"/>'),
     nope: `<svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="44" fill="#fff"/><circle cx="60" cy="60" r="38" fill="#e53935"/><rect x="30" y="52" width="60" height="16" rx="6" fill="#fff"/></svg>`
   };
-  var cardArt = (c) => ART[c] || cat(CARDS2[c][2], c === "attack" ? '<path d="M30 96 L90 96" stroke="#fff" stroke-width="6"/>' : c === "future" ? '<circle cx="60" cy="100" r="8" fill="#fff"/>' : "");
-  var back5 = () => `<svg viewBox="0 0 200 280"><rect width="200" height="280" rx="16" fill="#ff8e3c"/><rect x="14" y="14" width="172" height="252" rx="12" fill="#fff3c4"/><text x="100" y="155" text-anchor="middle" font-size="64">🐾</text></svg>`;
   function kcard(c, { attrs = "", size: size2 = "sm", cls = "" } = {}) {
-    const [n, d, col] = CARDS2[c];
-    return card({ cls: `k-card ${size2} ${cls}`, back: back5(), front: `<div class="cf" style="--kc:${col}"><div class="cf-head"><span class="cf-type">${n}</span></div><div class="cf-art">${cardArt(c)}</div><p class="cf-desc">${d}</p></div>`, flipped: true, attrs });
+    return card({ cls: `k-card ${size2} ${cls}`, back: kback(), front: kface(c), flipped: true, attrs });
   }
+  var kslot = (c, btnHtml) => `<div class="k-slot">${btnHtml}${kinfoBtn(c)}</div>`;
   var needsTarget = (sel) => {
     if (sel.length === 1) return sel[0] === "favor";
     if (sel.length === 2 || sel.length === 3) return sel.every((c) => c === sel[0]);
@@ -11049,15 +12312,16 @@ var qrcode = function() {
   };
   function comboLabel(sel) {
     if (sel.length === 1 && ["attack", "skip", "favor", "shuffle", "future"].includes(sel[0])) return "العب " + CARDS2[sel[0]][0];
-    if (sel.length === 2 && sel[0] === sel[1] && !["defuse", "nope"].includes(sel[0])) return "زوج: اسرق بطاقة عشوائية";
-    if (sel.length === 3 && sel.every((c) => c === sel[0]) && sel[0] !== "defuse") return "ثلاثية: اطلب بطاقة بالاسم";
+    if (sel.length === 2 && sel[0] === sel[1]) return "زوج: اسرق بطاقة عشوائية";
+    if (sel.length === 3 && sel.every((c) => c === sel[0])) return "ثلاثية: اطلب بطاقة بالاسم";
     if (sel.length === 5 && new Set(sel).size === 5) return "خمس مختلفة: خذ من المهملات";
     return null;
   }
-  var screenKey8 = (v) => [v.phase, v.turn, v.turnsLeft, v.players.filter((p) => p.alive).length].join(":");
-  function render8(ctx2) {
+  var headerExtra8 = () => `<button class="icon-btn" data-ui="kguide" aria-label="دليل البطاقات">📖</button>`;
+  var screenKey9 = (v) => [v.phase, v.turn, v.turnsLeft, v.players.filter((p) => p.alive).length].join(":");
+  function render9(ctx2) {
     const v = ctx2.view, me = v.me;
-    let h = `<div class="k-top"><div class="k-pile">${card({ cls: "k-card xs", back: back5(), front: "", flipped: false })}<span>${ar(v.deck)}</span></div>
+    let h = `<div class="k-top"><div class="k-pile">${card({ cls: "k-card xs", back: kback(), front: "", flipped: false })}<span>${ar(v.deck)}</span></div>
     <div class="row wrap" style="gap:6px;flex:1">${v.players.map((p) => chip(ctx2, p.id, ` • ${ar(p.count)}${p.alive ? "" : " 💥"}`, p.id === v.turn ? "ok" : p.alive ? "" : "off")).join("")}</div>
     ${v.discardTop ? `<div class="k-pile">${kcard(v.discardTop, { size: "xs" })}</div>` : ""}</div>`;
     if (v.last) {
@@ -11071,16 +12335,16 @@ var qrcode = function() {
     if (v.phase === "nope") {
       const p = v.pending;
       h += panel(`<p class="center" style="margin:0">${nm(ctx2, p.actor)} لعب <b>${comboLabel(p.cards) || ""}</b>${p.target ? ` على ${nm(ctx2, p.target)}` : ""}${p.named ? ` (يطلب ${CARDS2[p.named][0]})` : ""}<br>«لا!» حتى الآن: ${ar(p.nopes)}</p>`) + timerHtml(v.deadline);
-      if (me.hand.includes("nope")) h += `<button class="btn danger block nope-btn" ${act16({ type: "nope" })}>لا! ✋</button>`;
+      if (me.hand.includes("nope")) h += `<button class="btn danger block nope-btn" ${act17({ type: "nope" })}>لا! ✋</button>`;
     } else if (v.phase === "defuse" && v.turn === ctx2.me) {
       h += panel(`<p class="center h2" style="margin:0">أبطلتها! 😮‍💨</p><p class="center">ضع القطة سرًا في الكومة (٠ = الأعلى):</p>
       <input type="range" id="kpos" min="0" max="${v.deck}" value="${Math.min(v.deck, 3)}" data-fresh oninput="this.nextElementSibling.textContent=this.value"><p class="center"><b>${Math.min(v.deck, 3)}</b></p>
       <button class="btn block" data-act='{"type":"insert"}' data-input='{"position":"#kpos"}'>ضعها</button>`);
     } else if (v.phase === "favor" && v.favorFrom === ctx2.me) {
-      h += `<p class="center h2">${nm(ctx2, v.favorTo)} يطلب خدمة — اختر بطاقة تعطيها:</p><div class="k-hand">${me.hand.map((c, k) => `<button class="card-btn" ${act16({ type: "give", index: k })}>${kcard(c)}</button>`).join("")}</div>`;
+      h += `<p class="center h2">${nm(ctx2, v.favorTo)} يطلب خدمة — اختر بطاقة تعطيها:</p><div class="k-hand">${me.hand.map((c, k) => kslot(c, `<button class="card-btn" ${act17({ type: "give", index: k })}>${kcard(c)}</button>`)).join("")}</div>`;
       return h;
     } else if (v.phase === "pickDiscard" && v.turn === ctx2.me) {
-      h += `<p class="center">اختر بطاقة من المهملات:</p><div class="k-hand">${v.discardSet.map((c) => `<button class="card-btn" ${act16({ type: "pickDiscard", card: c })}>${kcard(c)}</button>`).join("")}</div>`;
+      h += `<p class="center">اختر بطاقة من المهملات:</p><div class="k-hand">${v.discardSet.map((c) => kslot(c, `<button class="card-btn" ${act17({ type: "pickDiscard", card: c })}>${kcard(c)}</button>`)).join("")}</div>`;
       return h;
     } else if (v.phase !== "play") h += wait(v.phase === "favor" ? `${nm(ctx2, v.favorFrom)} يختار بطاقة` : `دور ${nm(ctx2, v.turn)}`);
     if (me.future) h += panel(`<p style="margin:0 0 6px">أعلى الكومة (الأول = التالي):</p><div class="row" style="gap:6px;justify-content:center">${me.future.map((c) => kcard(c, { size: "xs" })).join("")}</div>`, "", "margin-top:8px");
@@ -11088,31 +12352,41 @@ var qrcode = function() {
     const sel = (ctx2.ui.sel || []).filter((k) => k < me.hand.length);
     const selCards = sel.map((k) => me.hand[k]);
     h += `<p class="center soft" style="margin:12px 0 4px">${myTurn ? `دورك${v.turnsLeft > 1 ? ` (متبقٍ ${ar(v.turnsLeft)} أدوار)` : ""} — اختر بطاقات للعب أو اسحب` : "يدك"}</p>`;
-    h += `<div class="k-hand">${me.hand.map((c, k) => `<button class="card-btn ${sel.includes(k) ? "sel" : ""}" data-ui="sel" data-k="${k}" ${myTurn ? "" : "disabled"}>${kcard(c)}</button>`).join("")}</div>`;
+    h += `<div class="k-hand">${me.hand.map((c, k) => kslot(c, `<button class="card-btn ${sel.includes(k) ? "sel" : ""}" data-ui="sel" data-k="${k}" ${myTurn ? "" : "disabled"}>${kcard(c)}</button>`)).join("")}</div>`;
     if (myTurn) {
       const label = comboLabel(selCards);
       if (label) {
         const base = selCards.length === 1 ? { type: "play", card: selCards[0] } : { type: "play", cards: selCards };
         if (needsTarget(selCards)) {
           if (selCards.length === 3) h += `<div class="field"><label>اسم البطاقة المطلوبة</label><select id="knamed">${Object.keys(CARDS2).filter((c) => c !== "bomb").map((c) => `<option value="${c}">${CARDS2[c][0]}</option>`).join("")}</select></div>`;
-          h += `<p class="center">${label} — اختر اللاعب:</p><div class="target-list">${v.players.filter((p) => p.alive && p.id !== ctx2.me && p.count > 0).map((p) => `<button class="target" ${act16({ ...base, target: p.id })} ${selCards.length === 3 ? `data-input='{"named":"#knamed"}'` : ""}>${chip(ctx2, p.id)}</button>`).join("")}</div>`;
+          h += `<p class="center">${label} — اختر اللاعب:</p><div class="target-list">${v.players.filter((p) => p.alive && p.id !== ctx2.me && p.count > 0).map((p) => `<button class="target" ${act17({ ...base, target: p.id })} ${selCards.length === 3 ? `data-input='{"named":"#knamed"}'` : ""}>${chip(ctx2, p.id)}</button>`).join("")}</div>`;
         } else h += btn(label, base, "block");
       } else if (sel.length) h += `<p class="center muted">هذه المجموعة لا تُلعب</p>`;
       h += `<div style="margin-top:10px">${btn("اسحب وأنهِ الدور 🃏", { type: "draw" }, sel.length ? "soft block" : "block")}</div>`;
     }
     return h;
   }
-  function onUi8(name, el, ctx2, rerender) {
+  function onUi9(name, el, ctx2, rerender) {
+    if (name === "kinfo") {
+      ctx2.sfx("tap");
+      openSheet(khelpHtml(el.dataset.c) + '<button class="btn soft block" style="margin-top:12px" data-sheet-close>فهمت</button>', { label: "شرح البطاقة" });
+      return;
+    }
+    if (name === "kguide") {
+      openSheet(`<h2>دليل البطاقات</h2><p class="soft" style="margin-top:0">اضغط ⓘ لشرح أي بطاقة. الأعداد في الكومة: القطة المتفجرة = اللاعبون − ١، إبطال ٦، هجوم ٤، تخطٍّ ٤، طلب خدمة ٤، خلط ٤، استبصار ٥، لا! ٥، وكل نوع قطة ٤.</p>
+      <div class="k-guide">${Object.keys(KCARDS).map((c) => kslot(c, kcard(c))).join("")}</div><button class="btn soft block" style="margin-top:12px" data-sheet-close>إغلاق</button>`, { label: "دليل البطاقات" });
+      return;
+    }
     if (name === "sel") {
       toggleSel(ctx2, "sel", Number(el.dataset.k), 5);
       ctx2.sfx("tap");
       rerender();
     }
   }
-  function onAct8(a, ctx2) {
+  function onAct9(a, ctx2) {
     ctx2.ui.sel = [];
   }
-  function onFx8(e, ctx2) {
+  function onFx9(e, ctx2) {
     const m = { draw: "flip", played: "bid", nope: "buzz", noped: "wrong", attack: "boom", shuffle: "dice", future: "secret", steal: "coin", miss: "wrong", defused: "correct" };
     if (m[e.kind]) ctx2.sfx(m[e.kind]);
     if (e.kind === "bomb") {
@@ -11131,12 +12405,12 @@ var qrcode = function() {
       } else ctx2.sfx("lose");
     }
   }
-  function renderDisplay6(ctx2) {
+  function renderDisplay9(ctx2) {
     const v = ctx2.view;
     const tiles2 = dispPlayers(ctx2, v.players.map((p) => ({ id: p.id, cls: !p.alive ? "dead" : p.id === v.turn ? "active" : "", sub: p.alive ? `🂠 ${ar(p.count)} بطاقات` : "💥 انفجر" })));
     if (v.phase === "over") return winnerBanner(`${esc(ctx2.player(v.winner)?.name)} نجا من الانفجارات!`) + tiles2;
     const piles = `<div class="row" style="justify-content:center;gap:28px;align-items:flex-end">
-    <div class="center">${card({ cls: "k-card md", back: back5(), front: "", flipped: false })}<p class="h2" style="margin:6px 0 0">الكومة: ${ar(v.deck)}</p></div>
+    <div class="center">${card({ cls: "k-card md", back: kback(), front: "", flipped: false })}<p class="h2" style="margin:6px 0 0">الكومة: ${ar(v.deck)}</p></div>
     ${v.discardTop ? `<div class="center">${kcard(v.discardTop, { size: "md" })}<p class="soft" style="margin:6px 0 0">آخر بطاقة</p></div>` : ""}</div>`;
     let ev = "";
     if (v.last) {
@@ -11154,16 +12428,17 @@ var qrcode = function() {
   // js/ui/games/wavelength-ui.js
   var wavelength_ui_exports = {};
   __export(wavelength_ui_exports, {
-    ambient: () => ambient9,
-    kit: () => kit9,
-    onFx: () => onFx9,
-    render: () => render9,
-    screenKey: () => screenKey9,
-    theme: () => theme9
+    ambient: () => ambient10,
+    kit: () => kit10,
+    onFx: () => onFx10,
+    render: () => render10,
+    renderDisplay: () => renderDisplay10,
+    screenKey: () => screenKey10,
+    theme: () => theme10
   });
-  var theme9 = "wavelength";
-  var kit9 = "pop";
-  var ambient9 = () => "";
+  var theme10 = "wavelength";
+  var kit10 = "pop";
+  var ambient10 = () => "";
   var LBL = { A: "الفريق الأزرق", B: "الفريق الوردي" };
   function pt(v, r, cx = 160, cy = 160) {
     const a = Math.PI * v / 100;
@@ -11187,8 +12462,8 @@ var qrcode = function() {
     <line x1="160" y1="160" x2="${nx}" y2="${ny}" stroke="#fff" stroke-width="6" stroke-linecap="round"/><circle cx="160" cy="160" r="14" fill="#ff70a6"/></svg>
     <div class="row spread wl-ends"><span>${esc(v.card[0])} ←</span><span>→ ${esc(v.card[1])}</span></div>`;
   }
-  var screenKey9 = (v) => [v.phase, v.round].join(":");
-  function render9(ctx2) {
+  var screenKey10 = (v) => [v.phase, v.round].join(":");
+  function render10(ctx2) {
     const v = ctx2.view;
     const isPsy = v.psychic === ctx2.me;
     const myTeamActive = v.myTeam === v.active;
@@ -11219,7 +12494,7 @@ var qrcode = function() {
     }
     return h;
   }
-  function onFx9(e, ctx2) {
+  function onFx10(e, ctx2) {
     const m = { "round-start": "round", clue: "secret", lock: "tap", bullseye: "correct", score: "point", miss: "wrong" };
     if (m[e.kind]) ctx2.sfx(m[e.kind]);
     if (e.kind === "bullseye") burst(["#e63946", "#ffd166", "#70d6ff"]);
@@ -11230,28 +12505,38 @@ var qrcode = function() {
       } else ctx2.sfx("lose");
     }
   }
+  function renderDisplay10(ctx2) {
+    const v = ctx2.view;
+    const reveal = v.phase === "reveal" || v.phase === "over";
+    const teams = teamsBlock(ctx2, v.teams, LBL, v.score);
+    if (v.phase === "over") return winnerBanner(v.winner === "tie" ? "تعادل!" : `فاز ${LBL[v.winner]}`, `${ar(v.score.A)} — ${ar(v.score.B)}`) + teams;
+    const P2 = { clue: `🧠 الوسيط ${nm(ctx2, v.psychic)} يفكر في تلميح…`, dial: `${LBL[v.active]} يحرّك المؤشر`, side: "الفريق الآخر: الهدف يمين المؤشر أم يساره؟", reveal: v.result ? `+${ar(v.result.pts)} لـ${LBL[v.active]}${v.result.sidePt ? ` • +${ar(v.result.sidePt)} للفريق الآخر` : ""}` : "" };
+    const main = `<div class="center">${v.clue ? `<p class="disp-big">«${esc(v.clue)}»</p>` : ""}${dial(v, reveal)}</div>`;
+    return dispHead("الطول الموجي", `الجولة ${ar(v.round)} • الهدف ${ar(v.target)} نقاط • دور ${LBL[v.active]}`) + `<div class="disp-cols"><div>${main}</div><div>${teams}${panel(`<p class="center h2" style="margin:0">${P2[v.phase] || ""}</p>`, "", "margin-top:12px")}</div></div>`;
+  }
 
   // js/ui/games/herd-ui.js
   var herd_ui_exports = {};
   __export(herd_ui_exports, {
-    ambient: () => ambient10,
-    kit: () => kit10,
-    onAct: () => onAct9,
-    onFx: () => onFx10,
-    onUi: () => onUi9,
-    render: () => render10,
-    screenKey: () => screenKey10,
-    theme: () => theme10
+    ambient: () => ambient11,
+    kit: () => kit11,
+    onAct: () => onAct10,
+    onFx: () => onFx11,
+    onUi: () => onUi10,
+    render: () => render11,
+    renderDisplay: () => renderDisplay11,
+    screenKey: () => screenKey11,
+    theme: () => theme11
   });
-  var theme10 = "herd";
-  var kit10 = "pop";
-  var ambient10 = () => "";
+  var theme11 = "herd";
+  var kit11 = "pop";
+  var ambient11 = () => "";
   var cow = (pink) => `<svg viewBox="0 0 64 48" width="40" height="30"><ellipse cx="32" cy="28" rx="24" ry="16" fill="${pink ? "#ff70a6" : "#fff"}" stroke="#333" stroke-width="2"/><circle cx="22" cy="24" r="5" fill="${pink ? "#c2185b" : "#333"}"/><ellipse cx="50" cy="20" rx="10" ry="8" fill="${pink ? "#ff9ec4" : "#f5d0c5"}" stroke="#333" stroke-width="2"/></svg>`;
-  var screenKey10 = (v) => [v.phase, v.round].join(":");
+  var screenKey11 = (v) => [v.phase, v.round].join(":");
   function scores(ctx2, v) {
     return `<div class="herd-scores">${v.players.slice().sort((a, b) => b.score - a.score).map((p) => `<div class="row spread"><span>${chip(ctx2, p.id, p.id === ctx2.me ? " (أنت)" : "")}${v.cow === p.id ? " " + cow(true) : ""}</span><b>${"🐮".repeat(Math.min(p.score, 10))} ${ar(p.score)}</b></div>`).join("")}</div>`;
   }
-  function render10(ctx2) {
+  function render11(ctx2) {
     const v = ctx2.view;
     let h = `<p class="center muted" style="margin:0">السؤال ${ar(v.round)} • الهدف ${ar(v.target)} أبقار</p><div class="herd-q pop-in"><p class="h2" style="margin:0">${esc(v.question)}</p></div>`;
     if (v.phase === "answer") {
@@ -11276,7 +12561,7 @@ var qrcode = function() {
     }
     return h + scores(ctx2, v);
   }
-  function onUi9(name, el, ctx2, rerender) {
+  function onUi10(name, el, ctx2, rerender) {
     if (name === "mfrom") {
       ctx2.ui.mergeFrom = Number(el.dataset.k);
       rerender();
@@ -11286,10 +12571,10 @@ var qrcode = function() {
       rerender();
     }
   }
-  function onAct9(a, ctx2) {
+  function onAct10(a, ctx2) {
     ctx2.ui.mergeFrom = null;
   }
-  function onFx10(e, ctx2) {
+  function onFx11(e, ctx2) {
     const m = { "round-start": "round", answered: "tap", herd: "correct", "no-herd": "wrong", cow: "buzz", phase: "flip" };
     if (m[e.kind]) ctx2.sfx(m[e.kind]);
     if (e.kind === "game-over") {
@@ -11299,20 +12584,37 @@ var qrcode = function() {
       } else ctx2.sfx("lose");
     }
   }
+  function renderDisplay11(ctx2) {
+    const v = ctx2.view;
+    const head = dispHead(`«${esc(v.question)}»`, `السؤال ${ar(v.round)} • الهدف ${ar(v.target)} أبقار 🐮`);
+    if (v.phase === "answer") {
+      const n = v.players.filter((p) => p.answered).length;
+      return head + `<div class="disp-cols"><div>${dispPlayers(ctx2, v.players.map((p) => ({ id: p.id, cls: p.answered ? "active" : "", sub: p.answered ? "✓ كتب إجابته" : "يفكر…" })))}</div>
+      <div><p class="center h2">اكتبوا إجاباتكم سرًّا — حاولوا توافقون الأغلبية!</p><p class="disp-big">${ar(n)} / ${ar(v.players.length)}</p>${scores(ctx2, v)}</div></div>`;
+    }
+    const groups = (v.groups || []).slice().sort((a, b) => b.members.length - a.members.length).map((g) => panel(`<div class="row spread"><b style="font-size:1.2em">${esc(g.label)}</b><span class="badge">${ar(g.members.length)}</span></div>
+    <div class="row wrap" style="gap:6px;margin-top:6px">${g.members.map((id) => chip(ctx2, id)).join("")}</div>`, v.result && v.result.herd.length && g.members.every((id) => v.result.herd.includes(id)) && g.members.length === v.result.herd.length ? "herd-win" : "", "margin-bottom:8px")).join("");
+    let side = scores(ctx2, v);
+    if (v.phase === "group") side = '<p class="center h2">المقدم يجمع الإجابات المتشابهة…</p>' + side;
+    if (v.result) side = `<p class="center h2">${v.result.herd.length ? "🐮 القطيع: " + v.result.herd.map((id) => nm(ctx2, id)).join("، ") : "لا يوجد قطيع هذه المرة"}</p>${v.result.cowTo ? `<p class="center">البقرة الوردية ← ${nm(ctx2, v.result.cowTo)}</p>` : ""}` + side;
+    if (v.phase === "over") return winnerBanner(`فاز ${v.winner.map((id) => nm(ctx2, id)).join(" و")}`, "عقل القطيع الأصيل") + side;
+    return head + `<div class="disp-cols"><div>${groups}</div><div>${side}</div></div>`;
+  }
 
   // js/ui/games/letters-ui.js
   var letters_ui_exports = {};
   __export(letters_ui_exports, {
-    ambient: () => ambient11,
-    kit: () => kit11,
-    onFx: () => onFx11,
-    render: () => render11,
-    screenKey: () => screenKey11,
-    theme: () => theme11
+    ambient: () => ambient12,
+    kit: () => kit12,
+    onFx: () => onFx12,
+    render: () => render12,
+    renderDisplay: () => renderDisplay12,
+    screenKey: () => screenKey12,
+    theme: () => theme12
   });
-  var theme11 = "letters";
-  var kit11 = "pop";
-  var ambient11 = () => "";
+  var theme12 = "letters";
+  var kit12 = "pop";
+  var ambient12 = () => "";
   var LBL2 = { A: "البرتقالي ↕", B: "الأخضر ↔" };
   function grid(v, pickable) {
     let h = '<div class="hex-wrap"><div class="hex-edge top"></div><div class="hex-grid">';
@@ -11321,14 +12623,14 @@ var qrcode = function() {
       for (let c = 0; c < 5; c++) {
         const k = r * 5 + c, o = v.owner[k];
         const can = pickable && !o;
-        h += `<button class="hex ${o ? "own-" + o : ""} ${v.cell === k ? "now" : ""}" ${can ? act16({ type: "pick", cell: k }) : "disabled"} aria-label="حرف ${v.letters[k]}">${v.letters[k]}</button>`;
+        h += `<button class="hex ${o ? "own-" + o : ""} ${v.cell === k ? "now" : ""}" ${can ? act17({ type: "pick", cell: k }) : "disabled"} aria-label="حرف ${v.letters[k]}">${v.letters[k]}</button>`;
       }
       h += "</div>";
     }
     return h + '</div><div class="hex-edge bottom"></div></div>';
   }
-  var screenKey11 = (v) => [v.phase, v.board, v.cell].join(":");
-  function render11(ctx2) {
+  var screenKey12 = (v) => [v.phase, v.board, v.cell].join(":");
+  function render12(ctx2) {
     const v = ctx2.view;
     const isMod = v.host === ctx2.me;
     const myTeam = v.myTeam;
@@ -11348,7 +12650,7 @@ var qrcode = function() {
         h += `<div class="row" style="margin-top:8px">${btn("سؤال آخر لنفس الحرف", { type: "reprompt" }, "soft grow-btn")}${btn("تخطَّ الحرف", { type: "skip" }, "soft grow-btn")}</div>`;
       } else if (myTeam) {
         const locked = v.locked.includes(myTeam);
-        if (!v.buzz && !locked) h += `<button class="buzzer buzzer-${myTeam}" ${act16({ type: "buzz" })}>جرس!</button>`;
+        if (!v.buzz && !locked) h += `<button class="buzzer buzzer-${myTeam}" ${act17({ type: "buzz" })}>جرس!</button>`;
         else if (locked) h += `<p class="center muted">فريقك أخطأ في هذا الحرف</p>`;
       }
     } else if (v.phase === "boardEnd") {
@@ -11359,7 +12661,7 @@ var qrcode = function() {
     }
     return h;
   }
-  function onFx11(e, ctx2) {
+  function onFx12(e, ctx2) {
     const m = { pick: "flip", buzz: "buzz", correct: "correct", wrong: "wrong", "board-win": "win", "round-start": "round" };
     if (m[e.kind]) ctx2.sfx(m[e.kind]);
     if (e.kind === "buzz") vibrate(40);
@@ -11368,27 +12670,42 @@ var qrcode = function() {
       if (ctx2.view.winner === ctx2.view.myTeam) burst(["#ff8800", "#2bb673", "#fff"]);
     }
   }
+  function renderDisplay12(ctx2) {
+    const v = ctx2.view;
+    const teams = teamsBlock(ctx2, v.teams, LBL2, v.wins);
+    if (v.phase === "over") return winnerBanner(`فاز ${LBL2[v.winner]}`, "تحدي الحروف") + `<div class="disp-zoom">${grid(v, false)}</div>` + teams;
+    let st = "";
+    if (v.phase === "pick") st = `<p class="center h2">${v.picker ? LBL2[v.picker] + " يختار حرفًا" : "المقدم يختار الحرف الأول"}</p>`;
+    else if (v.phase === "buzz") {
+      const L = v.cell != null ? v.letters[v.cell] : "";
+      st = `<p class="disp-big">${esc(L)}</p>${v.prompt ? `<p class="center h2">${esc(v.prompt)}</p>` : ""}`;
+      st += v.buzz ? `<p class="center h1">🔔 ${nm(ctx2, v.buzz.id)}</p><p class="center soft">${LBL2[v.buzz.team]}</p>` : '<p class="center h2">🔔 الجرس مفتوح!</p>';
+      if (v.locked?.length) st += `<p class="center soft">🔒 مقفل بعد إجابة خاطئة: ${v.locked.map((t) => LBL2[t]).join("، ")}</p>`;
+    } else if (v.phase === "boardEnd") st = `<p class="center h1">${LBL2[v.boardWinner]} وصّل المسار!</p>`;
+    return dispHead("تحدي الحروف", `اللوحة ${ar(v.board)} من ${ar(v.boards)} • المقدم: ${nm(ctx2, v.host)}`) + `<div class="disp-cols"><div class="disp-zoom">${grid(v, false)}</div><div>${teams}${panel(st, "", "margin-top:12px")}</div></div>`;
+  }
 
   // js/ui/games/familyfeud-ui.js
   var familyfeud_ui_exports = {};
   __export(familyfeud_ui_exports, {
-    ambient: () => ambient12,
-    kit: () => kit12,
-    onFx: () => onFx12,
-    render: () => render12,
-    screenKey: () => screenKey12,
-    theme: () => theme12
+    ambient: () => ambient13,
+    kit: () => kit13,
+    onFx: () => onFx13,
+    render: () => render13,
+    renderDisplay: () => renderDisplay13,
+    screenKey: () => screenKey13,
+    theme: () => theme13
   });
-  var theme12 = "familyfeud";
-  var kit12 = "pop";
-  var ambient12 = () => "";
+  var theme13 = "familyfeud";
+  var kit13 = "pop";
+  var ambient13 = () => "";
   var LBL3 = { A: "الفريق الأحمر", B: "الفريق الأزرق" };
   function board(v, isMod) {
     return `<div class="ff-board">${v.answers.map((a, k) => {
       const shown = a.shown;
-      const inner = shown || isMod ? `<span class="ff-t">${esc(a.text)}</span><span class="ff-p">${ar(a.pts)}</span>` : `<span class="ff-n">${ar(k + 1)}</span>`;
+      const inner = shown || isMod ? `<span class="ff-t">${esc(a.text)}</span><span class="ff-p">${ar(a.pts)}</span>` : `<span class="ff-n">${ar(k + 1)}</span><span class="ff-p ff-hidden-p">${ar(a.pts)}</span>`;
       const canJudge = isMod && !shown && ["faceoff", "play", "steal"].includes(v.phase) && (v.phase !== "faceoff" || v.face.buzz);
-      return `<button class="ff-slot ${shown ? "shown" : ""} ${isMod && !shown ? "mod" : ""}" ${canJudge ? act16({ type: "judge", index: k }) : "disabled"}>${inner}</button>`;
+      return `<button class="ff-slot ${shown ? "shown" : ""} ${isMod && !shown ? "mod" : ""}" ${canJudge ? act17({ type: "judge", index: k }) : "disabled"}>${inner}</button>`;
     }).join("")}</div>`;
   }
   function clock(v) {
@@ -11396,22 +12713,29 @@ var qrcode = function() {
     if (v.clockStopped) return `<p class="center muted" style="margin:6px 0">⏸ الوقت متوقف — بانتظار حكم المقدم</p>`;
     return "";
   }
+  var bankBox = (v) => `<span class="ff-bank" title="رصيد الجولة"><small>رصيد الجولة</small>${ar(v.bank)}</span>`;
+  var totals = (ctx2, v) => `<p class="ff-tot-l">المجموع الكلي</p>${teamsBlock(ctx2, v.teams, LBL3, v.score)}`;
   var strikes = (n) => `<div class="ff-strikes">${Array.from({ length: 3 }, (_, k) => `<span class="${k < n ? "on" : ""}">✕</span>`).join("")}</div>`;
-  var screenKey12 = (v) => [v.phase, v.round].join(":");
-  function render12(ctx2) {
+  var screenKey13 = (v) => [v.phase, v.round].join(":");
+  function render13(ctx2) {
     const v = ctx2.view;
     const isMod = v.isMod;
-    let h = teamsBlock(ctx2, v.teams, LBL3, v.score);
+    let h = totals(ctx2, v);
     h += `<p class="center muted" style="margin:4px 0">الجولة ${ar(v.round)} من ${ar(v.rounds)} • المقدم: ${nm(ctx2, v.host)}</p>`;
-    h += `<div class="ff-q"><p class="h2" style="margin:0">${esc(v.question)}</p><span class="ff-bank">${ar(v.bank)}</span></div>`;
+    h += `<div class="ff-q"><p class="h2" style="margin:0">${esc(v.question)}</p>${bankBox(v)}</div>`;
     h += board(v, isMod);
     if (v.phase === "faceoff") {
       const f = v.face;
-      h += `<p class="center" style="margin:10px 0">المواجهة: ${who(ctx2, f.A)} ضد ${who(ctx2, f.B)}</p>`;
-      if (f.buzz) h += `<p class="center h2">🔔 يجاوب ${nm(ctx2, f[f.buzz])} (${LBL3[f.buzz]})</p>` + clock(v);
-      if (isMod && f.buzz) h += `<p class="center muted">اضغط الإجابة التي قالها، أو:</p>${btn("ليست في اللوحة ✕", { type: "judge", index: -1 }, "danger block")}`;
-      else if (!f.buzz && (ctx2.me === f.A || ctx2.me === f.B) && !(f.first && f.first === v.myTeam)) h += `<button class="buzzer buzzer-${v.myTeam}" ${act16({ type: "buzz" })}>جرس!</button>`;
-      else if (!f.buzz) h += wait("بانتظار الجرس");
+      if (!f.buzz) {
+        h += `<p class="center" style="margin:10px 0">🔔 الجرس مفتوح للجميع — أسرع واحد يجاوب عن فريقه</p>`;
+        if (v.myTeam && !f.first) h += `<button class="buzzer buzzer-${v.myTeam}" ${act17({ type: "buzz" })}>جرس!</button>`;
+        else h += wait(isMod ? "بانتظار أول ضغطة جرس" : "بانتظار الجرس");
+      } else {
+        h += f.first ? `<p class="center h2">دور ${LBL3[f.buzz]}: يجاوب ${who(ctx2, f[f.buzz])}</p>` : `<p class="center h2">🔔 أسرع ضغطة: ${who(ctx2, f.buzzBy || f[f.buzz])} (${LBL3[f.buzz]})</p>`;
+        h += clock(v);
+        if (isMod) h += `<p class="center muted">اضغط الإجابة التي قالها، أو:</p>${btn("ليست في اللوحة ✕", { type: "judge", index: -1 }, "danger block")}`;
+        else h += `<p class="center muted" style="margin:4px 0">🔒 الجرس مقفل</p>`;
+      }
     } else if (v.phase === "choose") {
       h += `<p class="center h2">${LBL3[v.faceWinner]} كسب المواجهة</p>`;
       if (v.myTeam === v.faceWinner || isMod) h += `<div class="row">${btn("نلعب", { type: "choose", value: "play" }, "grow-btn")}${btn("نمرّر", { type: "choose", value: "pass" }, "soft grow-btn")}</div>`;
@@ -11432,38 +12756,81 @@ var qrcode = function() {
     }
     return h;
   }
-  function onFx12(e, ctx2) {
+  function onFx13(e, ctx2) {
     const m = { buzz: "buzz", reveal: "correct", strike: "wrong", award: "coin", phase: "phase", "round-start": "round", timeUp: "timeUp" };
     if (m[e.kind]) ctx2.sfx(m[e.kind]);
     if (e.kind === "timeUp") vibrate([60, 40, 60]);
     if (e.kind === "strike") {
       flash("#c62828");
       shake();
+      if (ctx2.isDisplay) bigX(ctx2.view.phase === "play" ? ctx2.view.strikes : 1);
     }
+    if (e.kind === "reveal" && ctx2.isDisplay) burst(["#ffd34d", "#ffffff", "#f2b705"]);
     if (e.kind === "buzz") vibrate(40);
     if (e.kind === "game-over") {
       ctx2.sfx("win");
       if (ctx2.view.winner === ctx2.view.myTeam) burst(["#ffd34d", "#1e88e5", "#fff"]);
     }
   }
+  function bigX(n = 1) {
+    const el = document.createElement("div");
+    el.className = "ff-bigx";
+    el.setAttribute("aria-hidden", "true");
+    el.textContent = "✕".repeat(Math.max(1, Math.min(3, n)));
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 1300);
+  }
+  function renderDisplay13(ctx2) {
+    var _a, _b, _c;
+    const v = ctx2.view;
+    (_a = ctx2.ui).ffSeen || (_a.ffSeen = {});
+    const seen = (_b = ctx2.ui.ffSeen)[_c = v.round] || (_b[_c] = []);
+    const slots = v.answers.map((a, k) => {
+      const just = a.shown && !seen.includes(k);
+      if (just) seen.push(k);
+      const inner = a.shown ? `<span class="ff-t">${esc(a.text)}</span><span class="ff-p">${ar(a.pts)}</span>` : `<span class="ff-n">${ar(k + 1)}</span><span class="ff-p ff-hidden-p">${ar(a.pts)}</span>`;
+      return `<div class="ff-slot ${a.shown ? "shown" : ""} ${just ? "just" : ""}">${inner}</div>`;
+    }).join("");
+    const board2 = `<div class="ff-q"><p class="h2" style="margin:0">${esc(v.question)}</p>${bankBox(v)}</div><div class="ff-board disp-ff">${slots}</div>`;
+    if (v.phase === "over") {
+      const w = v.winner;
+      return winnerBanner(w === "tie" ? "تعادل!" : `فاز ${LBL3[w]}`, `${ar(v.score.A)} — ${ar(v.score.B)}`) + totals(ctx2, v);
+    }
+    let st = "";
+    const f = v.face;
+    if (v.phase === "faceoff") {
+      st = !f.buzz ? `<p class="center h1" style="margin:6px 0">🔔 الجرس مفتوح!</p><p class="center soft">أسرع واحد يجاوب عن فريقه</p>` : f.first ? `<p class="center h2">دور ${LBL3[f.buzz]}: ${nm(ctx2, f[f.buzz])}</p>` : `<p class="center h2">🔔 أسرع ضغطة: ${nm(ctx2, f.buzzBy || f[f.buzz])}</p><p class="center soft">${LBL3[f.buzz]}</p>`;
+      if (f.buzz) st += clock(v);
+    } else if (v.phase === "choose") {
+      st = `<p class="center h2">${LBL3[v.faceWinner]} كسب المواجهة</p><p class="center soft">يقرر: نلعب أو نمرّر</p>`;
+    } else if (v.phase === "play") {
+      st = strikes(v.strikes) + `<p class="center h2">${LBL3[v.control]} يلعب</p><p class="center">يجاوب الآن: <b>${nm(ctx2, v.answerer)}</b></p>` + clock(v);
+    } else if (v.phase === "steal") {
+      st = strikes(3) + `<p class="center h2">فرصة السرقة لـ${LBL3[v.control === "A" ? "B" : "A"]}!</p>` + clock(v);
+    } else if (v.phase === "roundEnd" && v.result) {
+      st = `<p class="center h2">الجولة لـ${LBL3[v.result.team]}${v.result.stolen ? " (بالسرقة!)" : ""}</p><p class="disp-big">+${ar(v.result.points)}</p><p class="center soft">أُضيف رصيد الجولة إلى المجموع الكلي</p>`;
+    }
+    return dispHead("فاميلي فيود", `الجولة ${ar(v.round)} من ${ar(v.rounds)}`) + `<div class="disp-cols"><div>${board2}</div><div>${totals(ctx2, v)}${panel(st, "", "margin-top:12px")}</div></div>`;
+  }
 
   // js/ui/games/deception-ui.js
   var deception_ui_exports = {};
   __export(deception_ui_exports, {
-    after: () => after6,
-    ambient: () => ambient13,
-    headerExtra: () => headerExtra7,
-    kit: () => kit13,
-    onAct: () => onAct10,
-    onFx: () => onFx13,
-    onUi: () => onUi10,
-    render: () => render13,
-    screenKey: () => screenKey13,
-    theme: () => theme13
+    after: () => after7,
+    ambient: () => ambient14,
+    headerExtra: () => headerExtra9,
+    kit: () => kit14,
+    onAct: () => onAct11,
+    onFx: () => onFx14,
+    onUi: () => onUi11,
+    render: () => render14,
+    renderDisplay: () => renderDisplay14,
+    screenKey: () => screenKey14,
+    theme: () => theme14
   });
-  var theme13 = "deception";
-  var kit13 = "noir";
-  var ambient13 = () => '<div class="tape tape-1">مسرح جريمة — ممنوع الاقتراب</div>';
+  var theme14 = "deception";
+  var kit14 = "noir";
+  var ambient14 = () => '<div class="tape tape-1">مسرح جريمة — ممنوع الاقتراب</div>';
   var ROLE5 = {
     forensic: ["الطبيب الشرعي", "يعرف الحل ويلمّح بالبلاطات فقط — لا تتكلم!", "#e1b84b"],
     murderer: ["القاتل", "اختر أداة ودليلًا من بطاقاتك، ثم ضلّل المحققين.", "#b33a3a"],
@@ -11472,10 +12839,10 @@ var qrcode = function() {
     investigator: ["محقق", "اكشف القاتل والأداة والدليل معًا. لك شارة اتهام واحدة.", "#4a8a6a"]
   };
   var art3 = (col) => `<svg viewBox="0 0 120 120"><rect x="10" y="10" width="100" height="100" rx="10" fill="#1b2b2a"/><circle cx="60" cy="46" r="16" fill="${col}"/><path d="M30 104 Q60 58 90 104 Z" fill="${col}"/><path d="M36 30 H84 L78 22 H42 Z" fill="#111"/></svg>`;
-  var back6 = () => `<svg viewBox="0 0 200 280"><rect width="200" height="280" fill="#16302e"/><path d="M0 120 L200 80 L200 110 L0 150 Z" fill="#e1b84b"/><text x="100" y="125" text-anchor="middle" font-size="16" fill="#111" transform="rotate(-11 100 115)">تحقيق</text></svg>`;
+  var back5 = () => `<svg viewBox="0 0 200 280"><rect width="200" height="280" fill="#16302e"/><path d="M0 120 L200 80 L200 110 L0 150 Z" fill="#e1b84b"/><text x="100" y="125" text-anchor="middle" font-size="16" fill="#111" transform="rotate(-11 100 115)">تحقيق</text></svg>`;
   var roleCard5 = (r, flipped, attrs = "", size2 = "") => {
     const [n, d, c] = ROLE5[r];
-    return card({ cls: `dc-card ${size2}`, back: back6(), front: roleFront({ type: "دورك", name: n, desc: d, art: art3(c) }), flipped, attrs, hint: flipped ? "" : "اضغط لكشف دورك" });
+    return card({ cls: `dc-card ${size2}`, back: back5(), front: roleFront({ type: "دورك", name: n, desc: d, art: art3(c) }), flipped, attrs, hint: flipped ? "" : "اضغط لكشف دورك" });
   };
   function knows2(ctx2, me) {
     const k = me.knows;
@@ -11487,17 +12854,17 @@ var qrcode = function() {
     return t ? panel(t, "", "margin-top:10px") : "";
   }
   function tiles(v, markable) {
-    return `<div class="dc-tiles">${v.tiles.map((t, k) => `<div class="dc-tile ${v.newTile === k ? "new" : ""}"><b>${esc(t.title)}</b><div class="dc-opts">${t.options.map((o, j) => markable && (v.round === 1 || v.newTile === k) ? `<button class="dc-opt ${t.mark === j ? "on" : ""}" ${act16({ type: "mark", tile: k, option: j })}>${esc(o)}</button>` : `<span class="dc-opt ${t.mark === j ? "on" : ""}">${esc(o)}</span>`).join("")}</div></div>`).join("")}</div>`;
+    return `<div class="dc-tiles">${v.tiles.map((t, k) => `<div class="dc-tile ${v.newTile === k ? "new" : ""}"><b>${esc(t.title)}</b><div class="dc-opts">${t.options.map((o, j) => markable && (v.round === 1 || v.newTile === k) ? `<button class="dc-opt ${t.mark === j ? "on" : ""}" ${act17({ type: "mark", tile: k, option: j })}>${esc(o)}</button>` : `<span class="dc-opt ${t.mark === j ? "on" : ""}">${esc(o)}</span>`).join("")}</div></div>`).join("")}</div>`;
   }
   function suspects(ctx2, v) {
     return `<div class="dc-suspects">${v.players.filter((p) => !p.forensic).map((p) => `<div class="dc-sus"><div class="row spread">${chip(ctx2, p.id, p.id === ctx2.me ? " (أنت)" : "")}<span class="badge ${p.badge ? "" : "off"}">${p.badge ? "🔰" : "استُخدمت"}</span></div>
     <div class="dc-cards"><div>${p.means.map((m) => `<span class="dc-m">${esc(m)}</span>`).join("")}</div><div>${p.clues.map((c) => `<span class="dc-c">${esc(c)}</span>`).join("")}</div></div></div>`).join("")}</div>`;
   }
-  function headerExtra7(ctx2) {
+  function headerExtra9(ctx2) {
     return ctx2.view.me && !["roles", "over"].includes(ctx2.view.phase) ? `<button class="icon-btn" data-ui="peek" aria-label="اعرض دوري">🕵️</button>` : "";
   }
-  var screenKey13 = (v) => [v.phase, v.round].join(":");
-  function render13(ctx2) {
+  var screenKey14 = (v) => [v.phase, v.round].join(":");
+  function render14(ctx2) {
     const v = ctx2.view, me = v.me;
     if (v.phase === "roles") return revealStep(ctx2, { cardHtml: roleCard5(me.role, !!ctx2.ui.revealed, 'data-ui="reveal" role="button" tabindex="0"'), readyCount: v.players.filter((p) => p.ready).length, total: v.players.length, ready: me.ready, after: knows2(ctx2, me) });
     const F = v.players.find((p) => p.forensic).id;
@@ -11547,7 +12914,7 @@ var qrcode = function() {
     }
     return h;
   }
-  function after6(root2) {
+  function after7(root2) {
     root2.querySelectorAll("[data-stagger]").forEach((c) => setTimeout(() => c.classList.add("is-flipped"), 250 + Number(c.dataset.stagger) * 140));
   }
   function solveSheet(ctx2) {
@@ -11562,7 +12929,7 @@ var qrcode = function() {
         h += `<p>الدليل:</p><div class="row wrap" style="gap:6px">${p.clues.map((c, k) => `<button class="dc-c pick ${s.clue === p.cluesIdx[k] ? "on" : ""}" data-sv="clue" data-v="${p.cluesIdx[k]}">${esc(c)}</button>`).join("")}</div>`;
       }
       const ready = p && s.means != null && s.clue != null;
-      h += `<div class="row" style="margin-top:14px"><button class="btn danger grow-btn" ${ready ? act16({ type: "solve", target: s.target, means: s.means, clue: s.clue }) : "disabled"} data-sheet-close>أتّهم!</button><button class="btn soft grow-btn" data-sheet-close>إلغاء</button></div>`;
+      h += `<div class="row" style="margin-top:14px"><button class="btn danger grow-btn" ${ready ? act17({ type: "solve", target: s.target, means: s.means, clue: s.clue }) : "disabled"} data-sheet-close>أتّهم!</button><button class="btn soft grow-btn" data-sheet-close>إلغاء</button></div>`;
       return h;
     };
     openSheet(`<div data-sc>${draw2()}</div>`, {
@@ -11584,7 +12951,7 @@ var qrcode = function() {
       }
     });
   }
-  function onUi10(name, el, ctx2, rerender) {
+  function onUi11(name, el, ctx2, rerender) {
     if (flipReveal(name, el, ctx2, rerender, "reveal")) return;
     if (name === "cm") {
       ctx2.ui.cm = Number(el.dataset.k);
@@ -11600,10 +12967,10 @@ var qrcode = function() {
     }
     if (name === "peek") openSheet(`<h2>دوري</h2>${roleCard5(ctx2.view.me.role, true)}${knows2(ctx2, ctx2.view.me)}<button class="btn soft block" style="margin-top:14px" data-sheet-close>إخفاء</button>`, { label: "دوري" });
   }
-  function onAct10(a, ctx2) {
+  function onAct11(a, ctx2) {
     if (a.type === "ready") ctx2.ui.revealed = false;
   }
-  function onFx13(e, ctx2) {
+  function onFx14(e, ctx2) {
     const m = { night: "night", committed: "scream", phase: "phase", "wrong-guess": "wrong", solved: "correct" };
     if (m[e.kind]) ctx2.sfx(m[e.kind]);
     if (e.kind === "solved") flash("#e1b84b");
@@ -11615,22 +12982,41 @@ var qrcode = function() {
       } else ctx2.sfx("lose");
     }
   }
+  function renderDisplay14(ctx2) {
+    const v = ctx2.view;
+    if (v.phase === "over") {
+      const crime = v.crime ? panel(`<p class="center h2" style="margin:0">الجريمة: ${esc(v.crime.means)} + ${esc(v.crime.clue)}</p>`, "", "margin:10px 0") : "";
+      return winnerBanner(v.winner === "investigators" || v.winner === "good" ? "انتصر المحققون" : "انتصر القاتل", v.reason || "") + crime + dispPlayers(ctx2, v.players.map((p) => ({ id: p.id, sub: ROLE5[p.role]?.[0] || "" })));
+    }
+    const P2 = {
+      roles: "كل لاعب يكشف دوره سرًّا",
+      crime: "🌙 القاتل يختار سلاحه ودليله… الجميع يغمض عينيه",
+      scene: "🔬 الطبيب الشرعي يضع علاماته على البلاطات",
+      discuss: "النقاش والاتهامات",
+      replace: "الطبيب الشرعي يستبدل بلاطة",
+      witnessHunt: "👁️ القاتل وشريكه يبحثان عن الشاهد"
+    };
+    const head = dispHead("الخداع", `الجولة ${ar(v.round)} — ${P2[v.phase] || ""}`);
+    const timer = v.deadline ? `<div class="center">${timerHtml(v.deadline)}</div>` : "";
+    return head + timer + `<div class="disp-cols"><div>${tiles(v, false)}</div><div>${suspects(ctx2, v)}</div></div>`;
+  }
 
   // js/ui/games/shareef-ui.js
   var shareef_ui_exports = {};
   __export(shareef_ui_exports, {
-    ambient: () => ambient14,
-    kit: () => kit14,
-    onAct: () => onAct11,
-    onFx: () => onFx14,
-    onUi: () => onUi11,
-    render: () => render14,
-    screenKey: () => screenKey14,
-    theme: () => theme14
+    ambient: () => ambient15,
+    kit: () => kit15,
+    onAct: () => onAct12,
+    onFx: () => onFx15,
+    onUi: () => onUi12,
+    render: () => render15,
+    renderDisplay: () => renderDisplay15,
+    screenKey: () => screenKey15,
+    theme: () => theme15
   });
-  var theme14 = "shareef";
-  var kit14 = "luxe";
-  var ambient14 = () => "";
+  var theme15 = "shareef";
+  var kit15 = "luxe";
+  var ambient15 = () => "";
   var G = {
     apple: ["تفاح", 2, 2, true, "#d64545", "🍎"],
     cheese: ["جبن", 3, 2, true, "#e8b93c", "🧀"],
@@ -11642,23 +13028,23 @@ var qrcode = function() {
     crossbow: ["قوس", 9, 4, false, "#4a4a4a", "🏹"]
   };
   var LEGAL2 = ["apple", "cheese", "bread", "chicken"];
-  var back7 = () => `<svg viewBox="0 0 200 280"><rect width="200" height="280" fill="#5a3415"/><circle cx="100" cy="140" r="40" fill="#a3231f"/><text x="100" y="152" text-anchor="middle" font-size="34" fill="#f3d9a4">ش</text></svg>`;
+  var back6 = () => `<svg viewBox="0 0 200 280"><rect width="200" height="280" fill="#5a3415"/><circle cx="100" cy="140" r="40" fill="#a3231f"/><text x="100" y="152" text-anchor="middle" font-size="34" fill="#f3d9a4">ش</text></svg>`;
   function good(g, { size: size2 = "sm", attrs = "" } = {}) {
     const [n, v, p, legal, col, em] = G[g];
     return card({
       cls: `sh-good ${size2} ${legal ? "" : "contra"}`,
-      back: back7(),
+      back: back6(),
       flipped: true,
       attrs,
       front: `<div class="cf" style="--gc:${col}"><div class="cf-head"><span class="cf-type">${legal ? "قانوني" : "ممنوع"}</span></div><div class="cf-art" style="font-size:42px">${em}</div><h3 class="cf-name">${n}</h3><p class="cf-desc">قيمة ${ar(v)} • غرامة ${ar(p)}</p></div>`
     });
   }
-  var screenKey14 = (v) => [v.phase, v.turnNo, v.current || ""].join(":");
+  var screenKey15 = (v) => [v.phase, v.turnNo, v.current || ""].join(":");
   function stands(ctx2, v) {
     return `<div class="sh-stands">${v.players.map((p) => `<div class="sh-stand ${p.id === v.sheriff ? "sheriff" : ""}"><div class="row spread">${chip(ctx2, p.id, p.id === v.sheriff ? " ⭐" : "")}<b>🪙 ${ar(p.gold)}</b></div>
     <div class="row wrap" style="gap:4px;margin-top:4px;font-size:14px">${Object.entries(p.stand).filter(([, c]) => c).map(([g, c]) => `<span class="badge">${G[g][5]} ${ar(c)}</span>`).join("")}${p.hidden ? `<span class="badge off">مقلوبة ${ar(p.hidden)}</span>` : ""}</div></div>`).join("")}</div>`;
   }
-  function render14(ctx2) {
+  function render15(ctx2) {
     const v = ctx2.view, me = v.me;
     const isSheriff = v.sheriff === ctx2.me;
     let h = `<p class="center muted" style="margin:0">الدور ${ar(v.turnNo)} من ${ar(v.turnsTotal)} • الشريف: ${nm(ctx2, v.sheriff)} ⭐</p>` + stands(ctx2, v);
@@ -11707,17 +13093,17 @@ var qrcode = function() {
     if (!L.inspected) return panel(`<p class="center" style="margin:0">مرّت حقيبة ${nm(ctx2, L.merchant)}${L.bribe ? ` مقابل 🪙 ${ar(L.bribe)}` : ""}</p>`, "", "margin-top:8px");
     return panel(`<p class="center" style="margin:0">فُتّشت حقيبة ${nm(ctx2, L.merchant)}: ${L.bag.map((g) => G[g][5]).join(" ")} — ${L.honest ? `<b style="color:var(--ok)">صادق!</b> الشريف دفع ${ar(L.paid)}` : `<b style="color:var(--danger)">كاذب!</b> صودر ${L.confiscated.map((g) => G[g][5]).join(" ")} ودفع ${ar(L.paid)}`}</p>`, "", "margin-top:8px");
   }
-  function onUi11(name, el, ctx2, rerender) {
+  function onUi12(name, el, ctx2, rerender) {
     if (name === "sel") {
       toggleSel(ctx2, "sel", Number(el.dataset.k), Number(el.dataset.max) || 5);
       ctx2.sfx("tap");
       rerender();
     }
   }
-  function onAct11(a, ctx2) {
+  function onAct12(a, ctx2) {
     if (["market", "load"].includes(a.type)) ctx2.ui.sel = [];
   }
-  function onFx14(e, ctx2) {
+  function onFx15(e, ctx2) {
     const m = { "round-start": "round", phase: "phase", bag: "flip", offer: "coin", pass: "pass", honest: "coin", caught: "gavel" };
     if (m[e.kind]) ctx2.sfx(m[e.kind]);
     if (e.kind === "caught") shake();
@@ -11728,21 +13114,32 @@ var qrcode = function() {
       } else ctx2.sfx("lose");
     }
   }
+  function renderDisplay15(ctx2) {
+    const v = ctx2.view;
+    if (v.phase === "over") {
+      const rows = (v.scores || []).slice().sort((a, b) => b.total - a.total).map((r, k) => `<tr><td><span class="rank ${k === 0 ? "first" : ""}">${ar(k + 1)}</span></td><td>${chip(ctx2, r.id)}</td><td class="num">${ar(r.total)}</td></tr>`).join("");
+      return winnerBanner(`فاز ${(v.winner || []).map((id) => nm(ctx2, id)).join(" و")}`, "أمهر تاجر في نوتنغهام") + `<div class="panel"><table class="score-table"><tbody>${rows}</tbody></table></div>`;
+    }
+    const P2 = { market: "التجار يبدّلون بضائعهم في السوق", load: "التجار يعبّئون حقائبهم ويعلنون محتواها", inspect: `الشريف ${nm(ctx2, v.sheriff)} يقرر: يفتش أم يمرّر؟`, turnEnd: "نهاية الدور" };
+    const cur2 = v.current ? `<p class="center h2">أمام الشريف: ${nm(ctx2, v.current)}</p>` : "";
+    return dispHead("شريف نوتنغهام", `الدور ${ar(v.turnNo)} من ${ar(v.turnsTotal)} • الشريف: ${nm(ctx2, v.sheriff)} ⭐`) + `<div class="disp-cols"><div>${stands(ctx2, v)}</div><div>${panel(`<p class="center h2" style="margin:0">${P2[v.phase] || ""}</p>`)}${cur2}${lastInspect(ctx2, v)}</div></div>`;
+  }
 
   // js/ui/games/monopoly-ui.js
   var monopoly_ui_exports = {};
   __export(monopoly_ui_exports, {
-    ambient: () => ambient15,
-    kit: () => kit15,
-    onFx: () => onFx15,
-    onUi: () => onUi12,
-    render: () => render15,
-    screenKey: () => screenKey15,
-    theme: () => theme15
+    ambient: () => ambient16,
+    kit: () => kit16,
+    onFx: () => onFx16,
+    onUi: () => onUi13,
+    render: () => render16,
+    renderDisplay: () => renderDisplay16,
+    screenKey: () => screenKey16,
+    theme: () => theme16
   });
-  var theme15 = "monopoly";
-  var kit15 = "pop";
-  var ambient15 = () => "";
+  var theme16 = "monopoly";
+  var kit16 = "pop";
+  var ambient16 = () => "";
   var GC = { brown: "#8b5a2b", sky: "#7fd3f7", pink: "#e05aa0", orange: "#f39c12", red: "#e74c3c", yellow: "#f1c40f", green: "#27ae60", navy: "#2c3e9e" };
   var PC = ["#e74c3c", "#2980b9", "#27ae60", "#f39c12", "#8e44ad", "#16a085", "#d35400", "#2c3e50"];
   var ICON = { go: "➡️", chest: "🎁", chance: "❓", tax: "💸", rail: "🚉", util: "⚡", jail: "🚔", parking: "🅿️", gotojail: "👮" };
@@ -11799,8 +13196,8 @@ var qrcode = function() {
       return `<div class="mprop"><span class="strip" style="background:${b.group ? GC[b.group] : "#999"}"></span><span class="grow">${esc(b.name)}${pr.mortgaged ? " (مرهون)" : ""}${pr.houses ? " " + (pr.houses === 5 ? "🏨" : "🏠".repeat(pr.houses)) : ""}</span>${bs.join("")}</div>`;
     }).join("")}</details>`;
   }
-  var screenKey15 = (v) => [v.phase, v.turn, v.round].join(":");
-  function render15(ctx2) {
+  var screenKey16 = (v) => [v.phase, v.turn, v.round].join(":");
+  function render16(ctx2) {
     const v = ctx2.view;
     const meP = v.players.find((p) => p.id === ctx2.me);
     let h = "";
@@ -11883,7 +13280,7 @@ var qrcode = function() {
       })
     });
   }
-  function onUi12(name, el, ctx2, rerender) {
+  function onUi13(name, el, ctx2, rerender) {
     if (name === "sq") {
       const k = Number(el.dataset.k);
       const v = ctx2.view;
@@ -11895,7 +13292,7 @@ var qrcode = function() {
       tradeSheet(ctx2);
     }
   }
-  function onFx15(e, ctx2) {
+  function onFx16(e, ctx2) {
     const m = { dice: "dice", buy: "coin", rent: "coin", go: "point", card: "flip", jail: "gavel", build: "bid", bid: "tap", debt: "wrong", bankrupt: "boom", trade: "secret", "trade-yes": "correct", "trade-no": "pass", mortgage: "flip" };
     if (m[e.kind]) ctx2.sfx(m[e.kind]);
     if (e.kind === "bankrupt") shake();
@@ -11906,9 +13303,21 @@ var qrcode = function() {
       } else ctx2.sfx("lose");
     }
   }
+  function renderDisplay16(ctx2) {
+    const v = ctx2.view;
+    const list = v.players.map((p) => `<div class="row spread" style="padding:6px 0;${p.id === v.turn ? "font-weight:800" : ""}${p.bankrupt ? ";opacity:.45" : ""}">
+    <span>${chip(ctx2, p.id)}${p.id === v.turn ? " 🎲" : ""}${p.jail ? " ⛓️" : ""}</span><b>${p.bankrupt ? "مفلس" : money(p.cash)}</b></div>`).join("");
+    let st = "";
+    if (v.dice) st += `<p class="disp-big">🎲 ${ar(v.dice[0])} + ${ar(v.dice[1])}</p>`;
+    if (v.auction) st += panel(`<p class="center h2" style="margin:0">مزاد: ${esc(BOARD[v.auction.sq]?.name || "")}</p><p class="center" style="margin:4px 0 0">أعلى عرض ${money(v.auction.high)}${v.auction.bidder ? " — " + nm(ctx2, v.auction.bidder) : ""}</p>`);
+    if (v.debt) st += panel(`<p class="center" style="margin:0">${nm(ctx2, v.debt.from)} عليه دين ${money(v.debt.amount)}</p>`, "", "margin-top:8px");
+    if (v.lastCard) st += panel(`<p class="center" style="margin:0">${nm(ctx2, v.lastCard.who)}: ${esc(v.lastCard.text)}</p>`, "", "margin-top:8px");
+    const head = v.phase === "over" ? winnerBanner(`فاز ${v.winner.map((id) => nm(ctx2, id)).join(" و")}`, "أقوى إمبراطورية عقارية") : dispHead("مونوبولي", `الجولة ${ar(v.round)}${v.maxRounds ? " من " + ar(v.maxRounds) : ""} • الدور: ${nm(ctx2, v.turn)}`);
+    return head + `<div class="disp-cols"><div class="mono-disp">${boardHtml(ctx2, v)}</div><div>${panel(list)}${st}${logBlock((v.log || []).slice(-5))}</div></div>`;
+  }
 
   // js/ui/play.js
-  var GAME_UI = { mafia: mafia_ui_exports, skull: skull_ui_exports, bara: bara_ui_exports, avalon: avalon_ui_exports, werewolf: werewolf_ui_exports, coup: coup_ui_exports, secret: secret_ui_exports, kittens: kittens_ui_exports, wavelength: wavelength_ui_exports, herd: herd_ui_exports, letters: letters_ui_exports, familyfeud: familyfeud_ui_exports, deception: deception_ui_exports, shareef: shareef_ui_exports, monopoly: monopoly_ui_exports };
+  var GAME_UI = { mafia: mafia_ui_exports, skull: skull_ui_exports, bara: bara_ui_exports, avalon: avalon_ui_exports, werewolf: werewolf_ui_exports, coup: coup_ui_exports, secret: secret_ui_exports, kittens: kittens_ui_exports, wavelength: wavelength_ui_exports, herd: herd_ui_exports, letters: letters_ui_exports, familyfeud: familyfeud_ui_exports, deception: deception_ui_exports, shareef: shareef_ui_exports, monopoly: monopoly_ui_exports, kalim: kalim_ui_exports };
   var HOST_KEY = "samra.host";
   var LAST_ROOM_KEY = "samra.lastRoom";
   var LAST_DISPLAY_KEY = "samra.lastDisplay";
@@ -12148,7 +13557,7 @@ var qrcode = function() {
     const msg = s.state;
     const gameId = msg?.room.gameId;
     const gameUi = GAME_UI[gameId];
-    const meta16 = byId(gameId);
+    const meta17 = byId(gameId);
     setTheme(msg && msg.room.status === "playing" ? gameUi?.theme : gameUi?.theme || "shell", gameUi);
     document.body.classList.toggle("display-mode", !!s.isDisplay);
     if (!app2.querySelector("#stage")) {
@@ -12179,10 +13588,10 @@ var qrcode = function() {
     if (key !== s.screenKey) closeSheetOfScope("game");
     s.screenKey = key;
     if (s.isDisplay) {
-      stage.innerHTML = msg.room.status === "lobby" || !msg.game ? displayLobbyHtml(ctx2, meta16) : `<div class="game-${gameId} disp">${gameUi.renderDisplay ? gameUi.renderDisplay(ctx2) : displayFallback(ctx2, meta16)}</div>`;
+      stage.innerHTML = msg.room.status === "lobby" || !msg.game ? displayLobbyHtml(ctx2, meta17) : `<div class="game-${gameId} disp">${gameUi.renderDisplay ? gameUi.renderDisplay(ctx2) : displayFallback(ctx2, meta17)}</div>`;
       if (msg.game && msg.room.status !== "lobby") gameUi.after?.(stage, ctx2);
     } else if (msg.room.status === "lobby" || !msg.game) {
-      stage.innerHTML = lobbyHtml(ctx2, meta16);
+      stage.innerHTML = lobbyHtml(ctx2, meta17);
     } else {
       let html = `<div class="game-${gameId}">${gameUi.render(ctx2)}</div>`;
       if (msg.game.phase === "over") html += endActions(ctx2);
@@ -12204,9 +13613,9 @@ var qrcode = function() {
     }
     tickTimers();
   }
-  function setTheme(theme16, gameUi) {
-    if (document.body.dataset.theme !== theme16) {
-      document.body.dataset.theme = theme16;
+  function setTheme(theme17, gameUi) {
+    if (document.body.dataset.theme !== theme17) {
+      document.body.dataset.theme = theme17;
       document.body.classList.remove("is-night");
       let amb = document.querySelector(".ambient-layer");
       const html = gameUi?.ambient?.() || "";
@@ -12219,27 +13628,27 @@ var qrcode = function() {
         }
         amb.innerHTML = html;
       } else if (amb) amb.remove();
-      const meta16 = document.querySelector("meta[name=theme-color]");
-      if (meta16) meta16.content = getComputedStyle(document.body).getPropertyValue("--bg").trim() || "#231b2e";
+      const meta17 = document.querySelector("meta[name=theme-color]");
+      if (meta17) meta17.content = getComputedStyle(document.body).getPropertyValue("--bg").trim() || "#231b2e";
     }
   }
   function renderTop(msg) {
     const top = document.getElementById("topbar");
     if (!top) return;
-    const meta16 = msg ? byId(msg.room.gameId) : null;
+    const meta17 = msg ? byId(msg.room.gameId) : null;
     const gameUi = msg ? GAME_UI[msg.room.gameId] : null;
     const extra = msg && msg.game && msg.room.status === "playing" && gameUi?.headerExtra ? gameUi.headerExtra(ctxFor(S2)) : "";
     const snd = settings.get().sound;
     if (S2?.isDisplay) {
       top.innerHTML = `<button class="icon-btn" data-cmd="leave" aria-label="إغلاق شاشة العرض">✕</button>
-      <div class="title">${esc(meta16?.name || "سمرة")} <span class="badge disp-badge">📺 شاشة العرض</span></div>${extra}
+      <div class="title">${esc(meta17?.name || "سمرة")} <span class="badge disp-badge">📺 شاشة العرض</span></div>${extra}
       ${msg ? `<span class="badge" dir="ltr">${esc(msg.room.code)}</span>` : ""}
       <button class="icon-btn" data-cmd="fullscreen" aria-label="ملء الشاشة">⛶</button>
       <button class="icon-btn" data-cmd="mute" aria-label="${snd ? "كتم الصوت" : "تشغيل الصوت"}">${snd ? "🔊" : "🔇"}</button>`;
       return;
     }
     top.innerHTML = `<button class="icon-btn" data-cmd="leave" aria-label="مغادرة الغرفة">✕</button>
-    <div class="title">${esc(meta16?.name || "سمرة")}</div>${extra}
+    <div class="title">${esc(meta17?.name || "سمرة")}</div>${extra}
     <button class="icon-btn" data-cmd="mute" aria-label="${snd ? "كتم الصوت" : "تشغيل الصوت"}">${snd ? "🔊" : "🔇"}</button>
     <button class="icon-btn" data-cmd="settings" aria-label="الإعدادات">⚙️</button>`;
   }
@@ -12278,7 +13687,7 @@ var qrcode = function() {
       ${s.status === "failed" ? '<button class="btn" data-cmd="retry">أعد المحاولة</button>' : ""}
       <button class="btn ghost" data-cmd="home">الصفحة الرئيسية</button></div></div>`;
   }
-  function lobbyHtml(ctx2, meta16) {
+  function lobbyHtml(ctx2, meta17) {
     const room = ctx2.room;
     const meP = ctx2.player(ctx2.me);
     const url = joinUrl(room.code);
@@ -12314,13 +13723,13 @@ var qrcode = function() {
     }
     return html;
   }
-  function displayLobbyHtml(ctx2, meta16) {
+  function displayLobbyHtml(ctx2, meta17) {
     const room = ctx2.room;
     const n = room.players.length;
     return `<div class="disp-lobby">
     <section class="panel disp-join">
       <div class="disp-cover">${COVERS[room.gameId] ? COVERS[room.gameId]() : ""}</div>
-      <p class="h1 disp-gname">${esc(meta16?.name || "")}</p>
+      <p class="h1 disp-gname">${esc(meta17?.name || "")}</p>
       <div class="qr" aria-label="رمز QR للانضمام">${qrSvg(joinUrl(room.code))}</div>
       <p class="soft" style="margin:4px 0">امسحوا الرمز بكاميرا الجوال للانضمام، أو اكتبوا الكود:</p>
       <div class="code-digits">${esc(room.code)}</div>
@@ -12329,13 +13738,13 @@ var qrcode = function() {
       <div class="row spread" style="margin-bottom:12px"><h2 class="h2">اللاعبون</h2><span class="badge">${ar(n)}</span></div>
       <div class="disp-pgrid">${room.players.map((p) => `<div class="disp-p ${p.connected ? "" : "off"}">${avatar(p, "lg")}<b>${esc(p.name)}</b>
         <span class="muted">${p.isHost ? "المضيف" : !p.connected ? "منقطع" : p.ready ? "✓ جاهز" : "يستعد…"}</span></div>`).join("")}</div>
-      ${meta16?.short ? `<p class="soft center" style="margin-top:18px">${esc(meta16.short)}</p>` : ""}
+      ${meta17?.short ? `<p class="soft center" style="margin-top:18px">${esc(meta17.short)}</p>` : ""}
       <p class="h2 center" style="margin-top:10px">بانتظار المضيف لبدء اللعبة<span class="waiting-dots"></span></p>
     </section>
   </div>`;
   }
-  function displayFallback(ctx2, meta16) {
-    return `<div class="big-status"><p class="h1">${esc(meta16?.name || "")}</p><p class="h2">اللعبة جارية</p></div>`;
+  function displayFallback(ctx2, meta17) {
+    return `<div class="big-status"><p class="h1">${esc(meta17?.name || "")}</p><p class="h2">اللعبة جارية</p></div>`;
   }
   function optionsHtml(ctx2) {
     const room = ctx2.room, o = room.options || {}, g = room.gameId, host = ctx2.isHost;
@@ -12401,7 +13810,9 @@ var qrcode = function() {
     const s = S2;
     const ctx2 = s.state ? ctxFor(s) : null;
     const gameUi = s.state ? GAME_UI[s.state.room.gameId] : null;
-    const actEl = e.target.closest("[data-act]");
+    const innerUi = e.target.closest("[data-ui]");
+    const actHit = e.target.closest("[data-act]");
+    const actEl = actHit && innerUi && actHit !== innerUi && actHit.contains(innerUi) ? null : actHit;
     if (actEl && !actEl.disabled) {
       e.preventDefault();
       if (s.busy) return;
@@ -12616,7 +14027,7 @@ var qrcode = function() {
     if (!S2 || !S2.state) return;
     const els = document.querySelectorAll("[data-deadline]");
     if (!els.length) return;
-    const kit16 = GAME_UI[S2.state.room.gameId]?.kit || "shell";
+    const kit17 = GAME_UI[S2.state.room.gameId]?.kit || "shell";
     els.forEach((el) => {
       const dl = Number(el.dataset.deadline);
       const left = dl - S2.client.serverNow();
@@ -12626,11 +14037,11 @@ var qrcode = function() {
       const key = dl + ":" + sec;
       if (sec > 0 && sec <= 5 && !ticked.has(key)) {
         ticked.add(key);
-        play(kit16, "tick");
+        play(kit17, "tick");
       }
       if (left <= 0 && !ticked.has(dl + ":up")) {
         ticked.add(dl + ":up");
-        play(kit16, "timeUp");
+        play(kit17, "timeUp");
       }
     });
   }
@@ -12648,6 +14059,7 @@ var qrcode = function() {
   if (typeof location !== "undefined" && new URLSearchParams(location.search).has("debug")) {
     window.__samraDebug = () => S2 ? { state: S2.state, status: S2.status, isHost: S2.isHost, hostRoom: S2.host ? S2.host.room : null } : null;
     window.__samraS = () => S2;
+    window.__samraRender = () => renderPlay();
     window.__samraWake = () => wakeLock ? "held" : "none";
   }
 
